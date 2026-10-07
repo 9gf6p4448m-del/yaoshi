@@ -1,0 +1,394 @@
+{
+ "stats": {
+  "variants": [
+   "xiaonv",
+   "lvshan",
+   "luzhu",
+   null
+  ],
+  "trisByHand": [
+   4792,
+   4792,
+   4792,
+   4792
+  ],
+  "materialNames": [
+   "hand-skin-proto-b",
+   "hand-skin-proto-b",
+   "hand-skin-proto-b",
+   "hand-skin-proto-b"
+  ],
+  "b3": false,
+  "b3Error": null,
+  "seatMul": [
+   1,
+   1,
+   1,
+   1
+  ]
+ },
+ "pass": 13,
+ "total": 47,
+ "checks": [
+  {
+   "role": "xiaonv",
+   "name": "這一席掛的是批 3 專屬幾何（variants＝角色鍵、userData.real.key＝角色）",
+   "pass": false,
+   "value": {
+    "variant": "xiaonv",
+    "key": "default"
+   }
+  },
+  {
+   "role": "xiaonv",
+   "name": "配件「袖口」有三角形送進 GPU",
+   "pass": false,
+   "value": null
+  },
+  {
+   "role": "xiaonv",
+   "name": "配件「麻布帶」有三角形送進 GPU",
+   "pass": false,
+   "value": null
+  },
+  {
+   "role": "xiaonv",
+   "name": "配件「側結」有三角形送進 GPU",
+   "pass": false,
+   "value": null
+  },
+  {
+   "role": "xiaonv",
+   "name": "配件「垂尾1」有三角形送進 GPU",
+   "pass": false,
+   "value": null
+  },
+  {
+   "role": "xiaonv",
+   "name": "配件「垂尾2」有三角形送進 GPU",
+   "pass": false,
+   "value": null
+  },
+  {
+   "role": "xiaonv",
+   "name": "配件「紙錢灰」有三角形送進 GPU",
+   "pass": false,
+   "value": null
+  },
+  {
+   "role": "xiaonv",
+   "name": "手不縮放不改形（原手頂點位置與預設手逐值相同；seatMul＝1）",
+   "pass": true,
+   "value": {
+    "nBase": 2307,
+    "refN": 2307,
+    "posDiff": 0,
+    "seatMul": 1
+   }
+  },
+  {
+   "role": "xiaonv",
+   "name": "色只落袖口：原手頂點色與預設手不同者全在袖口區（z＜−0.08），皮膚區 0",
+   "pass": false,
+   "value": {
+    "colSkin": 0,
+    "colCuff": 0
+   }
+  },
+  {
+   "role": "xiaonv",
+   "name": "皮膚＝skin-proto 該角色那一組（原手 aSkin 全同一值且＝原 v0.62.5 的值 9/10/11）、配件 aSkin＝0",
+   "pass": true,
+   "value": {
+    "aSkin": 9,
+    "skBad": 0,
+    "accBad": 0
+   }
+  },
+  {
+   "role": "xiaonv",
+   "name": "無 UV（程式生成皮膚）",
+   "pass": true,
+   "value": [
+    "position",
+    "color",
+    "skinIndex",
+    "skinWeight",
+    "aSkin",
+    "aAcc",
+    "normal"
+   ]
+  },
+  {
+   "role": "xiaonv",
+   "name": "每手 ≤6,500 面",
+   "pass": true,
+   "value": 4792
+  },
+  {
+   "role": "lvshan",
+   "name": "這一席掛的是批 3 專屬幾何（variants＝角色鍵、userData.real.key＝角色）",
+   "pass": false,
+   "value": {
+    "variant": "lvshan",
+    "key": "default"
+   }
+  },
+  {
+   "role": "lvshan",
+   "name": "配件「袖口」有三角形送進 GPU",
+   "pass": false,
+   "value": null
+  },
+  {
+   "role": "lvshan",
+   "name": "配件「念珠1」有三角形送進 GPU",
+   "pass": false,
+   "value": null
+  },
+  {
+   "role": "lvshan",
+   "name": "配件「念珠2」有三角形送進 GPU",
+   "pass": false,
+   "value": null
+  },
+  {
+   "role": "lvshan",
+   "name": "配件「念珠3」有三角形送進 GPU",
+   "pass": false,
+   "value": null
+  },
+  {
+   "role": "lvshan",
+   "name": "配件「念珠4」有三角形送進 GPU",
+   "pass": false,
+   "value": null
+  },
+  {
+   "role": "lvshan",
+   "name": "配件「念珠5」有三角形送進 GPU",
+   "pass": false,
+   "value": null
+  },
+  {
+   "role": "lvshan",
+   "name": "配件「念珠6」有三角形送進 GPU",
+   "pass": false,
+   "value": null
+  },
+  {
+   "role": "lvshan",
+   "name": "配件「念珠7」有三角形送進 GPU",
+   "pass": false,
+   "value": null
+  },
+  {
+   "role": "lvshan",
+   "name": "配件「念珠8」有三角形送進 GPU",
+   "pass": false,
+   "value": null
+  },
+  {
+   "role": "lvshan",
+   "name": "配件「念珠9」有三角形送進 GPU",
+   "pass": false,
+   "value": null
+  },
+  {
+   "role": "lvshan",
+   "name": "配件「念珠10」有三角形送進 GPU",
+   "pass": false,
+   "value": null
+  },
+  {
+   "role": "lvshan",
+   "name": "配件「念珠11」有三角形送進 GPU",
+   "pass": false,
+   "value": null
+  },
+  {
+   "role": "lvshan",
+   "name": "配件「念珠12」有三角形送進 GPU",
+   "pass": false,
+   "value": null
+  },
+  {
+   "role": "lvshan",
+   "name": "配件「念珠13」有三角形送進 GPU",
+   "pass": false,
+   "value": null
+  },
+  {
+   "role": "lvshan",
+   "name": "配件「骨扳指（拇指）」有三角形送進 GPU",
+   "pass": false,
+   "value": null
+  },
+  {
+   "role": "lvshan",
+   "name": "配件「朱紅符形」有三角形送進 GPU",
+   "pass": false,
+   "value": null
+  },
+  {
+   "role": "lvshan",
+   "name": "手不縮放不改形（原手頂點位置與預設手逐值相同；seatMul＝1）",
+   "pass": true,
+   "value": {
+    "nBase": 2307,
+    "refN": 2307,
+    "posDiff": 0,
+    "seatMul": 1
+   }
+  },
+  {
+   "role": "lvshan",
+   "name": "色只落袖口：原手頂點色與預設手不同者全在袖口區（z＜−0.08），皮膚區 0",
+   "pass": false,
+   "value": {
+    "colSkin": 0,
+    "colCuff": 0
+   }
+  },
+  {
+   "role": "lvshan",
+   "name": "皮膚＝skin-proto 該角色那一組（原手 aSkin 全同一值且＝原 v0.62.5 的值 9/10/11）、配件 aSkin＝0",
+   "pass": true,
+   "value": {
+    "aSkin": 10,
+    "skBad": 0,
+    "accBad": 0
+   }
+  },
+  {
+   "role": "lvshan",
+   "name": "無 UV（程式生成皮膚）",
+   "pass": true,
+   "value": [
+    "position",
+    "color",
+    "skinIndex",
+    "skinWeight",
+    "aSkin",
+    "aAcc",
+    "normal"
+   ]
+  },
+  {
+   "role": "lvshan",
+   "name": "每手 ≤6,500 面",
+   "pass": true,
+   "value": 4792
+  },
+  {
+   "role": "lvshan",
+   "name": "手背符形為朱紅（全部頂點）",
+   "pass": false,
+   "value": {
+    "red": 0,
+    "n": 0
+   }
+  },
+  {
+   "role": "luzhu",
+   "name": "這一席掛的是批 3 專屬幾何（variants＝角色鍵、userData.real.key＝角色）",
+   "pass": false,
+   "value": {
+    "variant": "luzhu",
+    "key": "default"
+   }
+  },
+  {
+   "role": "luzhu",
+   "name": "配件「袖口」有三角形送進 GPU",
+   "pass": false,
+   "value": null
+  },
+  {
+   "role": "luzhu",
+   "name": "配件「黃編繩1」有三角形送進 GPU",
+   "pass": false,
+   "value": null
+  },
+  {
+   "role": "luzhu",
+   "name": "配件「黃編繩2」有三角形送進 GPU",
+   "pass": false,
+   "value": null
+  },
+  {
+   "role": "luzhu",
+   "name": "配件「福袋」有三角形送進 GPU",
+   "pass": false,
+   "value": null
+  },
+  {
+   "role": "luzhu",
+   "name": "配件「玉戒（無名指）」有三角形送進 GPU",
+   "pass": false,
+   "value": null
+  },
+  {
+   "role": "luzhu",
+   "name": "手不縮放不改形（原手頂點位置與預設手逐值相同；seatMul＝1）",
+   "pass": true,
+   "value": {
+    "nBase": 2307,
+    "refN": 2307,
+    "posDiff": 0,
+    "seatMul": 1
+   }
+  },
+  {
+   "role": "luzhu",
+   "name": "色只落袖口：原手頂點色與預設手不同者全在袖口區（z＜−0.08），皮膚區 0",
+   "pass": false,
+   "value": {
+    "colSkin": 0,
+    "colCuff": 0
+   }
+  },
+  {
+   "role": "luzhu",
+   "name": "皮膚＝skin-proto 該角色那一組（原手 aSkin 全同一值且＝原 v0.62.5 的值 9/10/11）、配件 aSkin＝0",
+   "pass": true,
+   "value": {
+    "aSkin": 11,
+    "skBad": 0,
+    "accBad": 0
+   }
+  },
+  {
+   "role": "luzhu",
+   "name": "無 UV（程式生成皮膚）",
+   "pass": true,
+   "value": [
+    "position",
+    "color",
+    "skinIndex",
+    "skinWeight",
+    "aSkin",
+    "aAcc",
+    "normal"
+   ]
+  },
+  {
+   "role": "luzhu",
+   "name": "每手 ≤6,500 面",
+   "pass": true,
+   "value": 4792
+  },
+  {
+   "role": "all",
+   "name": "四隻手一份材質、無任何貼圖",
+   "pass": true,
+   "value": {
+    "materials": 1,
+    "name": "hand-skin-proto-b"
+   }
+  }
+ ],
+ "root": "C:\\Users\\shung\\wt\\yaoshi\\hands-b3",
+ "q": "handb3=0",
+ "errs": []
+}
