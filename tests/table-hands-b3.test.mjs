@@ -106,3 +106,48 @@ test('批 3 開關：opts.b3=false（同 ?handb3=0）＝三角色退回 v0.62.5 
   assert.deepEqual(r.hands.b3Swing(), [null, null, null, null]);
   r.hands.dispose(); r.props.dispose();
 });
+
+/* ═══ 批 3 的手被真的行使：既有 #C1/#C2 的穿入判定（table-hands.test.mjs 同一套：props 的 InstancedMesh 實際矩陣與錢／令牌幾何尺寸，
+   不是手自己解擺位的障礙表）套在批 3 三角色（含配件與擺盪中的垂掛物頂點）上——既有測試的 fixture 預設不載入批 3，這裡補上。 ═══ */
+{
+  const { PROPS } = await loadProps();
+  const tmpM = new THREE.Matrix4(), l = new THREE.Vector3(), v = new THREE.Vector3(), C = PROPS.CHIP, T = PROPS.TOKEN, EPS = 1e-6;
+  const volumes = (r) => { const out = [], chips = r.props.group.getObjectByName('prop-chips'), toks = r.props.group.getObjectByName('prop-tokens');
+    for (let i = 0; i < chips.count; i++) { chips.getMatrixAt(i, tmpM); out.push({ kind: 'chip', inv: new THREE.Matrix4().copy(tmpM).invert() }); }
+    for (let i = 0; i < toks.count; i++) { toks.getMatrixAt(i, tmpM); out.push({ kind: 'token', inv: new THREE.Matrix4().copy(tmpM).invert() }); }
+    return out; };
+  const inside = (p, vol) => { l.copy(p).applyMatrix4(vol.inv); if (vol.kind === 'chip') return Math.hypot(l.x, l.z) < C.R - EPS && Math.abs(l.y) < C.T / 2 - EPS; return Math.abs(l.x) < T.W - EPS && Math.abs(l.z) < T.H - EPS && l.y > -T.T / 2 + EPS && l.y < T.T / 2 + 0.028 - EPS; };
+  const ev = { bid: (r, s, k, a) => { r.props.bid(s, k, a); r.hands.bid(s, k, a); }, mark: (r, s, k) => { r.props.mark(s, k); r.hands.mark(s, k); }, reveal: (r, k, w) => { r.props.reveal(k, w); r.hands.reveal(k, w); } };
+  for (const layout of ['L', 'P']) test(`批 3 #C1/#C2 ${layout}：孝女／閭山／爐主（含配件、擺盪中的垂尾與福袋）推、拍、收每幀不穿錢柱與令牌`, async () => {
+    const r = await rig([...B3, 'zutou'], {}, layout);
+    assert.deepEqual(r.hands.stats().variants.slice(0, 3), B3, '受測的是批 3 的手（否則零鑑別力）');
+    const accN = B3.map((_, s) => { const g = meshOf(r, s).geometry; return g.userData.real.arm[0] - g.userData.real.nBase; });
+    assert.ok(accN.every((n) => n > 0), `三席都有配件頂點進判定（${accN}）`);
+    const script = [];
+    for (let slot = 0; slot < 4; slot++) {
+      script.push(() => { r.props.clearRound(); r.hands.clear(); for (let s = 0; s < 4; s++) ev.bid(r, s, slot, 3 + s * 3); });
+      script.push(() => { for (let s = 0; s < 4; s++) ev.mark(r, s, slot); });
+      script.push(() => { ev.reveal(r, slot, slot); });
+      script.push(() => { r.props.clearRound(); r.hands.clear(); for (let s = 0; s < 4; s++) ev.bid(r, s, (slot + s) % 4, 12); });
+    }
+    const seen = new Set(), worst = []; let accFrames = 0;
+    for (const fn of script) {
+      fn();
+      for (let i = 0; i < 70 && !worst.length; i++) {
+        step(r); const vols = volumes(r);
+        for (let s = 0; s < 3; s++) {
+          const h = r.hands.group.children[s]; if (!h.visible) continue; seen.add(s);
+          const m = meshOf(r, s), n = m.geometry.attributes.position.count; let accSeen = false;
+          for (let k = 0; k < n; k++) { m.getVertexPosition(k, v); v.applyMatrix4(m.matrixWorld); if (k >= m.geometry.userData.real.nBase) accSeen = true;
+            for (const vol of vols) if (inside(v, vol)) { worst.push({ seat: s, v: k, acc: k >= m.geometry.userData.real.nBase, kind: vol.kind }); break; } if (worst.length >= 5) break; }
+          if (accSeen) accFrames++;
+        }
+      }
+      if (worst.length) break;
+    }
+    assert.deepEqual([...seen].sort(), [0, 1, 2], '三席批 3 的手都上場過');
+    assert.ok(accFrames > 0);
+    assert.deepEqual(worst, [], `穿入：${JSON.stringify(worst)}`);
+    r.hands.dispose(); r.props.dispose();
+  });
+}

@@ -11,4 +11,4 @@ async function run(which) {
   for (let k = 0; k < 4; k++) { for (let s = 0; s < 4; s++) { props.bid(s, (s + k) % 4, 3 + s); hands.bid(s, (s + k) % 4, 3 + s); } st(60); for (let s = 0; s < 4; s++) { props.mark(s, (s + k) % 4); hands.mark(s, (s + k) % 4); } st(70); props.reveal(k, k); hands.reveal(k, k); st(150); }
   ts.sort((a, b) => a - b); return { n: ts.length, mean: +(ts.reduce((a, b) => a + b, 0) / ts.length).toFixed(3), p50: +ts[ts.length >> 1].toFixed(3), p95: +ts[Math.floor(ts.length * 0.95)].toFixed(3) };
 }
-for (let r = 0; r < 3; r++) for (const w of ['off', 'on']) console.log(w, JSON.stringify(await run(w)));
+const W = process.argv[2] ? [process.argv[2]] : ['off', 'on']; for (let r = 0; r < Number(process.argv[3] || 3); r++) for (const w of W) console.log(w, JSON.stringify(await run(w)));

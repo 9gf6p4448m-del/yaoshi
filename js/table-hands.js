@@ -223,19 +223,22 @@ export function createTableHands(parent, props, opts = {}) {
         if (k3) { // v0.63.0 批 3：三角色換自己的幾何（形狀＝預設手；皮膚＝skin-proto 那三組，沒載 skin-proto＝預設皮膚）；材質同上一份
           seatKey[h.seat] = k3;
           const gk = 'b3:' + k3 + '|' + h.seat;
-          if (!realGeos.has(gk)) {
-            variantBuilds++;
-            const ext = B3.extFor(rig, k3, SP ? SP.extraSkin(k3) - 1 : 0), g = HR.realGeometry(rig, B3.srcFor(baseSrc, k3), baseSrc.position.length / 3, k3, { key: k3, batch: 3 }, ext);
-            B3.finalize(g, ext); realGeos.set(gk, g);
-          }
-          if (!realRigs.has('b3:' + k3)) { // 碰撞取樣同批 1（含配件與垂掛物的靜止位置；同位置＋同權重的重複點只留一個）
-            const rg = realGeos.get(gk), ga = rg.attributes, na = rg.userData.real.arm[1];
-            const R3 = buildRig(Object.assign({}, rigSrc0, { positions: ga.position.array.slice(0, na * 3), skinIndex: ga.skinIndex.array.slice(0, na * 4), skinWeight: ga.skinWeight.array.slice(0, na * 4) }));
-            { const rep = new Set(), seen = new Set(); for (let v = 0; v < na; v++) { const k = ga.position.array.slice(v * 3, v * 3 + 3).join(',') + '|' + ga.skinIndex.array.slice(v * 4, v * 4 + 4).join(',') + '|' + ga.skinWeight.array.slice(v * 4, v * 4 + 4).join(','); if (!seen.has(k)) { seen.add(k); rep.add(v); } }
+          const build3 = (k) => { const ext = B3.extFor(rig, k, SP ? SP.extraSkin(k) - 1 : 0), g = HR.realGeometry(rig, B3.srcFor(baseSrc, k), baseSrc.position.length / 3, k, { key: k, batch: 3 }, ext); B3.finalize(g, ext); return g; };
+          if (!realGeos.has(gk)) { variantBuilds++; realGeos.set(gk, build3(k3)); }
+          if (!realRigs.has('b3')) {
+            /* 碰撞取樣：三種批 3 手共用「一副」取樣骨架（效能，條件 10）——擺位解算的姿勢蒙皮快取以骨架為單位（hand-motion prepare／offsets），
+               三種手各一副時同一姿勢要算三遍（實測多出來的時間在 qrot／localPoints，見 docs/experiments/2026-10-07-hands-b3/README.md 條件 10）。
+               三種手的原手頂點與袖管逐值相同（形狀＝預設手），取樣＝原手＋袖管＋三種手配件的聯集（降採樣，見 hand-b3 collideSource）——
+               保守：每一種手都避開三種配件的靜止位置。同位置＋同權重的重複點只留一個（同批 1）。 */
+            const geos = B3.B3_KEYS.map((k) => { for (let s = 0; s < 4; s++) if (realGeos.has('b3:' + k + '|' + s)) return { g: realGeos.get('b3:' + k + '|' + s), tmp: false }; return { g: build3(k), tmp: true }; });
+            const U = B3.collideSource(geos.map((x) => x.g));
+            for (const x of geos) if (x.tmp) x.g.dispose();
+            const R3 = buildRig(Object.assign({}, rigSrc0, U));
+            { const n = U.positions.length / 3, rep = new Set(), seen = new Set(); for (let v = 0; v < n; v++) { const k = U.positions.slice(v * 3, v * 3 + 3).join(',') + '|' + U.skinIndex.slice(v * 4, v * 4 + 4).join(',') + '|' + U.skinWeight.slice(v * 4, v * 4 + 4).join(','); if (!seen.has(k)) { seen.add(k); rep.add(v); } }
               R3.collide = [...rep]; R3.seen = R3.seen.filter((v) => rep.has(v)); R3.front = R3.front.filter((v) => rep.has(v)); }
-            realRigs.set('b3:' + k3, R3);
+            realRigs.set('b3', R3);
           }
-          h.mesh.geometry = realGeos.get(gk); h.mesh.material = realMat; seatRig[h.seat] = realRigs.get('b3:' + k3);
+          h.mesh.geometry = realGeos.get(gk); h.mesh.material = realMat; seatRig[h.seat] = realRigs.get('b3');
           b3Swing[h.seat] = B3.createSwing(h.mesh.geometry); b3Swing[h.seat].reset();
           continue;
         }

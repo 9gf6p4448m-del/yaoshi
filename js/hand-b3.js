@@ -323,6 +323,30 @@ export function finalize(g, ext) {
   return out;
 }
 
+/** 碰撞取樣的配件降採樣（效能，條件 10）：只取「凸出皮膚」的配件頂點（離最近原手頂點 > OFF dm；貼皮的部分由皮膚點代表），
+ *  再依靜止位置落在 GRID dm 立方格、一格只留一點；垂掛物尖端標記點一律保留。【試玩必調】 */
+export const COLLIDE = { GRID: 0.05, OFF: 0.03 };
+/** 三種批 3 手共用的碰撞取樣來源：原手＋袖管（取第一種；三種逐值相同）＋三種手的配件（降採樣後聯集）。回 buildRig 要的 positions／skinIndex／skinWeight。 */
+export function collideSource(geos) {
+  const g0 = geos[0], r0 = g0.userData.real, nB = r0.nBase, a0 = r0.arm[0], a1 = r0.arm[1];
+  const P = [], SI = [], SW = [];
+  const push = (g, v) => { const p = g.attributes.position.array, si = g.attributes.skinIndex.array, sw = g.attributes.skinWeight.array; P.push(p[v * 3], p[v * 3 + 1], p[v * 3 + 2]); for (let k = 0; k < 4; k++) { SI.push(si[v * 4 + k]); SW.push(sw[v * 4 + k]); } };
+  for (let v = 0; v < nB; v++) push(g0, v);
+  for (let v = a0; v < a1; v++) push(g0, v);
+  for (const g of geos) {
+    const r = g.userData.real, p = g.attributes.position.array, cells = new Set(), keep = new Set((g.userData.b3swing || []).map((s) => s.tip)), off2 = COLLIDE.OFF * COLLIDE.OFF;
+    for (let v = r.nBase; v < r.arm[0]; v++) {
+      if (!keep.has(v)) {
+        let bd = Infinity; for (let b = 0; b < r.nBase && bd > off2; b++) { const dx = p[b * 3] - p[v * 3], dy = p[b * 3 + 1] - p[v * 3 + 1], dz = p[b * 3 + 2] - p[v * 3 + 2], dd = dx * dx + dy * dy + dz * dz; if (dd < bd) bd = dd; }
+        if (bd <= off2) continue; // 貼皮
+      }
+      const key = Math.floor(p[v * 3] / COLLIDE.GRID) + ',' + Math.floor(p[v * 3 + 1] / COLLIDE.GRID) + ',' + Math.floor(p[v * 3 + 2] / COLLIDE.GRID);
+      if (cells.has(key) && !keep.has(v)) continue; cells.add(key); push(g, v);
+    }
+  }
+  return { positions: new Float32Array(P), skinIndex: new Uint16Array(SI), skinWeight: new Float32Array(SW) };
+}
+
 /** 擺盪參數：彈簧角頻率 OMEGA（rad/s）、阻尼比 ZETA、慣性倍率 GAIN、偏移上限 MAX（×物件長）、單步 dt 上限 DT_MAX（超過分步）、dt 大於 DT_RESET 視同斷幀（歸零）、加速度上限 AMAX×物件長×ω²（擺位跳格只給有界的一推）。【試玩必調】 */
 export const SWING = { OMEGA: 9.0, ZETA: 0.34, GAIN: 0.3, AMAX: 1.5, MAX: 0.45, DT_MAX: 1 / 45, DT_RESET: 0.25 };
 
