@@ -1,7 +1,7 @@
 // v0.62.1 ?handslow／?grabslow 實頁斷言（http.server＋Playwright Chromium 開真的 index.html）：
 //   載入後 CFG 的生效值（擺錢節拍、保險絲、GRAB_MS、CURSE_MS、卡片間隔）＝原值×k；3D 層讀到的 window.YS_ANIM_SLOW 同一份；
 //   revealGlow 派出去的 ys:reveal-result 帶的 grabMs／curseMs＝生效值（3D 抓取／詛咒時間軸依它縮放，揭盅卡等待也由它推得）；
-//   非法值（0、abc、99）＝1；每個網址完整載入 0 pageerror。
+//   預設（無參數）handslow=1.5／grabslow=1.3、明確帶 1＝原字面值、非法值（0、abc、99、空字串）＝預設（v0.62.2）；每個網址完整載入 0 pageerror。
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import path from 'node:path';
@@ -21,7 +21,7 @@ test('?handslow／?grabslow：CFG 生效值＝原值×k、3D 讀同一份倍率�
   await new Promise((r) => setTimeout(r, 900));
   const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=d3d11', '--ignore-gpu-blocklist'] });
   try {
-    const cases = [['', 1, 1], ['?handslow=2', 2, 1], ['?grabslow=2', 1, 2], ['?handslow=2&grabslow=1.5', 2, 1.5], ['?handslow=0', 1, 1], ['?handslow=abc', 1, 1], ['?handslow=99', 1, 1], ['?handslow=3', 3, 1]];
+    const cases = [['', 1.5, 1.3], ['?handslow=1&grabslow=1', 1, 1], ['?handslow=2', 2, 1.3], ['?grabslow=2', 1.5, 2], ['?handslow=2&grabslow=1.5', 2, 1.5], ['?handslow=0&grabslow=0', 1.5, 1.3], ['?handslow=abc&grabslow=abc', 1.5, 1.3], ['?handslow=99&grabslow=99', 1.5, 1.3], ['?handslow=&grabslow=', 1.5, 1.3], ['?handslow=3', 3, 1.3]];
     for (const [q, kh, kg] of cases) {
       const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 1 });
       await ctx.addInitScript(() => { try { localStorage.setItem('yaoshi_intro_v1', '1'); } catch (e) {} });

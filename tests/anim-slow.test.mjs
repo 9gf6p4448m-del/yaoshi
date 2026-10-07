@@ -132,14 +132,15 @@ test('handslow=2：handObstaclesAhead 的外推以「被放慢後的時間」算
   const s0 = await at(1, 0), s1 = await at(1, 0.4); assert.notDeepEqual(s0.map((o) => o.x), s1.map((o) => o.x), '活性：外推確實會動');
 });
 
-test('index.html 單一解析點 animSlowFrom：合法值照用、非法（NaN、≤0、>10、空字串）一律 1', () => {
+test('index.html 單一解析點 animSlowFrom：合法值照用、明確帶 1＝1、無參數與非法（NaN、≤0、>10、空字串）一律落預設 1.5／1.3（v0.62.2）', () => {
   const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
   const fn = html.match(/^function animSlowFrom\(search\)\{.*\}$/m); // 單行函式
   assert.ok(fn, 'index.html 有 animSlowFrom');
   const animSlowFrom = new Function('URLSearchParams', fn[0] + ';return animSlowFrom;')(URLSearchParams);
-  assert.deepEqual(animSlowFrom(''), { hand: 1, grab: 1 });
+  assert.deepEqual(animSlowFrom(''), { hand: 1.5, grab: 1.3 });
+  assert.deepEqual(animSlowFrom('?handslow=1&grabslow=1'), { hand: 1, grab: 1 });
   assert.deepEqual(animSlowFrom('?handslow=2&grabslow=1.5'), { hand: 2, grab: 1.5 });
-  assert.deepEqual(animSlowFrom('?handslow=10'), { hand: 10, grab: 1 });
-  for (const bad of ['0', '-1', 'abc', '99', '10.01', '', 'NaN', 'Infinity']) assert.deepEqual(animSlowFrom('?handslow=' + bad + '&grabslow=' + bad), { hand: 1, grab: 1 }, bad);
+  assert.deepEqual(animSlowFrom('?handslow=10'), { hand: 10, grab: 1.3 });
+  for (const bad of ['0', '-1', 'abc', '99', '10.01', '', 'NaN', 'Infinity']) assert.deepEqual(animSlowFrom('?handslow=' + bad + '&grabslow=' + bad), { hand: 1.5, grab: 1.3 }, bad);
   assert.ok(loadGame(path.join(ROOT, "index.html")), "node 載入（無 location）不丟例外");
 });
