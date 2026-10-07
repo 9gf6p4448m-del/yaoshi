@@ -1,4 +1,6 @@
-**最新入口（2026-10-07，以本段為準）**：Git 基準 `origin/main 85c38c6a`＝v0.62.5（只確認 Git，未核對公開網站或 Safari 真機）。現況、已裁／待裁與已知未過項讀 [總藍圖](../MASTER_BLUEPRINT.md) §0、§5.1；本次藍圖整理見 [整理結果](../reviews/2026-10-07-blueprint-audit-result.md) 與 [第二階段整理結果](../reviews/2026-10-07-blueprint-audit-phase2-result.md)（GAME_DESIGN、ART_BIBLE 與十二份直接引用文件）。v0.59.4–v0.62.5（席位之手、詛咒轉移、擺錢等）沒有獨立交接檔，紀錄在各自 experiments 卷與提交訊息，本次未逐卷整理。下方各段皆為沿革。
+**2026-10-08 最新 Git 狀態（以本段為準；只依 Git 與上游文件）**：`origin/main`＝`ae92bf2a`，`VERSION`／`RELEASE_VERSION`＝0.64.0（v0.62.6 擺錢推、v0.63.0 寫實頭像與 32 件圖示、水鬼名冊改名、v0.64.0 席位之手批 3）。`push-follow@a4c217d1` 已是正式 main 的祖先。本工作樹產品檔仍是 `85c38c6a`／v0.62.5；下方 2026-10-07 整理是以 `85c38c6a` 為準的歷史快照。限制與未過項（批 3 的 10 角色盲讀門檻 R1（10/10）未過但使用者裁定上線、iPhone 未驗、寫實美術未跑全套等）見 [總藍圖](../MASTER_BLUEPRINT.md) §0 開頭。公開網站、手機與部署本次未核對。
+
+**2026-10-07 入口（`85c38c6a` 快照；Git 狀態以上一段 10-08 為準）**：Git 基準 `origin/main 85c38c6a`＝v0.62.5（只確認 Git，未核對公開網站或 Safari 真機）。現況、已裁／待裁與已知未過項讀 [總藍圖](../MASTER_BLUEPRINT.md) §0、§5.1；本次藍圖整理見 [整理結果](../reviews/2026-10-07-blueprint-audit-result.md) 與 [第二階段整理結果](../reviews/2026-10-07-blueprint-audit-phase2-result.md)（GAME_DESIGN、ART_BIBLE 與十二份直接引用文件）。v0.59.4–v0.62.5（席位之手、詛咒轉移、擺錢等）沒有獨立交接檔，紀錄在各自 experiments 卷與提交訊息，本次未逐卷整理。下方各段皆為沿革。
 
 **2026-10-01（沿革）**：[雲端→本機接手包](2026-10-01-cloud-to-local.md)——v0.59.3＋v0.59.2 鑑賞頁／面板 Y＋三項試玩熱修已上線（main `f8bcd0cb`）；押寶面板窄畫面已於 10-01 補充修復（`88e4dd48`），其餘待辦見該檔。
 

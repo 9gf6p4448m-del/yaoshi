@@ -3,6 +3,13 @@
 > 權威文件。任何角色／法寶／演出的美術決策先查本檔；量產凍結檔 `docs/experiments/2026-09-04-acceptance-creature-batch.md` 的美術守則以本檔為準。
 > 核心：**大作等級的陣營設計，差別不在細節多，而在三秒可辨識**——遠處、小圖、全黑剪影都要分得出是誰。每個陣營先定死四件事：剪影、單一主色、關鍵材質、動態節奏，再談造型。
 
+> **2026-10-08 最新 Git 狀態補記（只依 Git 與上游文件；本工作樹的程式與素材仍是 `85c38c6a`，沒有 webp 頭像與圖示）**：`origin/main`＝`ae92bf2a`（0.64.0）。
+> - **v0.63.0 點陣圖例外**：使用者 2026-10-07 裁定收寫實風格（並接受 Gemini 圖示上的假符文字作為氛圍）。10 角色三態頭像、選角大圖、32 件法寶／詛咒圖示改為 webp 點陣圖，範圍只限 DOM 頭像／圖示與 3D 頭像橋接 `js/bridge-players.js` 的 `TextureLoader`（失敗退回 SVG）。場景、牌桌與紙紮妖仍照本檔「不載外部貼圖」；這不是全面開放貼圖，也不解除陰影前置或 D8。驗證限制：3D 橋接只抽測 4 組、整局只量 seed 3、未跑全套；圖示盲讀 rater 5＝30/32、rater 6＝28/32（餘裕 0）。
+> - **§0.5 真實參照**：v0.63.0 的頭像與圖示由 Gemini 生成並經使用者接受風格；但本輪找不到使用者明言「§0.5 真實照片要求不適用於 2D 點陣圖」的裁定，原 C16 待查維持。
+> - **v0.64.0 席位之手批 3**：使用者 2026-10-08 裁定照現況上線；10 角色盲讀 7/10→8/10→6/10，R1 10/10 **未過、標準未改**；R3 三方 3/3 過；效能餘裕 0.035 ms；iPhone 未驗。配件無 UV、無貼圖（上游條件 3）。
+>
+> 來源（本工作樹沒有這兩檔，請用指令或遠端連結讀）：`git show ae92bf2a:docs/experiments/2026-10-07-realistic-art/acceptance.md`（[遠端固定版本](https://github.com/9gf6p4448m-del/yaoshi/blob/ae92bf2ada01a8d9dd67b05d9ad1391de099e1ce/docs/experiments/2026-10-07-realistic-art/acceptance.md)）、`git show ae92bf2a:docs/experiments/2026-10-07-hands-b3/README.md`（[遠端固定版本](https://github.com/9gf6p4448m-del/yaoshi/blob/ae92bf2ada01a8d9dd67b05d9ad1391de099e1ce/docs/experiments/2026-10-07-hands-b3/README.md)）。下方 2026-10-07 索引以 `85c38c6a` 為準，保留為歷史快照。
+
 > **2026-10-07 現行適用索引（第二階段藍圖整理；只加註記，§0–§9 原文一字未改；來源見 [第二階段整理結果](../reviews/2026-10-07-blueprint-audit-phase2-result.md)）**
 > - **剪影測試（§0 第 1 條、§6）**：2026-09-05 使用者裁定降為**監測項**——每兩批記錄純度與分類軸，不擋批、不要求回修（[量產凍結檔](../experiments/2026-09-04-acceptance-creature-batch.md)「2026-09-05 使用者裁定」段）。§0 第 1 條的「全黑仍能區分」是設計目標，不是硬閘；陣營辨識由描邊／邊光等後處理承擔。
 > - **「沒有貼圖」（§0 第 2–3 條、§5、§7）**：全場不載外部貼圖的規範仍有效，但已有兩類限定例外：①法線貼花（[09-06 凍結](../experiments/2026-09-06-acceptance-decal.md)，使用者裁定技術驗證，`dressMaterial` 注入程序式 GLSL），鋪開後只有 `eye` 預設開，tiger_c／hairpin 未過、預設關（[擴充凍結](../experiments/2026-09-06-acceptance-decal-spread.md)）；②席位之手寫實皮膚是程式生成、無外部貼圖、無 UV（[10-02 凍結](../experiments/2026-10-02-hand-realism/acceptance.md)）。這些例外不解除陰影的 iPhone fps 前置，也不代表 D8 環境管線已裁。

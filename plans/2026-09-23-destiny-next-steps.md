@@ -1,6 +1,6 @@
 # 妖市：天命密函與六組真連鎖施工藍圖
 
-> **2026-10-07 現況指路**：下一行「施工中，尚未達發布關口」與 H 節「目前不得發布」是當時狀態。v0.57.41 已於 2026-09-24 依使用者發布裁定公開（[交接索引](../docs/handoffs/INDEX.md) 的發布裁定、真版焦點裁定與 v0.57.41 發布段）：普通 H9 雙虎 fail 與千眼 incomplete 不擋發布、真版焦點平衡豁免並列已知限制、X 改列非阻塞且 `sixOfFour` 仍為 incomplete（不是 pass，G 節「須 pass 才進 H」由此裁定覆蓋）；千眼冷讀由使用者回報通過，逐人記分表未交回。本計畫的門檻與原始數據保留。整理來源見 [第二階段整理結果](../docs/reviews/2026-10-07-blueprint-audit-phase2-result.md)。
+> **2026-10-07 現況指路**：下一行「施工中，尚未達發布關口」與 H 節「目前不得發布」是當時狀態。v0.57.41 已於 2026-09-24 依使用者發布裁定公開（[交接索引](../docs/handoffs/INDEX.md) 的發布裁定、真版焦點裁定與 v0.57.41 發布段）：普通 H9 雙虎 fail 與千眼 incomplete 不擋發布、真版焦點平衡豁免並列已知限制、X 改列非阻塞且 `sixOfFour` 仍為 incomplete（不是 pass；X 節「退出」第 157 行「正式 `sixOfFour=pass` 才進 H」由此裁定覆蓋）；千眼冷讀由使用者回報通過，逐人記分表未交回。本計畫的門檻與原始數據保留。整理來源見 [第二階段整理結果](../docs/reviews/2026-10-07-blueprint-audit-phase2-result.md)。
 
 日期：2026-09-23。狀態：**施工中，尚未達發布關口**。基準為 `feat/l1-water-chain`／`2eb164d`／產品 `v0.57.40`。本計畫承接[獨立審視與 Premortem](../docs/reviews/2026-09-23-destiny-premortem.md)及[Antigravity 原始需求](../.agents/ORIGINAL_REQUEST.md)，目標仍是可驗證的 `v0.57.41`，不是只做六組特效或湊滿測試數字。
 

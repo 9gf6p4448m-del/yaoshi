@@ -7,7 +7,7 @@
 ## 結論與範圍
 
 - C01–C16 十六項全部處置完畢：
-  - **依既有裁定修正（13 項）**：C01–C13。只加「現行口徑／沿革」註記或改正狀態摘要，原規則、數值、門檻、歷史實測一律保留。
+  - **依既有裁定修正（13 項）**：C01–C13。只加「現行口徑／沿革」註記或改正狀態摘要，原規則、數值、門檻、歷史實測一律保留。**其中 C03 與 C10 各含一個「來源只到實作、未見使用者裁定」的待確認子項**：C03 的組頭保守標上限「一般上限的 1.5 倍」是 2026-09-03 實作者假設；C10 的寫實手每隻 ≤6,500（及 GLB ≤6,000）超過 D1 使用者上限 2,500。這兩個子項沒有被寫成已裁。
   - **恢復（1 項）**：C14。兩份歷史交接原樣複製，雜湊相符。
   - **證據不足、保留待查（2 項）**：C15、C16。只在文件和本報告標出不一致，不替使用者選邊。
 - 這次沒有改產品碼、素材、凍結／acceptance 檔、harness、憑證，也沒有合併 main、push 或部署。產品沒改，所以沒重跑產品測試。
@@ -38,6 +38,8 @@
 | C16 | ART 原 :14–20「找 2–3 張真實參照（實物照片）」⟷ [ref-hand](../experiments/2026-10-01-ref-hand.md) :3「使用者以 Gemini 生成（AI 生成圖…非真實照片）」、:4「參照齊備」；A2 結案卷 :34 把四題概括為「幾何＋頂點色做不出」⟷ [大士爺卷](../experiments/2026-09-17-a2-dashiye/README.md) :7／:16「舌把胸前鏡遮掉 94%」 | 冒稱違規，或默認 AI 圖可以取代真實參照；把遮擋造成的失敗全歸咎材質 | **證據不足，保留待查**：沒找到指定豁免；不判違規、不補裁、不重製資產、不解除真實參照與族群顧問要求；沒做法律適用判定。遮擋／剪影／材質／尺寸分開假說列為優化提案 | ART :29、:6 |
 
 ## 十二份直接引用文件逐檔判定
+
+> **覆蓋時序（照實記錄，不回溯）**：下表「查閱範圍」是執行者在 2026-10-07～08 第二階段當時**親讀的部分段落**，不是全文。十二份的**全文通讀**是之後另一個獨立讀者在提交 `447cbb10` 上完成的（12 檔共 1,672 行，逐檔行數見附錄 D）；執行者在 10-08 續作時以 `wc -l` 核對行數相同。不得把下表的部分查閱當成全文覆蓋。
 
 | # | 檔案 | 查閱範圍 | 判定 | 本次動作 |
 |---|---|---|---|---|
@@ -144,7 +146,7 @@ README、IMPLEMENTATION_GUIDE、`2026-10-01-cloud-to-local.md` 這次沒有需�
 | 3 | MASTER 90 ID 保留；D2／D5 已裁、D3／D6–D8、K01–K06 待裁；四軸狀態、簽收未過與未驗不洗掉 | 附錄 B 第 2 項：`[ID] 85c38c6a 90 now 91 missing: none`（多出的 1 個是第二階段指路句中的「C16」字樣，該句明寫與產品 ID 無關）；D3 列無「已裁」；K 6/6；§5.1 仍在；C07 只把「未做」更正為「做了、0/6 未過」 | 成立 |
 | 4 | 凍結／acceptance、產品碼、素材、harness、憑證無變更；`git diff --name-only f0df42b8` 全在允許範圍 | 附錄 B 第 1 項：20 檔全 OK、outside allowlist: none | 成立 |
 | 5 | `git diff --check f0df42b8` 退出 0；兩份恢復檔目標／來源 SHA256 等於表列；INDEX 兩條連結實際存在 | 附錄 B 第 1、3 項 | 成立（提交後另以 `git show` 驗 blob，見附錄 B 第 5 項） |
-| 6 | 新增或修改的本地連結全部存在；既有斷鏈列位置與數量；程式碼區塊教學字串不算導航連結並說明辨識方式 | 附錄 B 第 2 項：257 條相對連結、新斷鏈 0；既有斷鏈 1 處（`plans/2026-09-23-destiny-next-steps.md` → `../.agents/ORIGINAL_REQUEST.md`，同一連結出現 2 次）；辨識方式：先刪除以三個反引號圍起的程式碼區塊與行內反引號內容，再抽取 Markdown 連結語法的目標，略過 http(s) 網址與 # 錨點。不宣稱全庫零斷鏈 | 成立 |
+| 6 | 新增或修改的本地連結全部存在；既有斷鏈列位置與數量；程式碼區塊教學字串不算導航連結並說明辨識方式 | 附錄 B 第 2 項：263 條相對連結（最終一次實跑數字）、新斷鏈 0；既有斷鏈 1 處（`plans/2026-09-23-destiny-next-steps.md` → `../.agents/ORIGINAL_REQUEST.md`，同一連結出現 2 次）；辨識方式：先刪除以三個反引號圍起的程式碼區塊與行內反引號內容，再抽取 Markdown 連結語法的目標，略過 http(s) 網址與 # 錨點。不宣稱全庫零斷鏈 | 成立 |
 | 7 | fresh read-back；若修 findings，再派 fresh 代理三態覆審；最多三輪 | 附錄 C | 見附錄 C |
 | 8 | 只提交本輪具體檔案；停在文件分支，不合併、不 push、不部署；產品未改不重跑無關全套 | 提交指令只列具體路徑（附錄 B 第 5 項）；沒有執行任何 merge／push／deploy；沒有跑產品測試 | 成立（提交後補 SHA） |
 
@@ -222,6 +224,91 @@ README、IMPLEMENTATION_GUIDE、`2026-10-01-cloud-to-local.md` 這次沒有需�
 | 覆審 3（上限） | 新的 `opus` 代理，三態 | 4 項：真的修好 3、表面修好 1（A：檔首索引②⑤、索引⑥、changelog 沒同步這個待查）；排版 GAME 11 條、ARCH 5 條註記 0 違規、0 處切斷表格；三檔刪除行數 0 | 已把待查同步到索引②⑤⑥與 changelog（GAME 刪除行數仍是 0）。**這最後一處同步是第 3 輪後才做的，依三輪上限沒有再派第四輪覆審**；它是低嚴重度的一致性補字，沒有剩下高嚴重度未解項 |
 
 覆審 3 的附帶發現（只記錄）：`tests/table-hands.test.mjs` 和提交 `95c281b0` 引用的 `acceptance-newhand.md` 在 repo 中找不到，GLB ≤6,000 也缺可查的簽准紀錄。這屬手部卷的證據缺口，列入待確認，本次不處理。
+
+## 2026-10-08 續作：最新上游狀態覆蓋與最終修正
+
+這一段是在提交 `447cbb10` 之後，依使用者 2026-10-08 指示追加的。前面各節（以 `85c38c6a` 為準的審查）保留為歷史快照，沒有改寫結論。
+
+### 新來源（只讀，沒有複製、沒有修改）
+- `git fetch origin` 後 `origin/main`＝`ae92bf2ada01a8d9dd67b05d9ad1391de099e1ce`（2026-10-08 01:48 +0800）；`git show ae92bf2a:index.html` 的 `VERSION`／`RELEASE_VERSION` 都是 `0.64.0`。`git merge-base --is-ancestor a4c217d1 ae92bf2a` 與 `85c38c6a` 都回報是祖先；`git rev-list --count 85c38c6a..ae92bf2a`＝24。
+- 親讀全文：`git show ae92bf2a:docs/experiments/2026-10-07-realistic-art/acceptance.md`（21 行）、`git show ae92bf2a:docs/experiments/2026-10-07-hands-b3/README.md`（142 行）。
+- 唯讀核對程式：`js/bridge-players.js` 在 :69、:95 用 `TextureLoader` 載頭像 webp，失敗退回 SVG；`js/characters-billboard.js` 的 `TextureLoader` 在 `85c38c6a` 就已存在，只載 SVG 佔位；`index.html` 的 POOL 與 `CURSE_KIND` 用「水鬼名冊」當鍵；`ae92bf2a` 新增 104 個 `assets/` 檔。
+- 本工作樹 HEAD 的產品檔仍是 `85c38c6a`，沒有合併新版。
+
+### 本次修改
+| 檔案 | 內容 |
+|---|---|
+| `docs/MASTER_BLUEPRINT.md` §0 開頭 | 新增 2026-10-08 最新 Git 狀態覆蓋（版本、push-follow 已是祖先、v0.62.6／v0.63.0／v0.64.0 摘要與限制、來源指令與遠端固定版本連結）；10-07 現況標為 `85c38c6a` 快照，已裁／待裁邊界仍以它與 §5.1 為準 |
+| `CLAUDE.md`、`docs/handoffs/INDEX.md`、`README.md` | 最上方加 10-08 短覆蓋；10-07 入口改標快照；CLAUDE 的「push-follow 不屬正式狀態」加註 10-08 起已是祖先 |
+| `docs/GAME_DESIGN.md` | 檔首加 10-08 補記（只有水鬼名冊改名與規則相關，經使用者同意）；**C03 同步**：§5.3 註 5 後、角色表後、檔首索引⑤三處標「組頭 1.5 倍是實作者假設、待確認」，原句逐字保留 |
+| `docs/design/ART_BIBLE.md` | 檔首加 10-08 補記：點陣圖例外的限定範圍與驗證限制、§0.5 對 2D 點陣圖是否適用仍待查、批 3 結果 |
+| `plans/2026-09-23-destiny-next-steps.md` | 開頭指路的「G 節」更正為「X 節『退出』第 157 行」 |
+| 本報告 | 結論加 C03／C10 待確認子項；附錄 A 連結數更正為實跑的 263（之後又增加，見下方驗證）；逐檔表加覆蓋時序說明；本段與附錄 D |
+
+上游的新驗收檔與產品檔一律沒有複製或修改。連結用 `git show` 指令與 GitHub 固定 SHA 的遠端連結，不做指向本樹不存在檔案的相對連結。
+
+### 驗證（實際輸出）
+1. C03 同步機械檢查（腳本 `c03.py` 放在本次工作的暫存目錄，不入版控）
+   ```
+   [C03] PASS GAME 註5 原句逐字保留
+   [C03] PASS GAME 角色表組頭列逐字保留
+   [C03] PASS GAME 註5 下方待確認（引這是我的假設）
+   [C03] PASS GAME 角色表後待確認（實作者假設）
+   [C03] PASS GAME 檔首索引⑤列組頭
+   [C03] PASS ARCH §3.4 組頭實作者假設待確認
+   [C03] PASS 報告結論 C03 待確認子項
+   [C03] PASS 報告結論 C10 待確認子項
+   [C03] PASS GAME 註5 註記緊接其後
+   [C03] all pass: True
+   ```
+   第一次插入時曾把註 5 原句尾的「實驗：…」擠到註記後面，角色表那列也一度把註記塞進儲存格；兩處都已還原原句，改放在句後與表後，上面兩條「逐字保留」就是用來驗這件事。
+2. 範圍、雜湊、ID、連結（`verify2.py`，以 `f0df42b8` 為基準）
+   ```
+   [scope] changed/untracked: 21
+   [scope] outside allowlist: none
+   [hash] target/source 兩檔 match=True（ac4fa738…／3025、8a7d2b8d…／6350）
+   [ID] 85c38c6a 90 now 91 missing: none
+   [decision] D3 row has 已裁? False；D6／D7／D8 **待裁** present；K01-K06 rows with 待裁: 6 /6
+   [link] files 21 links 270 new broken 0 pre-existing broken (still present) 2
+   ```
+   http(s) 遠端連結不在本地檢查範圍；改以 `git cat-file -e ae92bf2a:<path>` 驗證兩個上游路徑存在（兩條都 `exists@ae92bf2a`），且本樹沒有這兩檔。
+3. `git -c core.safecrlf=false diff --check f0df42b8` → `diff-check exit=0`；`git diff --numstat f0df42b8`：GAME_DESIGN 33／0、ART_BIBLE 20／0、ARCH_SPEC 9／0（兩份主文件與 ARCH 仍然只新增）。
+
+### fresh read-back（只針對 10-08 覆蓋，與前面三輪覆審分開）
+- 代理：`general-purpose`／`sonnet`，沒有本次對話史；只讀 CLAUDE、README、INDEX、MASTER、GAME、ART 的開頭段落，並用唯讀 git 指令核對（`git rev-parse HEAD`、`git show origin/main:index.html`、`git merge-base --is-ancestor`、`git show ae92bf2a:<兩份上游文件>`）。
+- 結果：7 題都和原意一致——本樹產品檔是 0.62.5（`index.html:2849`）、遠端 `ae92bf2a` 是 0.64.0（`git show` 第 2853 行）；push-follow 是祖先（exit 0），沒有未被覆蓋的「不屬正式狀態」殘句；點陣圖例外只限 DOM 與頭像橋接、不是全面開放；水鬼名冊改名與 trace 正規化經使用者同意；批 3 R1 未過、使用者裁定上線、iPhone 未驗、503/504 是上游歷史證據；Gemini 圖沒有被裁定為 §0.5 例外；來源是指令加遠端固定版本，本樹沒有那兩檔；10-07 整理是快照。代理也逐一核對上游原文，沒有找到事實矛盾。
+- 它指出的可能誤讀處與處置：
+  1. MASTER 第 3 行標頭的「Git 基準 `85c38c6a`」沒標快照 → 已加「快照」並在同行指向 10-08 最新 Git。
+  2. 短覆蓋的「R1」沒有定義 → CLAUDE、README、INDEX、MASTER 都改為「10 角色盲讀門檻 R1（10/10）」。
+  3. 漏了上游細節：條件 7 的修訂後協定（每張 128px 單獨看、≥2 位 rater 各自 ≥28/32）與修訂 1 新增的條件 9（PIC_BAD）→ 已補進 MASTER 覆蓋。`tests/ui-hierarchy.test.mjs:25` 版本釘改動只記在本報告，不寫進入口。
+  4. 上游批 3 README 前段「依指示未做 9 盲讀、13 簽收」是初版狀態，後段「結案記錄」才是最終結果 → 入口只引用結案記錄，這個上游內部時序記在本報告，不改上游檔。
+  5. CLAUDE、MASTER 中更早的 v0.57.x 段落是沿革，不另加標。
+- 依使用者指示，這輪修補之後**不再追加覆審**。
+
+### 使用者另交代的 README 同步（2026-10-08）
+`README.md:4` 原寫「單檔網頁（`index.html`，手機直式，PWA）」，`:12` 原寫「`index.html` — 全部程式（引擎＋UI，約 3,500 行）」。依既有裁定同步：GAME §五之二「手機橫持」（使用者構想、v0.3 定版）與 `manifest.webmanifest` 的 `"orientation": "landscape"`；IMPLEMENTATION_GUIDE 檔首入口已寫明 `js/` 模組。改為「網頁／PWA（手機橫式；`index.html` 是引擎與 DOM 介面入口，3D、手部等呈現模組在 `js/`）」，並刪掉過時的「約 3,500 行」，不另外編新行數。`?sim=1` 仍存在於程式中，保留。這不是新設計。
+
+## 附錄 D：十二份直接引用文件的獨立全文覆蓋證據
+
+時序：這份證據是**在提交 `447cbb10` 之後**由另一個獨立讀者完成、經使用者 2026-10-08 轉交的，不是執行者在第二階段當時做的；執行者當時只讀了逐檔表「查閱範圍」欄列出的段落。轉交內容：12 檔全文讀完，共 1,672 行，沒有其他高嚴重度阻擋；另指出天命計畫開頭指路把 X 節誤寫成 G 節（本次已更正）。執行者在 10-08 以 `wc -l` 核對逐檔行數與轉交數字相同：
+
+| 檔案 | 行數 |
+|---|---|
+| `docs/ROADMAP_V2.md` | 211 |
+| `docs/experiments/2026-09-23-destiny/release-decision-proposal-x.md` | 82 |
+| `docs/proposals/2026-09-10-roadmap-v2-review.md` | 327 |
+| `docs/proposals/2026-09-12-roadmap-v2-progress.md` | 103 |
+| `docs/proposals/2026-09-15-astra-game-blueprint.md` | 197 |
+| `docs/proposals/2026-09-30-seat-hands-silhouettes.md` | 174 |
+| `plans/2026-09-15-a1-premium-table.md` | 156 |
+| `plans/2026-09-17-a2-benchmarks.md` | 41 |
+| `plans/2026-09-18-a3-experience-slice.md` | 72 |
+| `plans/2026-09-21-l1-chains.md` | 61 |
+| `plans/2026-09-23-destiny-next-steps.md` | 191 |
+| `plans/2026-09-25-n1-nightwalk.md` | 57 |
+| **合計** | **1,672** |
+
+執行者 10-08 也曾派一個通讀代理，發現與上述證據重複後在完成前停止，它沒有產出可用結果，不列入證據。
 
 ## 提交後補記
 
