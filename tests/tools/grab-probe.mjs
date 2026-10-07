@@ -52,7 +52,7 @@ export const CURSE12 = [
   ...C12.map(([c, v, slot]) => ({ name: 'c' + SN[c] + SN[v], seat: c, target: v, slot, loser: [0, 1, 2, 3].find((x) => x !== c && x !== v) })),
   ...[0, 1, 3].map((slot) => ({ name: 'cSW' + slot, seat: 0, target: 2, slot, loser: 1, extra: true })),
 ];
-/* 條件 10：五種詛咒物（冥婚紅包 wedding／魔神仔的芭樂 guava／抓交替水符 water／縛靈鎖 lock／白虎煞 tiger） */
+/* 條件 10：五種詛咒物（冥婚紅包 wedding／魔神仔的芭樂 guava／水鬼名冊 water／縛靈鎖 lock／白虎煞 tiger） */
 export const CURSE_KINDS = ['wedding', 'guava', 'water', 'lock', 'tiger'];
 
 const PAGE_LIB = () => {

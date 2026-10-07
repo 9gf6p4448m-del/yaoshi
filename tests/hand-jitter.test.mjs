@@ -3,7 +3,7 @@
 // 真的批 1／寫實手碰撞取樣、真的信物與伸入界線解算），不重抄、不 mock 解算。固定 dt=1/60，決定性。
 // 量的是 Palm 骨的世界座標：同一動作段內二階差 >0.10 世界單位＝單幀來回彈跳事件；單幀最大步以固定相機投影成 CSS px（844×390，
 // 相機矩陣取自瀏覽器實測 money 劇本第 0 幀，wobble-out 治具）。
-// 對照：YAOSHI_MOTION_PATH 指向 6394c055 的 hand-motion.js 時，slam 的斷言必須紅（基準 slam 13／86.4 px）；push 彈跳於 v0.62.5 放寬回基準 19／131.9 px（見 push 測試上方註解），改由 pinFrac 脫鉤測試把關（v0.62.4 的 hand-motion.js 會紅）。
+// 對照：YAOSHI_MOTION_PATH 指向 6394c055 的 hand-motion.js 時，slam 的斷言必須紅（基準 slam 13／86.4 px）；push 於 v0.62.6（選項 C，acceptance-c3.md 條件 5）加嚴回 ≤4／≤30 px，pinFrac 由 ≤0.345 加嚴為 ≤0.20（v0.62.5 兩者皆紅）。
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { THREE, loadProps, loadHands, LAYOUTS } from './hand-fixture.mjs';
@@ -78,14 +78,13 @@ const all = [];
 for (const [name, sc] of Object.entries(SCN)) for (const g of segments(await run(sc))) all.push(Object.assign(g, { scn: name }));
 const sum = (act) => { const sel = all.filter((g) => g.act === act); return { events: sel.reduce((a, g) => a + g.events, 0), stepPx: Math.max(0, ...sel.map((g) => g.stepPx)), n: sel.length, detail: sel.filter((g) => g.events).map((g) => `${g.scn}/席${g.seat}@f${g.f0}:${g.events}`).join(' ') }; };
 
-/* 2026-10-07 使用者裁定（選項 A）：push 的「彈跳 ≤4／單幀最大步 ≤30 px」放寬回基準（≤19 事件、≤131.9 px，即不比 v0.62.3 差）。
-   原因：v0.62.4 的避讓暖啟動把手釘在信物旁、錢柱自己滑過去（pinFrac 0.339→0.497），為壓彈跳犧牲了「手推著錢走」；
-   改以下方的「手跟錢不脫鉤」（pinFrac ≤0.345）當 push 的正式驗收。slam／hold／rake／retract 的斷言不動。 */
-test('擺錢推（push）：不比 v0.62.3 差——彈跳 ≤19 次、單幀最大步 ≤131.9 px（使用者 2026-10-07 裁定由 ≤4／≤30 放寬回基準）', () => {
+/* v0.62.6（選項 C，acceptance-c3.md 條件 5）：push 由 v0.62.5 暫時放寬的 ≤19／≤131.9 px 加嚴回原標準 ≤4 次／≤30 px。
+   手推著錢走（push-contact.test.mjs）與不彈跳兩者同時成立：朝向繞行限速、無解時停在上一幀，不再一幀側移跳開。 */
+test('擺錢推（push）：彈跳 ≤4 次、單幀最大步 ≤30 px（v0.62.6 由 ≤19／≤131.9 加嚴；v0.62.5＝19 次／131.9 px）', () => {
   const r = sum('push');
   assert.ok(r.n >= 8, `四劇本八隻推的手都量到（實際 ${r.n} 段）`);
-  assert.ok(r.events <= 19, `push 彈跳事件 ${r.events} 次 > 19（${r.detail}）`);
-  assert.ok(r.stepPx <= 131.9, `push 單幀最大步 ${r.stepPx.toFixed(1)} px > 131.9`);
+  assert.ok(r.events <= 4, `push 彈跳事件 ${r.events} 次 > 4（${r.detail}）`);
+  assert.ok(r.stepPx <= 30, `push 單幀最大步 ${r.stepPx.toFixed(1)} px > 30`);
 });
 
 /* push 脫鉤量測（獨立於上面的 Palm 彈跳量測）：錢柱這一幀在水平面位移 Δ（>1e-5、非 returning 才計），
@@ -134,12 +133,12 @@ async function pinRun(script) {
   return { moved, pinned };
 }
 
-test('擺錢推（push）手跟錢不脫鉤：錢柱在動而手幾乎不動的位移比例 pinFrac ≤0.345（v0.62.3＝0.339、v0.62.4＝0.497）', async () => {
+test('擺錢推（push）手跟錢不脫鉤：錢柱在動而手幾乎不動的位移比例 pinFrac ≤0.20（v0.62.6 由 ≤0.345 加嚴；v0.62.3／v0.62.5＝0.339、v0.62.4＝0.497）', async () => {
   let moved = 0, pinned = 0;
   for (const sc of Object.values(PIN_SCN)) { const r = await pinRun(sc); moved += r.moved; pinned += r.pinned; }
   assert.ok(moved > 1, `六劇本推錢都有量到錢柱位移（總位移 ${moved.toFixed(3)} 世界單位）`);
   const pinFrac = pinned / moved;
-  assert.ok(pinFrac <= 0.345, `pinFrac ${pinFrac.toFixed(3)} > 0.345（手被釘住、錢自己滑過去；總位移 ${moved.toFixed(3)}）`);
+  assert.ok(pinFrac <= 0.20, `pinFrac ${pinFrac.toFixed(3)} > 0.20（手被釘住、錢自己滑過去；總位移 ${moved.toFixed(3)}）`);
 });
 
 test('拍令牌（slam）：彈跳 ≤6 次、單幀最大步 ≤86.4 px（基準 13 次／86.4 px；2026-10-07 使用者簽准由 ≤3 改 ≤6）', () => {

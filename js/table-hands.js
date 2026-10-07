@@ -53,7 +53,7 @@ export function createTableHands(parent, props, opts = {}) {
   const skinQ = q0.get('skin');
   const skinDir = b1On ? (skinQ === null ? 'b' : (['a', 'b', 'c', 'ab'].includes(skinQ) ? skinQ : null)) : null;
   let SP = null, spShadow = null; const spV = new THREE.Vector3();
-  /* v0.63.0 批 3 配件（js/hand-b3.js）：批 1 開著時預設啟用；?handb3=0（或 opts.b3=false）＝孝女白琴／閭山法師／普渡爐主退回 v0.62.5 的手、
+  /* v0.64.0 批 3 配件（js/hand-b3.js）：批 1 開著時預設啟用；?handb3=0（或 opts.b3=false）＝孝女白琴／閭山法師／普渡爐主退回 v0.62.5 的手、
      不載入 hand-b3.js（這一段程式碼整個不走）。擺盪執行體每席一個（setSeats 時建），只在批 3 的席上跑。 */
   const b3On = b1On && (opts.b3 !== undefined ? !!opts.b3 : q0.get('handb3') !== '0');
   let B3 = null, b3Error = null; const b3Swing = [null, null, null, null];
@@ -220,7 +220,7 @@ export function createTableHands(parent, props, opts = {}) {
         }
         const k3 = B3 ? B3.keyOf(roleOf[h.seat]) : null;
         if (B3) b3Swing[h.seat] = null;
-        if (k3) { // v0.63.0 批 3：三角色換自己的幾何（形狀＝預設手；皮膚＝skin-proto 那三組，沒載 skin-proto＝預設皮膚）；材質同上一份
+        if (k3) { // v0.64.0 批 3：三角色換自己的幾何（形狀＝預設手；皮膚＝skin-proto 那三組，沒載 skin-proto＝預設皮膚）；材質同上一份
           seatKey[h.seat] = k3;
           const gk = 'b3:' + k3 + '|' + h.seat;
           const build3 = (k, collide = false) => { const ext = B3.extFor(rig, k, SP ? SP.extraSkin(k) - 1 : 0, collide), g = HR.realGeometry(rig, B3.srcFor(baseSrc, k), baseSrc.position.length / 3, k, { key: k, batch: 3 }, ext); B3.finalize(g, ext); return g; };
@@ -291,7 +291,7 @@ export function createTableHands(parent, props, opts = {}) {
     }
   }
 
-  /** v0.63.0 批 3：垂掛物（福袋、垂尾）擺盪。手不可見＝歸零；可見＝依這一幀的骨世界矩陣解彈簧（凍結時手不動、擺盪照常收斂）。 */
+  /** v0.64.0 批 3：垂掛物（福袋、垂尾）擺盪。手不可見＝歸零；可見＝依這一幀的骨世界矩陣解彈簧（凍結時手不動、擺盪照常收斂）。 */
   function swingStep(dt) {
     let floor = null;
     for (const h of hands) {
@@ -332,7 +332,7 @@ export function createTableHands(parent, props, opts = {}) {
       apply(director.frames());
       if (B3) swingStep(dt);
     },
-    /** v0.63.0 治具出口（只讀）：批 3 各席垂掛物的擺盪狀態（尖端、剛性位置、偏移）；非批 3 席＝null。 */
+    /** v0.64.0 治具出口（只讀）：批 3 各席垂掛物的擺盪狀態（尖端、剛性位置、偏移）；非批 3 席＝null。 */
     b3Swing() { return b3Swing.map((s) => (s && s.count ? s.state() : null)); },
     /** 治具專用：凍結手的時間軸（量 draw call／效能時讓四隻手停在畫面上）。產品流程不呼叫。 */
     setFrozen(on) { frozen = !!on; },

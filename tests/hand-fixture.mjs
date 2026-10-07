@@ -68,7 +68,7 @@ export function cloneSkinnedGlb(url) {
     : null;
   let hsrc = src.replace("import('./creature-figures.js' + V)", `import('${stubURL}')`).replace("import('./hand-motion.js' + V)", `import('${motionURL}')`).replace("import('./hand-realism.js' + V)", `import('${realismURL}')`);
   if (b1URL) hsrc = hsrc.replace("import('./hand-b1.js' + V)", `import('${b1URL}')`);
-  /* v0.63.0：批 3 配件（js/hand-b3.js）只在呼叫端明確要（loadHands({ b3: true })）時換成 data: 模組；預設不換＝既有測試照舊
+  /* v0.64.0：批 3 配件（js/hand-b3.js）只在呼叫端明確要（loadHands({ b3: true })）時換成 data: 模組；預設不換＝既有測試照舊
      （data: 模組解析不到相對路徑 ⇒ 批 3 三角色退回 v0.62.5 的手、stats().b3Error 記原因），行為與 85c38c6a 相同。 */
   if (o.b3 && fs.existsSync(path.join(ROOT, 'js/hand-b3.js'))) {
     const b3URL = asModule(read('hand-b3.js').replace("const V = new URL(import.meta.url).search;", "const V = '';").replace("import('./hand-motion.js' + V)", `import('${motionURL}')`).replace("import('./hand-realism.js' + V)", `import('${realismURL}')`));

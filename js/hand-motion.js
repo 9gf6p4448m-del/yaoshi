@@ -73,6 +73,11 @@ export const HAND = {
   SLAM_THUMB: { ON: true, DEG: 17 },
   /** 推（第二輪）：指尖離錢柱外緣多遠。 */
   PUSH_GAP: 0.012,
+  /** v0.62.6（擺錢推選項 C）：推的手臂從「肩點」伸過來——席位往側面 SIDE（垂直於席位→落點方向；南北取右手側，西東取離托盤遠的一側）；LINE_BLEND＝離伸入界線多近開始轉成正對界線。
+   *  手每幀朝「肩點→錢柱中心」，指尖抵在錢柱靠肩點那側；手臂因此從自家信物旁邊經過，不再整條壓在信物上（原本 yaw＝席位→落點，手臂正好穿過信物）。 */
+  PUSH_SHOULDER: { SIDE: 1.0, LINE_BLEND: 0.4 }, // SIDE【試玩必調】：越大手越斜著從身側進來
+  /** v0.62.6：推的朝向繞障礙（弧度）：每秒最多轉 RATE、最多偏 MAX、整窗搜尋步長 STEP。 */
+  PUSH_YAW: { RATE: 1.6, MAX: 1.05, STEP: 0.0873, Q: 0.0175, NOM_RATE: 12 }, // Q＝朝向量化（效能），NOM_RATE＝標稱朝向每秒最多轉多少
   /** 信物避讓（第三輪）：側移步長、最多幾步、離外接圓柱多留多少。 */
   RELIC: { STEP: 0.03, STEPS: 22, MARGIN: 0.01, ALONG: 8 }, // ALONG（v0.62.4）：側移候選另含沿進場方向前後各幾步
   /** v0.62.4：上一幀修正量（世界單位）大於此值時，即使原目標已可行也先沿用、逐幀縮回（不一幀彈回）；以下直接回原路（跳動 ≤ 此值）。 */
@@ -774,7 +779,7 @@ function rotated(pts, set, yaw, pitch, s) {
   if (!R) {
     R = new Float64Array(set.length * 3);
     for (let i = 0; i < set.length; i++) { const v = set[i], w = xform([pts[v * 3], pts[v * 3 + 1], pts[v * 3 + 2]], yaw, pitch, s); R[i * 3] = w[0]; R[i * 3 + 1] = w[1]; R[i * 3 + 2] = w[2]; }
-    if (m.size > 96) m.clear();
+    if (m.size > 96) m.delete(m.keys().next().value); // v0.62.6 效能：滿了只丟最舊的一筆（原本整個清空；推的朝向會變，整個清空會讓其餘仍在用的朝向一起失效）。結果逐位元相同，只差快取命中
     m.set(key, R);
   }
   return R;
@@ -794,9 +799,9 @@ function rStat(R) {
  * 在固定 yaw／pitch 下，讓 anchor 的 (x,z) 對準 target，並解出最低的根高度：
  * 每個取樣點都不得低於它正下方的地板＋CLR。回 { root, minLift, gaps }。
  */
-function placeAt(rig, pts, set, anchor, yaw, pitch, s, target, obstacles, tableY, minY) {
+function placeAt(rig, pts, set, anchor, yaw, pitch, s, target, obstacles, tableY, minY, zfix) {
   const a = xform(anchor, yaw, pitch, s);
-  const rx = target[0] - a[0], rz = target[1] - a[1];
+  const rx = target[0] - a[0], rz = target[1] - (zfix ? a[2] : a[1]);
   let ry = minY === undefined ? -Infinity : minY;
   /* 先轉一遍、取手的水平外框，只留外框碰得到的障礙（每幀成本：逐點 × 附近幾件，而不是 × 全桌）。 */
   /* v0.61.0 效能（條件 10）：外框與最低點改用旋轉結果的快取統計（rStat）。浮點加減對常數是單調的（捨入不改大小順序），
@@ -876,7 +881,7 @@ export function solveHand(rig, spec, obstacles, tableY) {
     const fp = spec.fit && spec.fit.pose ? prepare(rig, spec.fit.pose, spec.anchor) : pr;
     pitch = choosePitch(rig, fp.pts, fp.anchor, fitSpec, s, fitObs, tableY).pitch;
   }
-  const r = placeAt(rig, pr.pts, allIndex(rig), pr.anchor, spec.yaw, pitch, s, spec.target, obstacles, tableY, spec.minY);
+  const r = placeAt(rig, pr.pts, allIndex(rig), pr.anchor, spec.yaw, pitch, s, spec.target, obstacles, tableY, spec.minY, spec.zfix);
   return { root: r.root, yaw: spec.yaw, pitch, quats: pr.quats, pose: pose.slice() };
 }
 /** v0.60.0 抓取：不經俯角掃描／伸入界線，讓 anchorKind 錨點正好落在 at（x,y,z）。高度下限另由 grabLift 補。 */
@@ -942,7 +947,7 @@ function prepare(rig, pose, anchorKind) {
     const quats = blendPose(pose[0], pose[1], w);
     const pts = localPoints(rig, fk(rig, quats));
     hit = { quats, pts, anchor: anchorLocal(rig, pts, anchorKind) };
-    if (cache.size > 512) cache.clear();
+    if (cache.size > 512) cache.delete(cache.keys().next().value); // v0.62.6 效能：同上，只丟最舊的一筆
     cache.set(key, hit);
   }
   return hit;
@@ -964,7 +969,7 @@ function choosePitch(rig, pts, anchor, spec, s, obstacles, tableY) {
   let best = HAND.PITCH_MIN, bestScore = Infinity;
   for (let k = 0; k < HAND.PITCH_STEPS; k++) {
     const p = HAND.PITCH_MIN + (HAND.PITCH_MAX - HAND.PITCH_MIN) * k / (HAND.PITCH_STEPS - 1);
-    const r = placeAt(rig, pts, rig.coarse, anchor, spec.yaw, p, s, spec.target, obstacles, tableY, spec.minY);
+    const r = placeAt(rig, pts, rig.coarse, anchor, spec.yaw, p, s, spec.target, obstacles, tableY, spec.minY, spec.zfix);
     const tipGap = minGap(tipsC, ci, r.wp, r.root[1], r.flAt);
     const palmGap = minGap(palmC, ci, r.wp, r.root[1], r.flAt);
     const score = spec.anchor === 'tips' ? tipGap : tipGap + palmGap;
@@ -1013,9 +1018,9 @@ export function createHandDirector(props, rig, per) {
     /* 收手：從最後一幀的擺位沿「席位→目標」反方向退 RETRACT_DIST，順勢抬高；仍逐點過地板。 */
     const L = a.from;
     const e = easeInQuad(clamp01(u));
-    const dx = Math.sin(L.yaw), dz = Math.cos(L.yaw);
+    const dx = L.rdir ? L.rdir[0] : Math.sin(L.yaw), dz = L.rdir ? L.rdir[1] : Math.cos(L.yaw);
     const target = [L.ax - dx * HAND.RETRACT_DIST * e, L.az - dz * HAND.RETRACT_DIST * e];
-    return { pose: [L.pose[0], L.pose[1], L.pose[2] * (1 - e)], anchor: L.anchor, target, yaw: L.yaw, pitch: L.pitch, minY: L.y + HAND.RETRACT_LIFT * e };
+    return { pose: [L.pose[0], L.pose[1], L.pose[2] * (1 - e)], anchor: L.anchor, target, yaw: L.yaw, pitch: L.pitch, minY: L.y + HAND.RETRACT_LIFT * e, zfix: L.zfix };
   }
 
   /** 這一席這一幀的擺位規格（null＝不可見）。 */
@@ -1048,7 +1053,7 @@ export function createHandDirector(props, rig, per) {
       const pts = prepare(R, fr.pose, 'palm').pts, n = R.seen.length, W = new Float64Array(n * 3);
       for (let i = 0; i < n; i++) { const v = R.seen[i], q = xform([pts[v * 3], pts[v * 3 + 1], pts[v * 3 + 2]], fr.yaw, fr.pitch, s); W[i * 3] = q[0]; W[i * 3 + 1] = q[1]; W[i * 3 + 2] = q[2]; }
       o = { W, ext: new Map() };
-      if (offCache.size > 256) offCache.clear();
+      if (offCache.size > 256) offCache.delete(offCache.keys().next().value); // v0.62.6 效能：同上，只丟最舊的一筆
       offCache.set(key, o);
     }
     return o;
@@ -1061,7 +1066,9 @@ export function createHandDirector(props, rig, per) {
       const rr = (o.r + HAND.RELIC.MARGIN) * (o.r + HAND.RELIC.MARGIN), top = o.top + HAND.CLR;
       if (ry + b.y0 >= top) continue;
       { const gx = Math.max(0, (rx + b.x0) - o.x, o.x - (rx + b.x1)), gz = Math.max(0, (rz + b.z0) - o.z, o.z - (rz + b.z1)); if (gx * gx + gz * gz >= rr) continue; }
-      for (let i = 0; i < n; i++) {
+      const ids = o.frontOnly ? frontIdx(R) : null, m = ids ? ids.length : n; // frontOnly（v0.62.6）：只看手＋袖口，不看漸隱袖布
+      for (let j = 0; j < m; j++) {
+        const i = ids ? ids[j] : j;
         if (ry + W[i * 3 + 1] >= top) continue;
         const dx = rx + W[i * 3] - o.x, dz = rz + W[i * 3 + 2] - o.z;
         if (dx * dx + dz * dz < rr) return o;
@@ -1077,7 +1084,7 @@ export function createHandDirector(props, rig, per) {
     for (const o of relics) {
       const rr = (o.r + HAND.RELIC.MARGIN) * (o.r + HAND.RELIC.MARGIN), top = o.top + HAND.CLR;
       if (ry + b.y0 >= top) continue;
-      const low = []; for (let i = 0; i < n; i++) if (!(ry + W[i * 3 + 1] >= top)) low.push(i);
+      const low = []; if (o.frontOnly) { for (const i of frontIdx(R)) if (!(ry + W[i * 3 + 1] >= top)) low.push(i); } else for (let i = 0; i < n; i++) if (!(ry + W[i * 3 + 1] >= top)) low.push(i);
       if (low.length) per.push({ o, rr, low });
     }
     return (d) => {
@@ -1125,12 +1132,27 @@ export function createHandDirector(props, rig, per) {
       const st = props.stackAt(h.seat, a.slot);
       if (!st) return null;
       /* 第二輪：用指尖抵住錢柱靠席位那側往前推（原本是掌根壓在錢柱頂，手指就伸到拍品腳邊、擋住拍品）。 */
-      const yaw = yawOf(h.seat, seatP, a), dx = Math.sin(yaw), dz = Math.cos(yaw), off = st.r + HAND.PUSH_GAP;
+      const y0 = yawOf(h.seat, seatP, a), fx = Math.sin(y0), fz = Math.cos(y0);
+      /* 南／北：右手側＝(−f.z, f.x)。西／東：右手側會落到托盤前緣那邊（手臂越過伸入界線），改取離托盤遠的那一側（z 較大）。 */
+      const sg = h.seat >= 2 ? (fx * HAND.PUSH_SHOULDER.SIDE > 0 ? 1 : -1) : 1;
+      const sh = [seatP.x - fz * sg * HAND.PUSH_SHOULDER.SIDE, seatP.z + fx * sg * HAND.PUSH_SHOULDER.SIDE];
+      /* 靠近伸入界線時，手的朝向逐漸轉成正對界線（界線法向）：斜著推時最前端的手指會比抵住錢的那一點先頂到界線，手就提早停、錢多滑一段。
+         轉的比例只看錢柱中心離界線多遠（連續），不看上一幀。 */
+      let yaw = yawToward(sh[0], sh[1], st.x, st.z);
+      { let worst = null, wm = Infinity; for (const L of limitOf(h.seat, HAND.TRAY[props.mode()] || HAND.TRAY.L)) { if (L.n[0] * st.tx + L.n[1] * st.tz - L.c - st.r <= 0.03) continue; /* 只看「錢柱落點已在手搆不到處」的那條（同驗收的界線外判定） */ const m = L.c - (L.n[0] * st.x + L.n[1] * st.z); if (m < wm) { wm = m; worst = L; } }
+        if (worst) { const k = smooth(clamp01(1 - (wm - st.r) / HAND.PUSH_SHOULDER.LINE_BLEND)); if (k > 0) { const yn = Math.atan2(worst.n[0], worst.n[1]); let d = yn - yaw; d = Math.atan2(Math.sin(d), Math.cos(d)); yaw += d * k; } } }
+      /* 標稱朝向限速（v0.62.6 覆審）：每秒最多轉 PUSH_YAW.NOM_RATE；排隊換格沿用上一格的標稱朝向接著轉，不一幀甩過去。 */
+      if (a.yawNom !== undefined) { const R = HAND.PUSH_YAW.NOM_RATE * Math.max(0, a.t - a.yawNomT); let d = yaw - a.yawNom; d = Math.atan2(Math.sin(d), Math.cos(d)); yaw = a.yawNom + Math.max(-R, Math.min(R, d)); }
+      if (a.yawNomT !== a.t) { a.yawNom = yaw; a.yawNomT = a.t; }
+      yaw = Math.round(yaw / HAND.PUSH_YAW.Q) * HAND.PUSH_YAW.Q; // 效能：朝向量化成 Q 的整數倍——同一朝向的手形旋轉（offsets／rotated 快取）連續幾幀可重用；每格 1° 指尖只移 ~0.008
+      const dx = Math.sin(yaw), dz = Math.cos(yaw), off = st.r + HAND.PUSH_GAP;
       let target = [st.x - dx * off, st.z - dz * off];
+      const yawF = yawToward(sh[0], sh[1], st.tx, st.tz), fdx = Math.sin(yawF), fdz = Math.cos(yawF);
       /* 排隊的後格：等候間隔內從上一格的結束位置移到這一格錢柱後方（位置每幀重新抓這一格的錢柱）。 */
       if (a.from && a.t < a.rep) { const k = smooth(clamp01(a.t / a.rep)); target = [a.from[0] + (target[0] - a.from[0]) * k, a.from[1] + (target[1] - a.from[1]) * k]; }
-      return { pose: a.pose || 'curl', anchor: 'front', target, yaw,
-        fit: a.pitch === undefined ? { target: [st.tx - dx * off, st.tz - dz * off], obstacles: moved(obstacles, st.x, st.z, st.tx, st.tz) } : undefined };
+      let inReach = true; for (const L of limitOf(h.seat, HAND.TRAY[props.mode()] || HAND.TRAY.L)) if (L.n[0] * st.x + L.n[1] * st.z - L.c - st.r > 0.03) inReach = false;
+      return { pose: a.pose || 'curl', anchor: 'front', target, yaw, zfix: true, push: { cx: st.x, cz: st.z, off, inReach, queued: !!(a.from && a.t < a.rep) },
+        fit: a.pitch === undefined ? { target: [st.tx - fdx * off, st.tz - fdz * off], obstacles: moved(obstacles, st.x, st.z, st.tx, st.tz) } : undefined };
     }
     if (a.kind === 'slam') {
       const tk = props.tokenAt(h.seat);
@@ -1188,7 +1210,7 @@ export function createHandDirector(props, rig, per) {
     while (h.queue.length) {
       const k = h.queue.shift(), st = props.stackAt(h.seat, k);
       if (!st) continue;
-      start(h.seat, { kind: 'push', slot: k, tx: st.tx, tz: st.tz, from, rep: Math.max(st.wait, 1e-3) });
+      start(h.seat, { kind: 'push', slot: k, tx: st.tx, tz: st.tz, from, rep: Math.max(st.wait, 1e-3), yawNom: h.act && h.act.yawNom, yawNomT: 0 }); // 排隊換格：標稱朝向沿用上一格接著限速轉（換格移動期間不繞障，偏角從 0 起算）
       return true;
     }
     return false;
@@ -1201,7 +1223,10 @@ export function createHandDirector(props, rig, per) {
   function beginRetract(h) {
     const { frame, spec } = h.last;
     const pace = h.act && h.act.kind === 'push' ? HAND.PACE : undefined; // 只有擺錢（推）之後的收手放慢；揭盅後的收手照舊
-    h.act = { kind: 'retract', t: 0, pace, from: { yaw: frame.yaw, pitch: frame.pitch, pose: frame.pose.slice(), anchor: spec.anchor, ax: spec.target[0], az: spec.target[1], y: frame.root[1] } };
+    /* v0.62.6：推完的收手沿「落點→席位」退回（推的手朝向來自右側肩點，沿手的朝向退會一路退到隔壁席的信物那邊）；其餘動作照舊沿手的朝向退。 */
+    let rdir = null;
+    if (h.act && h.act.kind === 'push') { const sp = props.seatPosition(h.seat), y0 = yawOf(h.seat, sp, h.act); rdir = [Math.sin(y0), Math.cos(y0)]; }
+    h.act = { kind: 'retract', t: 0, pace, from: { yaw: frame.yaw, pitch: frame.pitch, pose: frame.pose.slice(), anchor: spec.anchor, ax: spec.target[0], az: spec.target[1], y: frame.root[1], zfix: !!spec.zfix, rdir } };
   }
 
   const api = {
@@ -1292,11 +1317,54 @@ export function createHandDirector(props, rig, per) {
         const a = h.act;
         if (a.kind === 'retract' && a.t >= HAND.RETRACT_MS) { stop(h.seat); return null; }
         /* 俯角每個動作只掃一次（動作開始那一幀），之後固定——掃描成本不進每幀，手也不會一路點頭。 */
-        const req = { scale: s, pose: spec.pose, anchor: spec.anchor, target: spec.target, yaw: spec.yaw, minY: spec.minY, fit: spec.fit,
+        const req = { scale: s, pose: spec.pose, anchor: spec.anchor, target: spec.target, yaw: spec.yaw, minY: spec.minY, fit: spec.fit, zfix: spec.zfix,
           pitch: a.kind === 'retract' ? spec.pitch : a.pitch };
         const obs = obstacles;
         const wasCurl = spec.pose === 'curl'; // 下面修正後 spec.pose 會換成實際姿勢，要先記住（否則每幀重掃捲指）
-        const relics = props.relicObstacles ? props.relicObstacles() : [];
+        /* v0.62.6：推完的收手往自家席位退，漸隱袖布本來就會疊進自家信物（v0.62.5 已有）；自家信物只對手＋袖口判定，免得袖布擋住收手、手一卡一跳。 */
+        const pushBack = h.act.kind === 'retract' && h.act.from && h.act.from.rdir;
+        const relics = (props.relicObstacles ? props.relicObstacles() : []).map((o) => (pushBack && o.seat === h.seat ? Object.assign({}, o, { frontOnly: true }) : o));
+        /* v0.62.6（擺錢推選項 C）：錢柱還在手搆得到的範圍內、照標稱朝向擺會撞伸入界線或信物時，改「轉手的朝向」繞過去——
+           指尖仍抵在錢柱上（目標點跟著朝向繞錢柱中心轉），不像信物避讓那樣把整隻手側移離開錢。朝向偏角每秒最多變 PUSH_YAW.RATE（限速過渡，
+           不是沿用上一幀的修正量）：先試「往 0 收 RATE」，再試限速窗內其他值，都不行才在整個 ±MAX 裡找離上一幀最近的可行值（會跳，但只在別無他法時）。
+           都不可行＝照舊交給下面的伸入回退與信物避讓。可行判定與下面同一個（reach＋relicHit），不放寬。 */
+        let preFr = null, f0 = null;
+        if (a.kind === 'push' && spec.push && spec.push.queued) a.yawT = a.t; // 換格移動期間不繞障：限速的時間基準跟著走，上場第一幀只准轉一幀的量
+        if (a.kind === 'push' && spec.push && spec.push.inReach && !spec.push.queued && req.pitch === undefined) { // 第一幀：先照原本的掃描定下俯角與捲指，朝向繞行才有固定的手形可試
+          f0 = solveHand(R0, req, obs, tableY); req.pitch = f0.pitch; req.pose = f0.pose;
+        }
+        if (a.kind === 'push' && spec.push && spec.push.inReach && !spec.push.queued && req.pitch !== undefined && Array.isArray(req.pose)) {
+          const P = spec.push, Y = HAND.PUSH_YAW, prev = a.yawOff || 0, R = Y.RATE * Math.max(0, a.t - (a.yawT === undefined ? 0 : a.yawT));
+          const ok = (f) => reach(R0, h.seat, f, s, T).over <= 1e-3 && !(relics.length && relicHit(R0, f, s, relics));
+          const tryD = (d) => { const y = req.yaw + d, t = [P.cx - Math.sin(y) * P.off, P.cz - Math.cos(y) * P.off];
+            if (d === 0 && f0) return ok(f0) ? { d, y, t, f: f0 } : null; // 第一幀的掃描解就是偏角 0 的擺位（俯角掃描只用 fit，最後擺位同目標同朝向），不重解
+            const f = solveHand(R0, Object.assign({}, req, { yaw: y, target: t, fit: undefined }), obs, tableY); return ok(f) ? { d, y, t, f } : null; };
+          let pick = null;
+          const d0 = Math.round(Math.max(prev - R, Math.min(prev + R, 0)) / Y.Q) * Y.Q;
+          pick = tryD(d0);
+          if (!pick && !a.scanMiss) for (const d of [Math.round((prev - R) / Y.Q) * Y.Q, prev, Math.round((prev + R) / Y.Q) * Y.Q].sort((u, w) => Math.abs(u) - Math.abs(w))) { if (d !== d0 && Math.abs(d) <= Y.MAX && (pick = tryD(d))) break; }
+          if (!pick && (!a.scanMiss || !h.last)) { const cand = []; for (let d = -Y.MAX; d <= Y.MAX + 1e-9; d += Y.STEP) cand.push(d); cand.sort((u, w) => Math.abs(u - prev) - Math.abs(w - prev) || Math.abs(u) - Math.abs(w)); for (const d of cand) if ((pick = tryD(d))) break; if (pick && h.last) a.scanJumps = (a.scanJumps || 0) + 1; }
+          /* 整個 ±MAX 都繞不過（錢柱卡在信物與伸入界線之間的窄縫）：手停在上一幀的位置（還是可行解），錢自己走完最後一小段；
+             不再側移跳開（原本的信物避讓會一幀把手甩到 0.4 外）。 */
+          a.scanMiss = !pick; // 效能：整窗搜尋落空後，之後各幀只試限速窗內（落空的那條件通常一直成立），等窗內再找到解才恢復整窗搜尋
+          const retreatOk = () => { // 只撞伸入界線、退回界線內就可行＝交給下面的回退（手抵到界線為止）；退回後撞信物才停在上一幀
+            let q = Object.assign({}, req, { fit: undefined }), f = solveHand(R0, q, obs, tableY), Rr = reach(R0, h.seat, f, s, T);
+            for (let i = 0; i < 6 && Rr.over > 1e-4; i++) { const ux = Math.sin(f.yaw), uz = Math.cos(f.yaw), nd = Rr.L.n[0] * ux + Rr.L.n[1] * uz;
+              const mx = nd >= 0.2 ? ux * Rr.over / nd : Rr.L.n[0] * Rr.over, mz = nd >= 0.2 ? uz * Rr.over / nd : Rr.L.n[1] * Rr.over;
+              q = Object.assign({}, q, { target: [q.target[0] - mx, q.target[1] - mz] }); f = solveHand(R0, q, obs, tableY); Rr = reach(R0, h.seat, f, s, T); }
+            return ok(f);
+          };
+          if (!pick && a.holdLast === undefined) a.holdLast = !retreatOk(); // 效能：「擋住的是信物還是界線」每次落空只判一次，之後沿用到再度找到解
+          if (pick) a.holdLast = undefined;
+          if (!pick && h.last && h.last.spec && h.last.spec.push && a.holdLast) {
+            const t = h.last.spec.target.slice(), y = h.last.frame.yaw, f = solveHand(R0, Object.assign({}, req, { yaw: y, target: t, fit: undefined }), obs, tableY);
+            if (ok(f)) pick = { d: a.yawOff || 0, y, t, f };
+          }
+          /* 推剛開始（還沒畫過）就整個 ±MAX 都碰不到錢：這一幀先不畫，等錢柱離信物再遠一點才上場（不畫在側移開的位置、下一幀再跳回來）。 */
+          if (!pick && !h.last) { a.yawT = a.t; if (done(h)) finishAct(h); return null; }
+          if (pick) { req.yaw = pick.y; req.target = pick.t; req.fit = undefined; spec = Object.assign({}, spec, { yaw: pick.y, target: pick.t }); a.yawOff = pick.d; preFr = pick.f; } // preFr：同一組輸入已解過，下面不再重解
+          a.yawT = a.t;
+        }
         /* 效能（第三輪診斷）：同一隻手這一幀的輸入（目標、姿勢、俯角、障礙與信物）跟上一幀完全一樣就直接重用上一幀的解——
            凍結或錢已落定時每幀 0 次解算。 */
         const memoKey = JSON.stringify([req.target, req.pose, req.yaw, req.pitch, req.minY, spec.lift || 0, a.kind, a.lead, obsSig(obs), obsSig(relics)]);
@@ -1332,7 +1400,7 @@ export function createHandDirector(props, rig, per) {
         };
         if (canRetry && hyst && cn > HAND.CORR_KEEP) fr = tryCorr();
         if (!fr && !warm) {
-          fr = solveHand(R0, req, obs, tableY);
+          fr = preFr || solveHand(R0, req, obs, tableY);
           if (canRetry && (cn <= HAND.CORR_KEEP || !hyst) && !valid(fr)) { const f2 = tryCorr(); if (f2) fr = f2; }
         }
         if (warm) { req.target = warm.target; fr = warm.fr; req.fit = undefined; }
@@ -1428,7 +1496,8 @@ export function createHandDirector(props, rig, per) {
       });
     },
     /** 治具／測試出口（只讀）：每席目前的動作名與進度。 */
-    state() { return hands.map((h) => (h.act ? { kind: h.act.kind, slot: h.act.slot === undefined ? -1 : h.act.slot, t: +h.act.t.toFixed(6) } : null)); },
+    /** v0.62.6：推的動作另給 yawOff（朝向繞障偏角，弧度）與 scanJumps（整窗搜尋跳轉次數），給 tests/push-contact.test.mjs 守限速（只讀）。 */
+    state() { return hands.map((h) => (h.act ? Object.assign({ kind: h.act.kind, slot: h.act.slot === undefined ? -1 : h.act.slot, t: +h.act.t.toFixed(6) }, h.act.kind === 'push' ? { yawOff: h.act.yawOff || 0, scanJumps: h.act.scanJumps || 0 } : {}) : null)); },
   };
 
   function done(h) {

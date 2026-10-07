@@ -60,6 +60,11 @@ export const PROPS = {
        第一格原速 FLY_MS；之後每格 QUEUE_FLY 秒、格與格之間 QUEUE_GAP 秒（v0.59.11：4 格各落定 0.70／1.16／1.62／2.08 秒）。只在手開著時。 */
     QUEUE_FLY: 0.40,
     QUEUE_GAP: 0.06,
+    /* v0.62.6（擺錢推選項 C／B，使用者裁定）：手推時錢柱改從「自家信物前緣」出發（原本從席位中心＝信物圓心，錢一開始埋在信物裡，
+       手要碰到錢就得穿過信物）。出發點沿「席位→落點」方向前移：信物外接半徑＋錢柱外接半徑＋FROM_GAP，最多到全程的 FROM_MAX。
+       純畫面：落點、到位時間（t／delay／fly）不變。 */
+    FROM_GAP: 0.08,
+    FROM_MAX: 0.8,
   },
   /* ── 血玉令牌 ───────────────────────────────────────────────────────── */
   TOKEN: {
@@ -677,11 +682,21 @@ export function createTableProps(parent, opts = {}) {
       for (let i = 0; i < n; i++) tos.push(stand ? stringAt(s, k, i) : spreadAt(s, k, i, n));
       /* 手推：整柱在席位就疊好，與終點同形、平移到席位，同時起步一起滑（不錯開、不拋起）。 */
       const cx = tos.reduce((a, p) => a + p[0], 0) / n, cz = tos.reduce((a, p) => a + p[2], 0) / n;
+      let ox = fx - cx, oz = fz - cz; // 整柱從落點平移到出發點的位移（原：席位中心）
+      if (handPaths) {
+        /* 該席沒有信物（還沒 setSeats、該席沒有角色、或信物沒載入）＝照舊從席位中心出發（tests/push-from.test.mjs 守）。 */
+        const rel = api.relicObstacles().find((o) => o.seat === s), L = Math.hypot(ox, oz);
+        if (rel && L > 1e-6) {
+          let sr = 0; for (const p of tos) sr = Math.max(sr, Math.hypot(p[0] - cx, p[2] - cz));
+          const D = Math.min(rel.r + sr + CH.R + CH.T / 2 + CH.FROM_GAP, L * CH.FROM_MAX);
+          ox += (-ox / L) * D; oz += (-oz / L) * D; // 沿席位→落點方向前移 D
+        }
+      }
       for (let i = 0; i < n; i++) {
         const to = tos[i];
         chipRec.push({
           seat: s, slot: k, k: i, n, stand, amt,
-          from: handPaths ? [to[0] + fx - cx, to[1], to[2] + fz - cz] : [fx, trayY + CH.T / 2, fz], to,
+          from: handPaths ? [to[0] + ox, to[1], to[2] + oz] : [fx, trayY + CH.T / 2, fz], to,
           yaw: (i * 0.7) % (Math.PI * 2), tilt: [0.055, -0.045, 0.07, -0.055][i % 4], t: 0, delay: handPaths ? qDelay : i * 0.035, fly: qFly,
         });
       }

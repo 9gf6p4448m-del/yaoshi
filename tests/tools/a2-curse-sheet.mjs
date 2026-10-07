@@ -179,7 +179,7 @@ try {
 fs.writeFileSync(path.join(OUT, 'lineup-key.json'), JSON.stringify({
   note: 'lineup1／lineup2 兩張圖上刻意不標名稱（盲讀指認用）；本檔是答案，讀者不要先看。左→右＝畫面上的左→右。',
   lineup1: KINDS1, lineup2: KINDS2,
-  names: { generic: '符紙堆（無 kind 的預設）', guava: '魔神仔的芭樂', water: '抓交替水符', lock: '縛靈鎖', tiger: '白虎煞', boat: '王船煞', wedding: '冥婚紅包' },
+  names: { generic: '符紙堆（無 kind 的預設）', guava: '魔神仔的芭樂', water: '水鬼名冊', lock: '縛靈鎖', tiger: '白虎煞', boat: '王船煞', wedding: '冥婚紅包' },
 }, null, 2) + '\n');
 fs.writeFileSync(path.join(OUT, 'metrics-' + NAME + '.json'), JSON.stringify(metrics, null, 2) + '\n');
 console.log(JSON.stringify({ out: path.relative(ROOT, OUT), name: NAME, shots: Object.fromEntries(Object.entries(metrics.shots).map(([k, v]) => [k, { calls: v.calls, tris: v.tris, slots: v.slots.map((s) => s.curseKind + ':' + s.triangles) }])), errors: metrics.errors }, null, 1));

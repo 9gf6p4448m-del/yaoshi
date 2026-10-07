@@ -1,4 +1,4 @@
-// 席位之手 批 3 配件（v0.63.0；凍結驗收 docs/experiments/2026-10-07-hands-b3/acceptance.md 條件 3／4／6／7／11 的 node 端把關）。
+// 席位之手 批 3 配件（v0.64.0；凍結驗收 docs/experiments/2026-10-07-hands-b3/acceptance.md 條件 3／4／6／7／11 的 node 端把關）。
 // 走真實鏈路：真的 hand_r.glb、真的 table-props／table-hands／hand-motion／hand-realism／hand-b3（hand-fixture，loadHands({ b3: true })）、真的 three 蒙皮。
 // 85c38c6a（v0.62.5）沒有 hand-b3.js：同一支測試在那裡會紅在「三角色各拿專屬手」（variants／部件）——行為斷言，不是載入錯誤。
 import assert from 'node:assert/strict';
