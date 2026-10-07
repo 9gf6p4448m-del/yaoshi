@@ -58,14 +58,35 @@ export async function loadSvgText(roleId, assetsBase = 'assets/characters/') {
   }
 }
 
+/** 寫實點陣圖貼圖（assets/characters/{stem}-{healthy|pale|dying}.webp）。不可用時回 null，由呼叫端退回 SVG。 */
+async function loadPicTexture(roleId, state, assetsBase) {
+  const Y = api();
+  if (!Y || !Y.ART_PIC || !Y.CHAR_SVG || roleId === 'human') return null;
+  const stem = Y.CHAR_SVG[roleId];
+  if (!stem || typeof state !== 'string' || !state.startsWith('state-')) return null;
+  const url = `${assetsBase}${stem}-${state.slice(6)}.webp?v=${Y.RELEASE_VERSION}`;
+  const tex = await new Promise((resolve) => {
+    new THREE.TextureLoader().load(url, resolve, undefined, () => resolve(null));
+  });
+  if (!tex) return null;
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
 /**
  * 取某角色某氣色的貼圖。氣色的作法與 index.html 的 avHTML() 相同：
  * 把 SVG 根節點的 state-healthy 換成當前狀態的 class，讓 SVG 內建的三態樣式生效。
  * 對外匯出給 duel-figures.js 共用同一份快取與同一套三態規則（防分岔）。
+ * v0.62.6：寫實點陣圖優先，抓不到才走上述 SVG 路徑。
  */
 export async function getTexture(roleId, state, assetsBase = 'assets/characters/') {
   const key = `${roleId}:${state}`;
   if (texCache.has(key)) return texCache.get(key);
+  const pic = await loadPicTexture(roleId, state, assetsBase);
+  if (pic) {
+    texCache.set(key, pic);
+    return pic;
+  }
   const raw = await loadSvgText(roleId, assetsBase);
   if (!raw) return null;
   const svg = raw.replace('state-healthy', state);

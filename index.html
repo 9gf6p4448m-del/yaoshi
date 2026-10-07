@@ -513,12 +513,16 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
 .seat .st{font-size:10px;color:var(--dim);line-height:1.4}
 /* 角色頭像 SVG（assets/characters）：各處尺寸；載入失敗時 avHTML() 退回 emoji，這些規則不生效也無妨。
    :not(.ic)：退回的 emoji 會被 js/ui-icons.js 換成線條圖示（svg.ic），它照字級走，不吃頭像尺寸（v0.59.0） */
-.seat .av svg:not(.ic){width:38px;height:38px;display:block}
-#south .av svg:not(.ic){width:42px;height:42px;display:block}
-.fighter .fav svg:not(.ic){width:104px;height:104px;display:block;margin:0 auto}
-.rav svg:not(.ic){width:58px;height:58px;display:block;margin:0 auto}
-#hoAv svg:not(.ic){width:72px;height:72px;display:block;margin:0 auto}
-.avi svg:not(.ic){width:24px;height:24px;vertical-align:middle}
+.seat .av svg:not(.ic),.seat .av img.pic{width:38px;height:38px;display:block}
+#south .av svg:not(.ic),#south .av img.pic{width:42px;height:42px;display:block}
+.fighter .fav svg:not(.ic),.fighter .fav img.pic{width:104px;height:104px;display:block;margin:0 auto}
+.rav svg:not(.ic),.rav img.pic{width:58px;height:58px;display:block;margin:0 auto}
+#hoAv svg:not(.ic),#hoAv img.pic{width:72px;height:72px;display:block;margin:0 auto}
+.avi svg:not(.ic),.avi img.pic{width:24px;height:24px;vertical-align:middle}
+/* 寫實點陣圖（v0.62.6）：三態膚色已烘進圖，不再疊 theme.css 的 .state-* filter（避免雙重蒼白／壓暗） */
+img.pic{object-fit:cover;user-select:none;-webkit-user-drag:none}
+img.pic.state-healthy,img.pic.state-pale{filter:none}
+img.pic.state-dying{filter:brightness(.92)}
 /* 演出層（art-integration-guide §5）：開標黑幕、對決淡入淡出、傷害蓋章、盯上印。keyframes 在 theme.css */
 #veil{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .45s;z-index:6;border-radius:16px}
 #veil.on{opacity:1}
@@ -1028,9 +1032,9 @@ html.ys3d .fighter .fdir{text-shadow:0 2px 6px #000}
 .nwCard.cleared{border-color:var(--gold);box-shadow:inset 0 0 0 1px rgba(232,200,96,.18)}
 .nwCard.locked{opacity:.55}
 .nwAv{flex:0 0 auto;width:52px;height:52px;font-size:34px;line-height:52px;text-align:center}
-.nwAv svg:not(.ic){width:52px;height:52px;display:block}
+.nwAv svg:not(.ic),.nwAv img.pic{width:52px;height:52px;display:block}
 .nwAv.sm{width:34px;height:34px;font-size:24px;line-height:34px;display:inline-block;vertical-align:middle}
-.nwAv.sm svg:not(.ic){width:34px;height:34px}
+.nwAv.sm svg:not(.ic),.nwAv.sm img.pic{width:34px;height:34px}
 .nwInfo{flex:1;min-width:0}
 .nwNo{font-size:11px;color:var(--dim);letter-spacing:2px}
 .nwTt{font-size:16px;font-weight:bold;color:var(--ink);margin:1px 0}
@@ -6117,10 +6121,30 @@ async function preloadArt(){
   AVSVG.__done=true;
 }
 function lifeState(p){ if(!p.alive) return "state-dying"; const r=p.life/CFG.LIFE; return r>2/3?"state-healthy":r>1/3?"state-pale":"state-dying"; }
-/* 玩家物件 → 頭像 HTML（依壽命帶氣色）；沒有 SVG 就是 emoji */
-function avHTML(p){ const s=AVSVG[p.roleId]; return s?s.replace("state-healthy",lifeState(p)):p.av; }
+/* ===== 寫實點陣圖頭像（v0.62.6，使用者 2026-10-07 裁定打破廟口版畫改走寫實；純呈現） =====
+   assets/characters/{CHAR_SVG 值}-{healthy|pale|dying}.webp（320px，圓形底盤已烘進圖、圓外透明）。
+   三態由 lifeState() 決定，門檻不變；圖載入失敗（onerror）退回既有 SVG 字串、再退 emoji；
+   ?pic=0 整段不啟用，行為與 v0.62.5 相同。素材由 tools/art-pipeline/build_assets.py 產生。
+   human（選角模式不使用的遺留座位）沒有點陣圖，一律走舊 SVG 路徑。 */
+const ART_PIC=(()=>{ try{ return new URLSearchParams(typeof location!=="undefined"&&location.search?location.search:"").get("pic")!=="0"; }catch(e){ return true; } })();
+function picStem(roleId){ const s=CHAR_SVG[roleId]; return s&&roleId!=="human"?s:null; }
+function picFail(img,roleId,stateCls){
+  img.onerror=null;
+  const s=AVSVG[roleId], R=ROLES[roleId];
+  const h=s?s.replace("state-healthy",stateCls):((R&&R.av)||"");
+  const w=document.createElement("span"); w.innerHTML=h; img.replaceWith(...w.childNodes);
+}
+function avImgHTML(roleId,stateCls){
+  const stem=picStem(roleId); if(!ART_PIC||!stem) return null;
+  return `<img class="pic ${stateCls}" src="assets/characters/${stem}-${stateCls.slice(6)}.webp?v=${RELEASE_VERSION}" alt="" draggable="false" onerror="picFail(this,'${roleId}','${stateCls}')">`;
+}
+/* 玩家物件 → 頭像 HTML（依壽命帶氣色）；沒有圖就退 SVG、再退 emoji */
+function avHTML(p){
+  const img=avImgHTML(p.roleId,lifeState(p)); if(img) return img;
+  const s=AVSVG[p.roleId]; return s?s.replace("state-healthy",lifeState(p)):p.av;
+}
 /* 角色定義 → 頭像 HTML（選角、角色卡：固定紅潤） */
-function roleAvHTML(R){ return AVSVG[R.id]||R.av; }
+function roleAvHTML(R){ return avImgHTML(R.id,"state-healthy")||AVSVG[R.id]||R.av; }
 /* ===== 法寶圖示與系別底色（美術層，純呈現；規格 art-integration-guide §3、§7 裁定） =====
    assets/items 有 12 張，其中 10 張對得上 POOL 品名；rednail（紅線繡花鞋）與 leinu（雷女銅鈴）
    在 POOL 裡沒有對應品項，2026-09-02 裁定當**儲備素材**，不掛到任何既有法寶上。
@@ -6132,10 +6156,24 @@ const ITEM_SVG={破軍旗:"pojun",飼鬼甕:"sigui",過陰咒:"guoyin",福壽綿
 /* 系別 → theme.css 的底色 class。顏色的單一事實來源在 theme.css，這裡只做對應 */
 const SYS_BG={zuling:"bg-zuli",xianghuo:"bg-xianghu",yinqi:"bg-yinqi",curse:"bg-curse"};
 function sysBg(it){ return SYS_BG[it.f]||""; }
+/* 寫實點陣圖圖示（v0.62.6）：POOL 27＋CURSES 5 全數有圖，品名→檔名 key；128px（小圖）／-lg 384px（大圖）。
+   key 由 tools/art-pipeline/build_assets.py 從 POOL／CURSES 解析產生（詛咒品加 curse- 前綴，避免 白虎煞 tiger 與 虎爺印 tiger 撞名），
+   tests/art-asset-map.test.mjs 逐項核對本表。?pic=0 退回上面的舊 SVG（只有 10 件）。 */
+const ITEM_IMG={
+  射日神弓:"bow",百步蛇紋盾:"shield",巴冷公主珠鍊:"balen",祖靈之眼:"eye",雷女之火:"thunder",拼板舟:"boat",山豬牙飾:"boartusk",獻祭刀:"xianji",
+  山神庇佑:"shanshen",媽祖令旗:"flag",王爺劍:"sword",送王船:"wangchuan",千里眼銅鈴:"bell",五營旗:"wuying",虎爺印:"tiger",香灰符:"ashcharm",
+  福壽綿長:"fushou",破軍旗:"pojun",魔神仔紅帽:"redhat",林投姐髮簪:"hairpin",椅仔姑竹椅:"chair",黃色小雨衣:"raincoat",水鬼浮標:"buoy",
+  虎姑婆指甲:"nail",陰陽眼銅錢:"yinyangcoin",過陰咒:"guoyin",飼鬼甕:"sigui",冥婚紅包:"curse-wedding",魔神仔的芭樂:"curse-guava",
+  抓交替水符:"curse-water",縛靈鎖:"curse-lock",白虎煞:"curse-tiger"};
+function itemImgHTML(it,cls){
+  const k=ART_PIC&&ITEM_IMG[it.n];
+  if(k) return `<img class="${cls} pic" src="assets/items/${k}.webp?v=${RELEASE_VERSION}" alt="" draggable="false" onerror="this.onerror=null;this.remove()">`;
+  const f=ITEM_SVG[it.n]; return f?`<img class="${cls}" src="assets/items/${f}.svg" alt="">`:"";
+}
 /* 拍品卡右下角浮水印（不佔高度） */
-function itemIcoHTML(it){ const f=ITEM_SVG[it.n]; return f?`<img class="mico" src="assets/items/${f}.svg" alt="">`:""; }
+function itemIcoHTML(it){ return itemImgHTML(it,"mico"); }
 /* 標題列前的小圖示（開標大卡、標書抬頭） */
-function itemIcoInline(it){ const f=ITEM_SVG[it.n]; return f?`<img class="iico" src="assets/items/${f}.svg" alt="">`:""; }
+function itemIcoInline(it){ return itemImgHTML(it,"iico"); }
 /* 夜份指示器（美術層 §4）：12 格月相。當前夜整圓填燈籠金，已過的夜亮半月痕。
    純呈現，不讀寫賽局狀態；SVG 沒預抓成功（file:／離線）就退回文字夜份，不擋開局。 */
 function renderNights(cur){
@@ -9622,6 +9660,7 @@ window.__yaoshi={ newGame, makeState, simulate, trace, mulberry32, pwCurseFeedba
   pwHumanSides, /* 批 2-a 覆審 MEDIUM-4：紅暈該閃在哪一側（熱座兩位真人時兩側都算） */
   pwTrial, /* 卷 D D1：AI 估值用的小樣本實跑（閘門 D-A7b 量它與實測勝率的相關性） */
   CHAR_SVG, lifeState, /* 3D 橋接層（v0.15）：角色→SVG 檔名、氣色三態；門檻不得另訂一份 */
+  ART_PIC, RELEASE_VERSION, /* v0.62.6 寫實點陣圖頭像：3D 頭貼圖走同一條開關與版本參數 */
   recordAuction, recordNightEnd, finalizeHistory, reviewSummary, /* 局末回顧（2026-09-02 v0.10）測試出口 */
   ledgerNarrative, /* A3 S5 因果短敘事（凍結 #9）測試出口 */ /* 市集規則（2026-09-02）：排程與押寶夜轉換的量測出口 */
   demoEvents:{ oldShrine:EVENT_OLD_SHRINE, newShrine:EVENT_NEW_SHRINE,
