@@ -74,7 +74,9 @@ export const HAND = {
   /** 推（第二輪）：指尖離錢柱外緣多遠。 */
   PUSH_GAP: 0.012,
   /** 信物避讓（第三輪）：側移步長、最多幾步、離外接圓柱多留多少。 */
-  RELIC: { STEP: 0.03, STEPS: 22, MARGIN: 0.01 },
+  RELIC: { STEP: 0.03, STEPS: 22, MARGIN: 0.01, ALONG: 8 }, // ALONG（v0.62.4）：側移候選另含沿進場方向前後各幾步
+  /** v0.62.4：上一幀修正量（世界單位）大於此值時，即使原目標已可行也先沿用、逐幀縮回（不一幀彈回）；以下直接回原路（跳動 ≤ 此值）。 */
+  CORR_KEEP: 0.02,
   /** 西／東席從側面水平進場（見 yawOf）。 */
   SIDE_YAW: false,
   /** 收（敗方）：沿用揭盅 0.22 秒延遲＋0.42 秒返回；延遲那段就是手伸過去扒住錢柱的時間。 */
@@ -1067,6 +1069,26 @@ export function createHandDirector(props, rig, per) {
     }
     return null;
   }
+  /** v0.62.4 效能：同一幀只做平移的信物判定（側移候選逐一試）——與 relicHit(R, 平移後的幀, s, relics) 是同一個判定、同樣的算式與順序（只回有沒有撞到），
+   *  但「低於信物頂的點」只挑一次（平移不改高度），每個候選只掃這些點。 */
+  function relicProbe(R, fr, s, relics) {
+    const off = offsets(R, fr, s), W = off.W, n = W.length / 3, [rx, ry, rz] = fr.root;
+    const b = off.box || (off.box = rStat(W)), per = [];
+    for (const o of relics) {
+      const rr = (o.r + HAND.RELIC.MARGIN) * (o.r + HAND.RELIC.MARGIN), top = o.top + HAND.CLR;
+      if (ry + b.y0 >= top) continue;
+      const low = []; for (let i = 0; i < n; i++) if (!(ry + W[i * 3 + 1] >= top)) low.push(i);
+      if (low.length) per.push({ o, rr, low });
+    }
+    return (d) => {
+      const x = rx + d[0], z = rz + d[1];
+      for (const { o, rr, low } of per) {
+        { const gx = Math.max(0, (x + b.x0) - o.x, o.x - (x + b.x1)), gz = Math.max(0, (z + b.z0) - o.z, o.z - (z + b.z1)); if (gx * gx + gz * gz >= rr) continue; }
+        for (const i of low) { const dx = x + W[i * 3] - o.x, dz = z + W[i * 3 + 2] - o.z; if (dx * dx + dz * dz < rr) return true; }
+      }
+      return false;
+    };
+  }
   /** 這一幀看得見的部分（袖口邊以前）越線最多的那一條與越線量（over≤0＝沒越）。 */
   function reach(R, seat, fr, s, T) {
     const Ls = limitOf(seat, T); if (!Ls.length) return { over: 0, L: null };
@@ -1286,16 +1308,31 @@ export function createHandDirector(props, rig, per) {
           return m.fr;
         }
         const valid = (f) => reach(R0, h.seat, f, s, T).over <= 1e-3 && !(relics.length && relicHit(R0, f, s, relics));
-        let fr = solveHand(R0, req, obs, tableY);
-        /* 先試上一幀用過的修正量（並讓它每幀縮一點，需要的修正變小時手會平順地回到原路），可行就不必整套重算。 */
-        if (!valid(fr) && a.corr && !(a.kind === 'rake' && a.lead === undefined)) {
-          const base = req.target.slice();
-          for (const k of [0.85, 1]) {
-            const t2 = [base[0] + a.corr[0] * k, base[1] + a.corr[1] * k];
-            const f2 = solveHand(R0, Object.assign({}, req, { target: t2, pitch: fr.pitch, pose: fr.pose, fit: undefined }), obs, tableY);
-            if (valid(f2)) { fr = f2; req.target = t2; break; }
+        /* 先試上一幀用過的修正量（並讓它每幀縮一點，需要的修正變小時手會平順地回到原路），可行就不必整套重算。
+           v0.62.4（手來回彈跳）：① 上一幀的修正量大於 HAND.CORR_KEEP 時，就算原目標這一幀已可行也先沿用、每幀最多縮 15%（原本一可行就整段修正量一幀歸零，
+           手瞬間彈回原路、下一幀又被推開＝兩個位置來回翻）；② 縮 15% 不可行、原量可行時，在兩者之間二分 2 次取最小可行縮放（原本只有 0.85／1 兩檔，修正量以 15% 為一格跳）；
+           ③ 原量也不可行＝記下暖啟動點（下面伸入回退與信物避讓先從它出發）。沿用修正量可行時就不解未修正的那一幀（效能）。
+           每一幀用的仍是通過 valid（伸入界線＋信物）的解，不放寬任何不穿透檢查。 */
+        const c0 = a.corr, cn = c0 ? Math.hypot(c0[0], c0[1]) : 0, req0 = Object.assign({}, req);
+        const canRetry = cn > 1e-3 && !(a.kind === 'rake' && a.lead === undefined) && req.pitch !== undefined && Array.isArray(req.pose);
+        let warm = null, fr = null;
+        const at = (k) => solveHand(R0, Object.assign({}, req0, { target: [req0.target[0] + c0[0] * k, req0.target[1] + c0[1] * k], fit: undefined }), obs, tableY);
+        const tryCorr = () => {
+          let k = 0.85, f2 = at(k);
+          if (!valid(f2)) {
+            k = 1; f2 = at(1);
+            if (!valid(f2)) { warm = { fr: f2, target: [req0.target[0] + c0[0], req0.target[1] + c0[1]] }; return null; }
+            for (let i = 0, lo = 0.85; i < 2; i++) { const m = (lo + k) / 2, fm = at(m); if (valid(fm)) { k = m; f2 = fm; } else lo = m; }
           }
+          req.target = [req0.target[0] + c0[0] * k, req0.target[1] + c0[1] * k];
+          return f2;
+        };
+        if (canRetry && cn > HAND.CORR_KEEP) fr = tryCorr();
+        if (!fr && !warm) {
+          fr = solveHand(R0, req, obs, tableY);
+          if (canRetry && cn <= HAND.CORR_KEEP && !valid(fr)) { const f2 = tryCorr(); if (f2) fr = f2; }
         }
+        if (warm) { req.target = warm.target; fr = warm.fr; req.fit = undefined; }
         /* 伸入深度（第二輪）：看得見的部分越線就沿進場方向退回，錢（若還在滑）自己走完剩下的路；終點不變。 */
         const desired = spec.target;
         let R = reach(R0, h.seat, fr, s, T);
@@ -1305,6 +1342,10 @@ export function createHandDirector(props, rig, per) {
           fr = solveHand(R0, req, obs, tableY); R = reach(R0, h.seat, fr, s, T);
         }
         if (a.kind === 'rake' && a.lead === undefined) a.lead = false;
+        /* v0.62.4 方案 A：下面「伸入回退＋信物避讓」包成 settle()；有暖啟動點就先從它解（多半只差一點點越線，退回一點就好、高度也接得上上一幀），
+           暖啟動解不出（信物擋住且找不到側移）才照原本從未修正的目標冷啟動。兩條路用的是同一組可行判定。 */
+        const settle = () => {
+        R = reach(R0, h.seat, fr, s, T);
         for (let i = 0; i < 6 && R.over > 1e-4; i++) {
           const dx = Math.sin(fr.yaw), dz = Math.cos(fr.yaw), nd = R.L.n[0] * dx + R.L.n[1] * dz;
           /* 沿進場方向退；若這條線跟進場方向幾乎平行（退不開），改沿線的法向直接推回線內。 */
@@ -1316,32 +1357,62 @@ export function createHandDirector(props, rig, per) {
         /* 第三輪：信物避讓。看得見的部分（含漸隱前半段）若落進任一席信物的外接圓柱（低於其頂），
            沿進場方向的垂直方向把入場錨點側移；只改手的位置，錢的出發點／終點不變。找不到可行側移，這一幀手不畫。 */
         let rh = relics.length ? relicHit(R0, fr, s, relics) : null;
-        if (rh) {
+        /* v0.62.4（手來回彈跳）：側移的候選依「修正量離上一幀多近」排序（上一幀沒有修正量＝原順序：k 由小到大、side 先）。原本每幀都從 0 往外找，
+           信物一側時可行時不可行（手的高度隨錢柱頂一格一格變），手就在「貼著目標」與「繞到信物旁」兩個解之間逐幀來回翻。
+           leap：這一幀不側移也不撞信物、但跟上一幀的修正量差很遠（＞2 步）時，也先看有沒有離上一幀更近的可行側移，有就留在那邊。
+           可行判定（relicHit／reach）一字不改；找不到才照舊不畫（leap 則用不側移的解，它本來就可行）。 */
+        const cDist = (t) => (c0 ? Math.hypot(t[0] - desired[0] - c0[0], t[1] - desired[1] - c0[1]) : 0);
+        const leap = !warm && !rh && relics.length > 0 && cn > HAND.CORR_KEEP && cDist(req.target) > 2 * HAND.RELIC.STEP; // 只看冷啟動的解；暖啟動後的伸入回退是該有的停住（拍令牌撞到伸入界線），不當成跳
+        if (rh || leap) {
           const dx = Math.sin(fr.yaw), dz = Math.cos(fr.yaw), px = dz, pz = -dx;
-          const side = Math.sign(px * (req.target[0] - rh.x) + pz * (req.target[1] - rh.z)) || 1;
+          const side = rh ? Math.sign(px * (req.target[0] - rh.x) + pz * (req.target[1] - rh.z)) || 1 : 1;
           const base = req.target.slice();
           let ok = null;
           /* 效能（第三輪診斷：每步都重解整隻手，四手近信物時每幀數十次解算，速度比掉到 .07）：
              先只平移已解好的這一幀找最小可行側移（不重解，只做點對圓柱判定），找到才重解一次並複驗。 */
           const shifted = (dxz) => ({ root: [fr.root[0] + dxz[0], fr.root[1], fr.root[2] + dxz[1]], yaw: fr.yaw, pitch: fr.pitch, pose: fr.pose });
-          for (let k = 1; k <= HAND.RELIC.STEPS && !ok; k++) {
-            for (const sg of [side, -side]) {
-              const d = [sg * px * k * HAND.RELIC.STEP, sg * pz * k * HAND.RELIC.STEP];
-              if (relicHit(R0, shifted(d), s, relics) || reach(R0, h.seat, shifted(d), s, T).over > 1e-3) continue;
+          /* 候選＝側移 k 步（垂直進場方向）× 沿進場方向前後 j 步（RELIC.ALONG；量測：只沿垂直線找時，最近的可行點常在斜方向 0.02–0.14 處，
+             垂直線上卻要跳到 0.3–0.66 才可行）。依修正量離上一幀多近排序（沒有上一幀＝離不側移多近）；同距離保留原順序（k 由小到大、side 先）。 */
+          const S = HAND.RELIC.STEP, J = HAND.RELIC.ALONG, NC = (2 * HAND.RELIC.STEPS + 1) * (2 * J + 1);
+          const ex = c0 ? base[0] - desired[0] - c0[0] : 0, ez = c0 ? base[1] - desired[1] - c0[1] : 0; // cDist(base＋d)＝hypot(ex＋d0, ez＋d1)
+          const CX = new Float64Array(NC), CZ = new Float64Array(NC), CC = new Float64Array(NC); let m = 0;
+          for (let k = 0; k <= HAND.RELIC.STEPS; k++) for (const sg of k ? [side, -side] : [1]) for (let j = -J; j <= J; j++) {
+            if (!k && !j) continue;
+            const d0 = sg * px * k * S + dx * j * S, d1 = sg * pz * k * S + dz * j * S;
+            CX[m] = d0; CZ[m] = d1; CC[m] = c0 ? Math.hypot(ex + d0, ez + d1) : Math.hypot(d0, d1); m++;
+          }
+          const stay = leap ? cDist(base) : Infinity;
+          /* 依 c 由小到大試（同 c 保留原順序）；先只排 c＜0.15 的那批，找不到再排其餘——與整批排序同一個順序，只省排序成本。 */
+          const order = (lo, hi) => { const idx = []; for (let i = 0; i < m; i++) if (CC[i] >= lo && CC[i] < hi && CC[i] < stay) idx.push(i); return idx.sort((u, w) => CC[u] - CC[w] || u - w); };
+          let probe = null;
+          for (const [lo, hi] of [[-Infinity, 0.15], [0.15, Infinity]]) {
+            if (ok) break;
+            for (const i of order(lo, hi)) {
+              const d = [CX[i], CZ[i]];
+              if (!probe) probe = relicProbe(R0, fr, s, relics);
+              if (probe(d) || reach(R0, h.seat, shifted(d), s, T).over > 1e-3) continue;
               const t2 = [base[0] + d[0], base[1] + d[1]];
               /* 重解時根高度不低於平移試算的那一幀（高一點只會更離信物遠），所以平移試算可行＝重解後也可行，一次就好。 */
               const f2 = solveHand(R0, Object.assign({}, req, { target: t2, pitch: fr.pitch, pose: fr.pose, fit: undefined, minY: Math.max(req.minY === undefined ? -Infinity : req.minY, fr.root[1]) }), obs, tableY);
               if (!relicHit(R0, f2, s, relics) && reach(R0, h.seat, f2, s, T).over <= 1e-3) { ok = f2; req.target = t2; break; }
             }
           }
-          if (!ok) {
+          if (!ok && !leap) return false;
+          if (ok) fr = ok;
+        }
+        return true;
+        };
+        let good = false;
+        good = settle();
+        if (!good && warm) { Object.assign(req, req0); fr = solveHand(R0, req, obs, tableY); good = settle(); } // 暖啟動解不出＝照原本從未修正的目標冷啟動
+        {
+          if (!good) {
             /* 這一幀不畫，但動作照常結算：做完就收（被擋住的收手直接結束），不然會卡在不可見的動作裡。 */
             if (a.kind !== 'retract' && a.pitch === undefined) { a.pitch = fr.pitch; if (wasCurl) a.pose = fr.pose; } // 被擋的幀也定下俯角與捲指，不再每幀重掃
             h.memo = { key: memoKey, fr: null };
             if (a.kind === 'retract') stop(h.seat); else if (done(h)) finishAct(h);
             return null;
           }
-          fr = ok;
         }
         a.corr = [req.target[0] - desired[0], req.target[1] - desired[1]];
         if (req.target !== spec.target) spec = Object.assign({}, spec, { target: req.target, pose: fr.pose });
