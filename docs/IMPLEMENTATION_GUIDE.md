@@ -1,5 +1,8 @@
 # 妖市 實作手冊 — 給接手模型看的操作手冊
 
+> **2026-10-07 現行入口（先讀這段）**：本手冊開頭幾節寫於 v0.5（2026-09-02）。§1「NIGHTRULES 是空殼」「沒有選角 UI」「唯一要改的檔是 `index.html`」「目前版本 v0.5」與 §2.1「只改 `index.html`」都是當時狀態，現已過時：夜規、心願、異事、連鎖、天命都已上線，有選角，3D 與手部等程式另在 `js/`，Git 基準 `85c38c6a` 的版本是 v0.62.5。現況與優先序先讀 [總藍圖](MASTER_BLUEPRINT.md) §0／§5.1 與根目錄 `CLAUDE.md`；hook 呼叫順序以 [ARCH_SPEC](ARCH_SPEC.md) §2 的 2026-10-07 框為準。行號一律過時，請用符號名定位。
+> **trace 等價驗證**：§6.4 的腳本範例讀歷史基準 `tests/baseline-traces.json`，只能當沿革，不能當現行 oracle。現行做法照 §7 正式規程：用同版基準（改動前的 commit）對同一支現行 `trace()`，工具是 `node tests/tools/trace-eq.mjs <改動前 index.html> <改動後 index.html>`（`--mutate` 可驗紅）。純演出改動須逐位元組相等；規則／數值改動預期會不等，等價與平衡依該卷凍結檔判定，不拿歷史 baseline 當判準。兩份歷史 baseline 檔照 §2.2 唯讀保留。
+
 > **這份文件的存在理由**：原本開發這個專案的模型額度用完了，接手的模型看不到任何對話紀錄，只能讀檔案。
 > 這份手冊的唯一考核標準是：**你沒看過原始對話，照著這份文件也能正確加一個新角色／新事件／新道具，
 > 並且自己驗證有沒有做壞**。如果你看完某一節還是不知道「具體要改哪一行、改完要跑什麼指令確認」，
@@ -173,7 +176,7 @@ const has=(p,ab)=>p.bag.some(x=>x.ab===ab);
 
 ## 4. 13 個 Hook 契約速查表
 
-**分派機制**（`index.html:532-560`）：`collectEffects(p, order)` 依序收集「p 的角色 → p 袋中每件
+**分派機制**（`index.html:532-560`；⚠️ 本段是 v0.5 時的順序，現行順序已加入連鎖與心願，以 ARCH_SPEC §2 的 2026-10-07 框為準）：`collectEffects(p, order)` 依序收集「p 的角色 → p 袋中每件
 有 `ab` 的道具（依袋中順序）→ `S.nightRule` → `S.event`」，去重後依 `order` 數字排序；
 `applyHooks(name, ctx, p)` 對排序後的每個 effect，若它有 `hooks[name]` 就呼叫 `hooks[name](ctx)`。
 `p` 可以是單一玩家、玩家陣列（雙方 effect 合併去重）、或 `null`（只取全域的 `nightRule`／`event`）。
@@ -502,6 +505,8 @@ window.__yaoshi.analyzeEvent({ players:4, options:["A","B"], payoff(choices){ re
 
 ### 6.4 `trace(seeds)` — 跟凍結基準比對
 
+> **⚠️ 2026-10-07：本節腳本範例是歷史紀錄，不要照抄。** 它比對的 `tests/baseline-traces.json` 依 §7 正式規程已無法用現行 `trace()` 重播，只供歷史參考。現行等價驗證用 `tests/tools/trace-eq.mjs` 比對同版基準，見檔首現行入口與 §7。
+
 ```js
 window.__yaoshi.trace([1,2,3,...,20])
 ```
@@ -530,7 +535,7 @@ console.log(JSON.stringify(result) === JSON.stringify(baseline) ? '完全相等'
 ```
 
 這段腳本本手冊撰寫時已用 Node.js 實測跑過（用來驗證範例 1 會破壞基準、範例 3/4/5 不會），
-可以直接照抄使用，不需要自己重新設計比對方式。
+可以直接照抄使用，不需要自己重新設計比對方式。（2026-10-07：此句只適用撰寫當時；現已不適用，見本節開頭警告。）
 
 ---
 
@@ -676,6 +681,8 @@ if(ctx.item.ab!=="wangchuan" || ctx.target) return;
 可能會跟你的能力同時生效。
 
 ### 10.5 `HOOK_ORDER` 目前只對 `onNightEnd` 特殊處理
+
+> 2026-10-07 註：下方引用的 `collectEffects` 程式碼是舊版；現行 itemsFirst 為「道具 → 連鎖 → 角色 → 心願 → 夜規 → 異事」，見 ARCH_SPEC §2。`HOOK_ORDER` 只對 `onNightEnd` 特殊處理這件事不變。
 
 `index.html:531`：`const HOOK_ORDER = { onNightEnd:"itemsFirst" };`——只有 `onNightEnd` 是「道具先於
 角色」跑，其他 11 個 hook 都是預設的「角色先、道具後」（`collectEffects` 第 537 行的

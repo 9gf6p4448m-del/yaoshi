@@ -63,6 +63,13 @@ function applyHooks(name, ctx, p) { /* 依序呼叫每個 effect 的 hooks[name]
 
 **effect 來源與呼叫順序（必須固定，否則結果不可重現）**：
 
+> **2026-10-07 現行順序（以本框與檔首 L1a/b 增補為準）**：下方 1–4 是 v1 原始契約，後來依序加入心願（v0.6）與連鎖（2026-09-21 D2）。現行 `collectEffects`（`index.html` 以符號名定位）同一條收集鏈為：
+> - 一般 hook：角色 → 袋中道具（`ABILITIES[item.ab]`，以及傳說法寶自帶的 `eff`）→ 有效連鎖（含啟動中的真版天命 effect）→ 本夜心願 → `S.nightRule` → `S.event`。
+> - `HOOK_ORDER.onNightEnd="itemsFirst"`：袋中道具 → 有效連鎖 → 角色 → 心願 → 夜規 → 異事。
+> - 全域 hook（`p=null`，如 `onMarketDraw`）只取夜規、異事，不收玩家連鎖。
+>
+> 本次只同步文件，產品順序沒有改。§3.10 的夜末流程是另一層（主要步驟依序為 drain／冥婚紅包 → `onNightEnd` hook → 虛張稅與信譽 → 心願判定 → 天明回血 → 異事後效等，完整步驟以 `resolveBattles` 夜末段程式註解為準），其中 `onNightEnd` hook 這一步的內部順序照上面的 itemsFirst。
+
 1. `p.role`（`ROLES[p.roleId]`）
 2. `p.bag` 內每件有 `ab` 的道具，**依袋中順序**（`ABILITIES[item.ab]`）
 3. `S.nightRule`（若有）
