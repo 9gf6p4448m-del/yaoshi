@@ -2775,12 +2775,12 @@ const TRAITS = {
 const CURSES = [
   {n:"冥婚紅包",f:"curse",p:-5,d:"撿到就得娶",curse:true},
   {n:"魔神仔的芭樂",f:"curse",p:0,d:"每輪結束失血 1",curse:true,drain:1},
-  {n:"抓交替水符",f:"curse",p:-4,d:"水鬼的名冊",curse:true},
+  {n:"水鬼名冊",f:"curse",p:-4,d:"水鬼的名冊",curse:true},
   {n:"縛靈鎖",f:"curse",p:-6,d:"鎖魂之鏈",curse:true},
   {n:"白虎煞",f:"curse",p:-3,d:"沖煞入宅",curse:true},
 ];
 /* 詛咒依物件身分分流；舊存檔與異事物也走同一張表。p 僅保留行情用途。 */
-const CURSE_KIND={"冥婚紅包":"wedding","魔神仔的芭樂":"guava","抓交替水符":"water","縛靈鎖":"lock","白虎煞":"tiger","王船煞":"boat"};
+const CURSE_KIND={"冥婚紅包":"wedding","魔神仔的芭樂":"guava","水鬼名冊":"water","縛靈鎖":"lock","白虎煞":"tiger","王船煞":"boat"};
 function curseKind(it){ return it&&it.curse?(CURSE_KIND[it.n]||null):null; }
 function curseCount(p,kind){ return (p.bag||[]).filter(it=>curseKind(it)===kind).length; }
 const DIRS = {0:"南",1:"北",2:"西",3:"東"};
@@ -3249,7 +3249,7 @@ const APPR_PLAIN={
   "飼鬼甕":"2 隻小紙人，每拍交手燒掉對面一隻以上，全隊血 +1。",
   "冥婚紅包":"詛咒：誰袋裡有它，哪晚有標到東西（塞毒標、買下銷毀也算），收市就付 1 壽命禮金。可買下銷毀，或毒標塞給對手。",
   "魔神仔的芭樂":"詛咒：誰袋裡有它，每晚收市扣 1 壽命。可買下銷毀，或毒標塞給對手。",
-  "抓交替水符":"詛咒：持有者夜戰第一次折兵時，再拖一隻血最少的紙紮扣 1 血（每場一次）。可買下銷毀，或毒標塞給對手。",
+  "水鬼名冊":"詛咒：持有者夜戰第一次折兵時，再拖一隻血最少的紙紮扣 1 血（每場一次）。可買下銷毀，或毒標塞給對手。",
   "縛靈鎖":"詛咒：持有者夜戰第 1 拍，最能打的那隻攻擊 −2。可買下銷毀，或毒標塞給對手。",
   "白虎煞":"詛咒：誰袋裡有它，每輸一場夜戰多扣 1 壽命。可買下銷毀，或毒標塞給對手。",
 };
@@ -5212,7 +5212,7 @@ function pwCurseWater(sd,env){
   if(!target) return;
   target.hp-=count;
   pwRec(env,env.beat,sd.tag,null,target.id,"curse",count,false,"curseWater");
-  env.log.push(`💧 抓交替水符：${sd.p.name} 的另一隻紙紮受 ${count} 傷害`);
+  env.log.push(`💧 水鬼名冊：${sd.p.name} 的另一隻紙紮受 ${count} 傷害`);
   if(target.hp<=0) pwBurn(target,sd,env);
 }
 function pwLowest(sd,swarmOnly){
@@ -6128,14 +6128,15 @@ function lifeState(p){ if(!p.alive) return "state-dying"; const r=p.life/CFG.LIF
    human（選角模式不使用的遺留座位）沒有點陣圖，一律走舊 SVG 路徑。 */
 const ART_PIC=(()=>{ try{ return new URLSearchParams(typeof location!=="undefined"&&location.search?location.search:"").get("pic")!=="0"; }catch(e){ return true; } })();
 function picStem(roleId){ const s=CHAR_SVG[roleId]; return s&&roleId!=="human"?s:null; }
+const PIC_BAD=new Set(); /* 已確認載入失敗的 角色+氣色：之後重畫直接出 SVG，不再先插一個 <img>（img→svg 的非同步換手會讓相位閘 sigOf 誤判「手指下的東西變了」、吞掉 500ms 內的下一下點擊） */
 function picFail(img,roleId,stateCls){
-  img.onerror=null;
+  img.onerror=null; PIC_BAD.add(roleId+"|"+stateCls);
   const s=AVSVG[roleId], R=ROLES[roleId];
   const h=s?s.replace("state-healthy",stateCls):((R&&R.av)||"");
   const w=document.createElement("span"); w.innerHTML=h; img.replaceWith(...w.childNodes);
 }
 function avImgHTML(roleId,stateCls){
-  const stem=picStem(roleId); if(!ART_PIC||!stem) return null;
+  const stem=picStem(roleId); if(!ART_PIC||!stem||PIC_BAD.has(roleId+"|"+stateCls)) return null;
   return `<img class="pic ${stateCls}" src="assets/characters/${stem}-${stateCls.slice(6)}.webp?v=${RELEASE_VERSION}" alt="" draggable="false" onerror="picFail(this,'${roleId}','${stateCls}')">`;
 }
 /* 玩家物件 → 頭像 HTML（依壽命帶氣色）；沒有圖就退 SVG、再退 emoji */
@@ -6164,7 +6165,7 @@ const ITEM_IMG={
   山神庇佑:"shanshen",媽祖令旗:"flag",王爺劍:"sword",送王船:"wangchuan",千里眼銅鈴:"bell",五營旗:"wuying",虎爺印:"tiger",香灰符:"ashcharm",
   福壽綿長:"fushou",破軍旗:"pojun",魔神仔紅帽:"redhat",林投姐髮簪:"hairpin",椅仔姑竹椅:"chair",黃色小雨衣:"raincoat",水鬼浮標:"buoy",
   虎姑婆指甲:"nail",陰陽眼銅錢:"yinyangcoin",過陰咒:"guoyin",飼鬼甕:"sigui",冥婚紅包:"curse-wedding",魔神仔的芭樂:"curse-guava",
-  抓交替水符:"curse-water",縛靈鎖:"curse-lock",白虎煞:"curse-tiger"};
+  水鬼名冊:"curse-water",縛靈鎖:"curse-lock",白虎煞:"curse-tiger"};
 function itemImgHTML(it,cls){
   const k=ART_PIC&&ITEM_IMG[it.n];
   if(k) return `<img class="${cls} pic" src="assets/items/${k}.webp?v=${RELEASE_VERSION}" alt="" draggable="false" onerror="this.onerror=null;this.remove()">`;
@@ -8051,7 +8052,7 @@ function pwScreenOf(side,unitId){
 const pwFoe=s=>(s==="B"?"A":"B");
 /* 詛咒的 side 是受咒持有者；鎖降攻，不得演成對手失血。 */
 function pwCurseFeedback(b){
-  const known={curseLock:"縛靈鎖",curseWater:"抓交替水符",curseBoat:"王船煞"};
+  const known={curseLock:"縛靈鎖",curseWater:"水鬼名冊",curseBoat:"王船煞"};
   const name=known[b.trId]||"詛咒";
   const healthLoss=b.trId==="curseWater"||b.trId==="curseBoat";
   return {side:b.side,target:b.target,name,healthLoss,text:known[b.trId]?`${healthLoss?"血量":"攻擊"} −${b.amount|0}`:"效果未登錄"};

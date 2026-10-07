@@ -9,7 +9,7 @@ const fight=(g,bag,role='human')=>g.paperWar(person(0,bag,role),person(1,[unit('
 const hit=(war,beat)=>war.beats.find(x=>x.side==='A'&&x.beat===beat&&x.kind==='hit')?.amount;
 test('non-lock curses no longer impose a shared attack penalty',()=>{
  const g=fresh(),clean=hit(fight(g,[unit('兵')]),1);
- for(const n of ['冥婚紅包','魔神仔的芭樂','抓交替水符','白虎煞'])assert.equal(hit(fight(g,[unit('兵'),curse(g,n)]),1),clean,n);
+ for(const n of ['冥婚紅包','魔神仔的芭樂','水鬼名冊','白虎煞'])assert.equal(hit(fight(g,[unit('兵'),curse(g,n)]),1),clean,n);
 });
 test('lock affects one strongest front unit only on beat one, stacks, and is cleansed',()=>{
  const g=fresh(),lock=curse(g,'縛靈鎖'),a=unit('兵'),base=fight(g,[a]);
@@ -28,7 +28,7 @@ test('white tiger adds defeat loss only, before item mitigation, and respects cl
  assert.equal(run([a,c],'lvshan').dmg,run([a]).dmg);
 });
 test('water talisman triggers once per battle, stacks damage without recursion',()=>{
- const g=fresh(),c=curse(g,'抓交替水符');
+ const g=fresh(),c=curse(g,'水鬼名冊');
  const run=(bag,role)=>g.paperWar(person(0,bag,role),person(1,[unit('敵',3,99)]),{rng:()=>0.5,windId:null});
  const bag=[unit('紙',0,2,4),c,c];
  const events=run(bag).beats.filter(x=>x.kind==='curse'&&x.trId==='curseWater');
@@ -68,7 +68,7 @@ test('curse feedback targets its holder and distinguishes attack reduction from 
 });
 
 test('water waits for simultaneous damage settlement and cannot target an already doomed last ally',()=>{
- const g=fresh(),c=curse(g,'抓交替水符');
+ const g=fresh(),c=curse(g,'水鬼名冊');
  const war=g.paperWar(person(0,[unit('紙',0,1,2),c]),person(1,[unit('敵',3,99,2)]),{rng:()=>0.5});
  assert.equal(war.aliveA,0);assert.equal(war.beats.filter(x=>x.trId==='curseWater').length,0);
 });
@@ -79,7 +79,7 @@ test('unregistered curse events cannot impersonate health damage',()=>{
 });
 
 test('water selects the actual survivor after two allies die in one settlement batch',()=>{
- const g=fresh(),c=curse(g,'抓交替水符');
+ const g=fresh(),c=curse(g,'水鬼名冊');
  const enemy=unit('敵護法',3,999,2);enemy.unit.body='ward';
  const war=g.paperWar(person(0,[unit('薄紙',0,1,2),unit('厚紙',0,99),c]),person(1,[enemy]),{rng:()=>0.5});
  const events=war.beats.filter(x=>x.trId==='curseWater');assert.equal(events.length,1);assert.equal(events[0].target,2);assert.equal(events[0].amount,1);

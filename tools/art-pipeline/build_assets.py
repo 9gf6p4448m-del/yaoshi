@@ -40,8 +40,9 @@ AVATAR_CROP = {"duanshou": (250, 170, 1000, 920), "xiaonv": (250, 200, 1000, 950
 # 同名有 v2 重生版者以 v2 為準
 ITEM_FILE_OVERRIDE = {"媽祖令旗": "媽祖令旗_v2", "魔神仔紅帽": "魔神仔紅帽_v2",
                       # 2026-10-07 盲讀 128px 認不出／符紙互相混淆 → 輪廓重生版
-                      "水鬼浮標": "水鬼浮標_v2", "破軍旗": "破軍旗_v2", "抓交替水符": "抓交替水符_v2",
-                      "香灰符": "香灰符_v2", "過陰咒": "過陰咒_v2"}
+                      "水鬼浮標": "水鬼浮標_v2", "破軍旗": "破軍旗_v2", "水鬼名冊": "水鬼名冊_v2",
+                      "香灰符": "香灰符_v2", "過陰咒": "過陰咒_v2", "白虎煞": "白虎煞_v2",
+                      "冥婚紅包": "冥婚紅包_v2", "林投姐髮簪": "林投姐髮簪_v2"}
 AV_SIZE, BIG_SIZE, ICON_SIZE, ICON_LG_SIZE = 320, 640, 128, 384
 WEBP_Q = 85
 
@@ -150,7 +151,7 @@ def main():
     items = parse_items(os.path.join(out, "index.html"))
     manifest = {"items": {}, "characters": {}, "bg": {}}
     sheet_imgs = []
-    sheet_default = {"破軍旗", "陰陽眼銅錢", "抓交替水符", "王爺劍", "過陰咒", "香灰符", "縛靈鎖", "福壽綿長", "冥婚紅包", "魔神仔的芭樂", "白虎煞"}
+    sheet_default = {"破軍旗", "陰陽眼銅錢", "水鬼名冊", "王爺劍", "過陰咒", "香灰符", "縛靈鎖", "福壽綿長", "冥婚紅包", "魔神仔的芭樂", "白虎煞"}
     sheet_names = set(args.sheet_names.split(",")) if args.sheet_names else sheet_default
 
     for name, key, kind in items:
