@@ -6,7 +6,8 @@
 //   lb＝max_界線 (n·q − c) − r（任何守伸入界線的手到錢柱的 gap 下界）；lb ≤0.03＝界線內幀，其餘＝界線外幀。
 //   contactFrac_in＝界線內接觸位移／界線內位移；runOut_in＝界線內連續未接觸位移最大值；runOut＝連續未接觸位移最大值（含界線外）。
 //   lineGap＝界線外幀，那條界線 c − 手頂點 n·v 的最大值（手停在界線前多遠）。pinFrac_in＝界線內「手根位移 <0.2Δ 或手不可見」的位移比例。
-// v0.62.5（85c38c6a）：slow=1 contactFrac_in 0.548、最差一段 0.032、runOut_in 0.776、lineGap 0.407 ⇒ 本檔前四個測試在 v0.62.5 必紅。
+// v0.62.5（85c38c6a）：slow=1 contactFrac_in 0.548、最差一段 0.032、runOut_in 0.776、lineGap 0.407。實測（fresh 覆審 review2）：本檔在 85c38c6a 上 fail 6／pass 1——
+//   slow=1 的條件 4（pinFrac_in）在 v0.62.5 本來就 ≤0.20（脫鉤多半落在界線外幀），只有 slow=1.5 那條紅；其餘條件兩個速度都紅。
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { THREE, loadProps, loadHands, LAYOUTS, M } from './hand-fixture.mjs';
@@ -22,11 +23,17 @@ const SCN = {
   queue: [['bid', 0, 0, 3, 0], ['bid', 0, 1, 5, 0], ['bid', 0, 2, 2, 260]],
   queueN: [['bid', 1, 0, 3, 0], ['bid', 1, 1, 5, 0], ['bid', 1, 2, 2, 260]],
 };
-/* 條件 3：界線外滑行上限＝逐幀必然值（只由錢柱軌跡與伸入界線決定，任何實作都不可能更低）＋0.05。其餘段 ≤0.10。 */
+/* 條件 3：界線外滑行上限（acceptance-c3.md 附註二，2026-10-07 使用者裁定）。規則同 c2＝min(逐幀必然值, feas 連續長度)＋0.05；
+   例外一：c2 規則低於逐幀必然值（任何實作都不可能）的兩格改用逐幀必然值＋0.05——money 席1格1（slow=1）、queueN 席1格2（slow=1.5）；
+   例外二：西席推格2（slow=1）＝0.342，釘住 v0.62.6 實測值（越過中線前最後兩幀，任何俯角／捲指／朝向的手都碰不到錢：最佳 gap 0.032／0.052；使用者接受為幾何上碰不到）。
+   逐幀必然值：probe/bound.mjs；feas：review2/feas6.mjs。其餘段 ≤0.10。 */
 const LIM3 = {
-  1: { 'money:1:1': 0.832, 'moneyE:2:2': 0.319, 'moneyN:1:3': 0.891, 'queueN:1:0': 0.844, 'queueN:1:1': 0.812, 'queueN:1:2': 0.839 },
-  1.5: { 'money:1:1': 0.781, 'moneyE:2:2': 0.319, 'moneyN:1:3': 0.921, 'queueN:1:0': 0.872, 'queueN:1:1': 0.768, 'queueN:1:2': 0.886 },
+  1: { 'money:1:1': 0.831672, 'moneyE:2:2': 0.342, 'moneyN:1:3': 0.891403, 'queueN:1:0': 0.844254, 'queueN:1:1': 0.767860, 'queueN:1:2': 0.802027 },
+  1.5: { 'money:1:1': 0.767860, 'moneyE:2:2': 0.316413, 'moneyN:1:3': 0.918962, 'queueN:1:0': 0.858332, 'queueN:1:1': 0.767641, 'queueN:1:2': 0.886349 },
 };
+/* 轉向限速（hand-motion HAND.PUSH_YAW.RATE＝1.6 弧度／秒，偏角量化 Q＝1°）：同一格推的連續兩幀，若中間沒有整窗搜尋跳轉，
+   繞障偏角的變化 ≤ 1.6×Δt＋Q（兩幀手都畫出來才比；推開頭還沒上場的幀不算）。數值寫死在這裡（不讀模組常數），改 RATE 就會紅。 */
+const YAW_RATE = 1.6, YAW_Q = 0.0175;
 const v = new THREE.Vector3();
 function meshOf(h) { let mesh = null; h.traverse((o) => { if (o.isSkinnedMesh && !mesh && o.visible) mesh = o; }); return mesh; }
 function handGap(h, st) {
@@ -68,7 +75,9 @@ async function measure(slow) {
             if (!s || s.kind !== 'push') { close(seat); continue; }
             if (open[seat] && open[seat].slot !== s.slot) close(seat);
             const st = props.stackAt(seat, s.slot); if (!st) continue;
-            const g = open[seat] || (open[seat] = { key: `${name}:${seat}:${s.slot}`, slot: s.slot, moved: 0, mIn: 0, cIn: 0, run: 0, runOut: 0, runIn: 0, runOutIn: 0, lg: -Infinity, pmIn: 0, pinIn: 0, prev: null, hprev: null });
+            const g = open[seat] || (open[seat] = { key: `${name}:${seat}:${s.slot}`, slot: s.slot, moved: 0, mIn: 0, cIn: 0, run: 0, runOut: 0, runIn: 0, runOutIn: 0, lg: -Infinity, pmIn: 0, pinIn: 0, prev: null, hprev: null, yawPrev: null, yawWorst: 0, yawWorstAt: null, jumps: 0 });
+            if (h.visible && g.yawPrev && g.yawPrev.vis && s.scanJumps === g.yawPrev.j && s.t > g.yawPrev.t) { const ex = Math.abs(s.yawOff - g.yawPrev.o) - (YAW_RATE * (s.t - g.yawPrev.t) + YAW_Q); if (ex > g.yawWorst) { g.yawWorst = ex; g.yawWorstAt = s.t; } }
+            g.yawPrev = { o: s.yawOff, t: s.t, j: s.scanJumps, vis: h.visible }; g.jumps = s.scanJumps;
             const gap = handGap(h, st), hp = h.getWorldPosition(new THREE.Vector3());
             if (g.prev && !st.returning) {
               const d = Math.hypot(st.x - g.prev[0], st.z - g.prev[1]);
@@ -116,14 +125,16 @@ for (const slow of [1, 1.5]) {
     assert.ok(PM > 1, `量到界線內位移 ${PM.toFixed(3)}`);
     assert.ok(PI / PM <= 0.20, `pinFrac_in ${(PI / PM).toFixed(3)} > 0.20`);
   });
-  /* 條件 3：slow=1 的西席推 slot2（跨中線）在 v0.62.6 仍差 0.023（runOut 0.342＞0.319）：逐幀暴力搜尋（俯角／捲指／朝向／前後左右）顯示
-     錢柱越過中線前最後兩幀，手在中線與托盤前緣的夾角裡已碰不到錢（最佳 gap 0.032／0.052）。凍結門檻不放寬，標 todo 待使用者裁定。 */
-  const c3 = () => {
+  test(`擺錢推（slow=${slow}）條件 3：界線外滑行 ≤ 上限表（c2 規則；兩格不可能例外；西席格2 slow=1 釘住 0.342）、其餘段 ≤0.10`, () => {
     for (const r of rows) {
       const lim = LIM3[slow][r.key] ?? 0.10;
-      assert.ok(r.runOut <= lim + 1e-9, `${r.key} runOut ${r.runOut.toFixed(3)} > ${lim}（${fmt(r)}）`);
+      assert.ok(r.runOut <= lim + 1e-9, `${r.key} runOut ${r.runOut.toFixed(6)} > ${lim}（${fmt(r)}）`);
     }
-  };
-  if (slow === 1) test(`擺錢推（slow=${slow}）條件 3：界線外滑行 ≤ 逐幀必然值＋0.05（其餘段 ≤0.10）`, { todo: '西席推 slot2 差 0.023，待使用者裁定（不放寬門檻）' }, c3);
-  else test(`擺錢推（slow=${slow}）條件 3：界線外滑行 ≤ 逐幀必然值＋0.05（其餘段 ≤0.10）`, c3);
+  });
+  test(`擺錢推（slow=${slow}）轉向限速：同一格連續兩幀（中間沒有整窗跳轉）繞障偏角變化 ≤ 1.6×Δt＋1°；整窗跳轉每段 ≤4 次（v0.62.6 現況最多 4，防退化）`, () => {
+    for (const r of rows) {
+      assert.ok(r.yawWorst <= 1e-9, `${r.key} 偏角變化超出限速 ${r.yawWorst.toFixed(4)} 弧度（t=${r.yawWorstAt}）`);
+      assert.ok(r.jumps <= 4, `${r.key} 整窗跳轉 ${r.jumps} 次 > 4`);
+    }
+  });
 }

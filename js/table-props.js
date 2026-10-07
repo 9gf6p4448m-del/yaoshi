@@ -684,6 +684,7 @@ export function createTableProps(parent, opts = {}) {
       const cx = tos.reduce((a, p) => a + p[0], 0) / n, cz = tos.reduce((a, p) => a + p[2], 0) / n;
       let ox = fx - cx, oz = fz - cz; // 整柱從落點平移到出發點的位移（原：席位中心）
       if (handPaths) {
+        /* 該席沒有信物（還沒 setSeats、該席沒有角色、或信物沒載入）＝照舊從席位中心出發（tests/push-from.test.mjs 守）。 */
         const rel = api.relicObstacles().find((o) => o.seat === s), L = Math.hypot(ox, oz);
         if (rel && L > 1e-6) {
           let sr = 0; for (const p of tos) sr = Math.max(sr, Math.hypot(p[0] - cx, p[2] - cz));
