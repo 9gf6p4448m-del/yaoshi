@@ -53,6 +53,10 @@ export function createTableHands(parent, props, opts = {}) {
   const skinQ = q0.get('skin');
   const skinDir = b1On ? (skinQ === null ? 'b' : (['a', 'b', 'c', 'ab'].includes(skinQ) ? skinQ : null)) : null;
   let SP = null, spShadow = null; const spV = new THREE.Vector3();
+  /* v0.63.0 批 3 配件（js/hand-b3.js）：批 1 開著時預設啟用；?handb3=0（或 opts.b3=false）＝孝女白琴／閭山法師／普渡爐主退回 v0.62.5 的手、
+     不載入 hand-b3.js（這一段程式碼整個不走）。擺盪執行體每席一個（setSeats 時建），只在批 3 的席上跑。 */
+  const b3On = b1On && (opts.b3 !== undefined ? !!opts.b3 : q0.get('handb3') !== '0');
+  let B3 = null, b3Error = null; const b3Swing = [null, null, null, null];
   /* v0.61.0 拍令牌拇指收角（HAND.SLAM_THUMB）：寫實開著時預設啟用；?thumb=0（或 opts.thumb=false、HAND.SLAM_THUMB.ON=false）退回舊姿勢。
      只換拍令牌的張開手（spreadT），推錢／收錢／停一拍不動。寫實關閉（?handreal=0）時一律舊姿勢（與 10-02 的舊手逐幀等價）。 */
   const thumbOn = realOn && (opts.thumb !== undefined ? !!opts.thumb : (HAND.SLAM_THUMB.ON !== false && q0.get('thumb') !== '0'));
@@ -65,6 +69,7 @@ export function createTableHands(parent, props, opts = {}) {
   let b1Error = null;
   if (b1On) loading = loading.then((clones) => import('./hand-b1.js' + V).then((m) => { B1 = m; return clones; }, (e) => { b1Error = String((e && e.message) || e); return clones; }));
   if (skinDir) loading = loading.then((clones) => import('./hand-skin-proto.js' + V).then((m) => { SP = m; return clones; }, (e) => { b1Error = 'skin-proto: ' + String((e && e.message) || e); return clones; }));
+  if (b3On) loading = loading.then((clones) => import('./hand-b3.js' + V).then((m) => { B3 = m; return clones; }, (e) => { b3Error = String((e && e.message) || e); return clones; }));
   const ready = loading.then((clones) => {
     if (disposed) return;
     clones.forEach(({ model, shared: sh }, seat) => {
@@ -213,6 +218,27 @@ export function createTableHands(parent, props, opts = {}) {
           h.mesh.geometry = realGeos.get(gk); h.mesh.material = realMat; seatRig[h.seat] = realRigs.get('b1:' + bk);
           continue;
         }
+        const k3 = B3 ? B3.keyOf(roleOf[h.seat]) : null;
+        if (B3) b3Swing[h.seat] = null;
+        if (k3) { // v0.63.0 批 3：三角色換自己的幾何（形狀＝預設手；皮膚＝skin-proto 那三組，沒載 skin-proto＝預設皮膚）；材質同上一份
+          seatKey[h.seat] = k3;
+          const gk = 'b3:' + k3 + '|' + h.seat;
+          if (!realGeos.has(gk)) {
+            variantBuilds++;
+            const ext = B3.extFor(rig, k3, SP ? SP.extraSkin(k3) - 1 : 0), g = HR.realGeometry(rig, B3.srcFor(baseSrc, k3), baseSrc.position.length / 3, k3, { key: k3, batch: 3 }, ext);
+            B3.finalize(g, ext); realGeos.set(gk, g);
+          }
+          if (!realRigs.has('b3:' + k3)) { // 碰撞取樣同批 1（含配件與垂掛物的靜止位置；同位置＋同權重的重複點只留一個）
+            const rg = realGeos.get(gk), ga = rg.attributes, na = rg.userData.real.arm[1];
+            const R3 = buildRig(Object.assign({}, rigSrc0, { positions: ga.position.array.slice(0, na * 3), skinIndex: ga.skinIndex.array.slice(0, na * 4), skinWeight: ga.skinWeight.array.slice(0, na * 4) }));
+            { const rep = new Set(), seen = new Set(); for (let v = 0; v < na; v++) { const k = ga.position.array.slice(v * 3, v * 3 + 3).join(',') + '|' + ga.skinIndex.array.slice(v * 4, v * 4 + 4).join(',') + '|' + ga.skinWeight.array.slice(v * 4, v * 4 + 4).join(','); if (!seen.has(k)) { seen.add(k); rep.add(v); } }
+              R3.collide = [...rep]; R3.seen = R3.seen.filter((v) => rep.has(v)); R3.front = R3.front.filter((v) => rep.has(v)); }
+            realRigs.set('b3:' + k3, R3);
+          }
+          h.mesh.geometry = realGeos.get(gk); h.mesh.material = realMat; seatRig[h.seat] = realRigs.get('b3:' + k3);
+          b3Swing[h.seat] = B3.createSwing(h.mesh.geometry); b3Swing[h.seat].reset();
+          continue;
+        }
       }
       /* 所有角色（含預設手）都走寫實版：先取配件幾何（變體或預設），再細分＋重塑成這種手的寫實幾何。 */
       const real = HR.realDef(key), gk = real.key + '|' + h.seat;
@@ -261,6 +287,18 @@ export function createTableHands(parent, props, opts = {}) {
     }
   }
 
+  /** v0.63.0 批 3：垂掛物（福袋、垂尾）擺盪。手不可見＝歸零；可見＝依這一幀的骨世界矩陣解彈簧（凍結時手不動、擺盪照常收斂）。 */
+  function swingStep(dt) {
+    let floor = null;
+    for (const h of hands) {
+      const sw = b3Swing[h.seat]; if (!sw || !sw.count) continue;
+      if (!h.holder.visible) { sw.reset(); continue; }
+      if (floor === null) { group.updateWorldMatrix(true, false); floor = group.localToWorld(spV.set(0, props.tableY ? props.tableY() : 0, 0)).y; }
+      h.holder.updateWorldMatrix(false, true);
+      sw.update(dt, h.mesh, floor);
+    }
+  }
+
   const api = {
     group,
     setSeats,
@@ -288,7 +326,10 @@ export function createTableHands(parent, props, opts = {}) {
       if (!director) return;
       if (!frozen) director.update(dt);
       apply(director.frames());
+      if (B3) swingStep(dt);
     },
+    /** v0.63.0 治具出口（只讀）：批 3 各席垂掛物的擺盪狀態（尖端、剛性位置、偏移）；非批 3 席＝null。 */
+    b3Swing() { return b3Swing.map((s) => (s && s.count ? s.state() : null)); },
     /** 治具專用：凍結手的時間軸（量 draw call／效能時讓四隻手停在畫面上）。產品流程不呼叫。 */
     setFrozen(on) { frozen = !!on; },
     /** 治具／驗收出口（只讀）。 */
@@ -303,7 +344,7 @@ export function createTableHands(parent, props, opts = {}) {
         /* 第三輪：袖尾淡出方式（治具／測試核對用） */
         fade: material ? { transparent: material.transparent, alphaHash: !!material.alphaHash, alphaTest: material.alphaTest, depthWrite: material.depthWrite } : null,
         /* 階段三：角色變體（只讀） */
-        variants: seatKey.slice(), variantBuilds, real: realOn, b1: !!B1, b1Error, thumb: thumbOn, realGeoCount: realGeos.size, arms: hands.map((h) => h.arm || null), itemBoxes: lastView ? itemBoxes(lastView.renderer, lastView.camera).slice() : null,
+        variants: seatKey.slice(), variantBuilds, real: realOn, b1: !!B1, b1Error, b3: !!B3, b3Error, thumb: thumbOn, realGeoCount: realGeos.size, arms: hands.map((h) => h.arm || null), itemBoxes: lastView ? itemBoxes(lastView.renderer, lastView.camera).slice() : null,
         trisByHand: hands.map((h) => h.mesh.geometry.index.count / 3),
         variantInfo: hands.map((h) => h.mesh.geometry.userData.variant || null),
         /* v0.59.7：每席的寫實幾何資訊（種類、面數、前臂延長）、材質名與縮放倍率（只讀） */

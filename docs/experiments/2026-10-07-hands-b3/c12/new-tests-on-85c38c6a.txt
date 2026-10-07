@@ -1,0 +1,104 @@
+✖ 批 3：孝女白琴／閭山法師／普渡爐主各拿專屬手（配件全上場）、每手 ≤6,500 面、一份材質、無貼圖無 UV、不縮放 (130.1405ms)
+✖ 批 3：孝女垂尾（結點→尾端）長 0.35–0.55 × 手掌長（Wrist→MiddleA） (60.3735ms)
+✖ 批 3 擺盪：推錢時垂尾／福袋真的晃（≥5% 長）、手停後 1.5 秒收斂（<10% 峰值）；每幀不重建幾何、不耗 Math.random (51.5191ms)
+✖ 批 3 開關：opts.b3=false（同 ?handb3=0）＝三角色退回 v0.62.5 的預設手、不載入批 3 (28.4008ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 0
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 479.5314
+
+✖ failing tests:
+
+test at tests\table-hands-b3.test.mjs:32:1
+✖ 批 3：孝女白琴／閭山法師／普渡爐主各拿專屬手（配件全上場）、每手 ≤6,500 面、一份材質、無貼圖無 UV、不縮放 (130.1405ms)
+  AssertionError [ERR_ASSERTION]: 三席各是自己的批 3 手
+  + actual - expected
+  
+    [
+  +   null,
+  +   null,
+  +   null
+  -   'xiaonv',
+  -   'lvshan',
+  -   'luzhu'
+    ]
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/hands-b3-base/tests/table-hands-b3.test.mjs:36:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ null, null, null ],
+    expected: [ 'xiaonv', 'lvshan', 'luzhu' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests\table-hands-b3.test.mjs:53:1
+✖ 批 3：孝女垂尾（結點→尾端）長 0.35–0.55 × 手掌長（Wrist→MiddleA） (60.3735ms)
+  AssertionError [ERR_ASSERTION]: 孝女有兩條垂尾
+  
+  0 !== 2
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/hands-b3-base/tests/table-hands-b3.test.mjs:60:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 2,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\table-hands-b3.test.mjs:68:1
+✖ 批 3 擺盪：推錢時垂尾／福袋真的晃（≥5% 長）、手停後 1.5 秒收斂（<10% 峰值）；每幀不重建幾何、不耗 Math.random (51.5191ms)
+  AssertionError [ERR_ASSERTION]: 孝女、爐主是批 3 的手（有垂掛物）
+  + actual - expected
+  
+    [
+  +   null,
+  +   null
+  -   'xiaonv',
+  -   'luzhu'
+    ]
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/hands-b3-base/tests/table-hands-b3.test.mjs:72:12)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ null, null ],
+    expected: [ 'xiaonv', 'luzhu' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests\table-hands-b3.test.mjs:98:1
+✖ 批 3 開關：opts.b3=false（同 ?handb3=0）＝三角色退回 v0.62.5 的預設手、不載入批 3 (28.4008ms)
+  AssertionError [ERR_ASSERTION]: 預設（開）＝批 3 的手
+  + actual - expected
+  
+    [
+  +   null,
+  +   null,
+  +   null
+  -   'xiaonv',
+  -   'lvshan',
+  -   'luzhu'
+    ]
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/hands-b3-base/tests/table-hands-b3.test.mjs:100:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ null, null, null ],
+    expected: [ 'xiaonv', 'lvshan', 'luzhu' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
