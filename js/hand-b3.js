@@ -21,7 +21,7 @@ export function keyOf(role) { return typeof role === 'string' && B3_KEYS.include
 
 /** 袖口（一處色）：CUFF／CLOTH＝dressColors 的袖口與袖布；BAND＝套在袖口外的環（同批 1 欄位）、BAND_C＝環色、CAP＝封口色。【試玩必調】 */
 export const B3_CUFF = {
-  xiaonv: { CUFF: [0.60, 0.585, 0.54], CLOTH: [0.36, 0.35, 0.32], BAND_C: [0.050, 0.085, 0.165], CAP: [0.20, 0.195, 0.18], // 米白麻袖＋丹寧藍滾邊（參考圖）
+  xiaonv: { CUFF: [0.60, 0.585, 0.54], CLOTH: [0.36, 0.35, 0.32], BAND_C: [0.085, 0.150, 0.310], CAP: [0.20, 0.195, 0.18], // 米白麻袖＋丹寧藍滾邊（參考圖）
     BAND: { Z: -0.25, LIFT: 0.01, W: 0.10, R: 0.045, PAD: 0.055 } },
   lvshan: { CUFF: [0.020, 0.032, 0.095], CLOTH: [0.012, 0.020, 0.060], BAND_C: [0.016, 0.026, 0.080], CAP: [0.008, 0.012, 0.035], // 深藍道袍袖
     BAND: { Z: -0.25, LIFT: 0.01, W: 0.15, R: 0.05, PAD: 0.060 } },
@@ -32,10 +32,10 @@ export const B3_CUFF = {
 /** 配件尺寸（dm）與色（線性 RGB；量圓度的治具依頂點色挑配件，三件圓物各自一色）。全部【試玩必調】。 */
 export const B3_ACC = {
   /* 孝女：腕上米白粗麻布帶（Z 中心、半寬 W、厚 T、離皮 LIFT）；拇指側打結（TH＝方位角，度）；兩條垂尾（長 L＝0.35–0.55×手掌長）＋尾端毛邊 */
-  HEMP: { Z: 0.05, W: 0.050, T: 0.010, LIFT: 0.006, SEG: 22, C: [0.50, 0.46, 0.37], C2: [0.40, 0.365, 0.29], FRAY_N: 9, FRAY_L: 0.026, FRAY_W: 0.006 },
-  KNOT: { TH: -12, R: 0.034, C: [0.46, 0.42, 0.335] },
-  TAILS: [{ L: 0.33, W: 0.019, T: 0.005, DIR: [0.42, -0.62, -0.66], CURL: 0.35, SEGS: 6 }, { L: 0.29, W: 0.016, T: 0.005, DIR: [0.62, -0.60, -0.42], CURL: -0.25, SEGS: 6 }],
-  TAIL_FRAY: { N: 3, L: 0.022, W: 0.005 },
+  HEMP: { Z: 0.06, W: 0.080, T: 0.016, LIFT: 0.006, SEG: 22, C: [0.30, 0.28, 0.225], C2: [0.165, 0.155, 0.125], FRAY_N: 12, FRAY_L: 0.036, FRAY_W: 0.008 },
+  KNOT: { TH: -12, R: 0.068, C: [0.27, 0.25, 0.20] },
+  TAILS: [{ L: 0.35, W: 0.048, T: 0.008, DIR: [0.85, -0.38, -0.36], CURL: 0.30, SEGS: 6 }, { L: 0.31, W: 0.042, T: 0.008, DIR: [0.95, -0.30, 0.02], CURL: -0.25, SEGS: 6 }],
+  TAIL_FRAY: { N: 6, L: 0.050, W: 0.008, C: [0.47, 0.44, 0.36], C2: [0.56, 0.53, 0.45] }, // 垂尾比帶亮（參考圖：淺米色布尾＋毛邊；暗桌面上才看得出）,
   ASH: { C: [0.20, 0.195, 0.19], C2: [0.26, 0.255, 0.25], BACK: 7, TIPS: [0, 1, 2, 3], R0: 0.008, R1: 0.020, LIFT: 0.0035 },
   /* 閭山：黑檀圓珠念珠（N 顆、半徑 R、從 FROM 到 TO 度，下緣貼桌不繞滿）；拇指黃骨扳指（近節 T 處）；手背朱紅毛筆符形 */
   BEADS: { Z: 0.035, N: 13, FROM: -38, TO: 218, R: 0.046, SEG: 8, RINGS: 4, SIT: 0.80, C: [0.020, 0.0155, 0.013] },
@@ -45,6 +45,17 @@ export const B3_ACC = {
   CORD: { Z: [-0.005, 0.050], R: 0.0165, SIDES: 4, SEGS: 22, FROM: -42, TO: 232, SIT: 0.75, C: [0.60, 0.385, 0.035] },
   POUCH: { TH: -28, HANG: 0.055, DIR: [0.30, -0.90, -0.30], R: 0.058, K: [1.0, 1.18, 0.92], C: [0.47, 0.42, 0.33], TIE: [0.52, 0.33, 0.03], RUFF: 4 },
   JADE: { F: 2, T: 0.42, R: 0.022, W: 0.036, SEG: 16, TS: 6, C: [0.16, 0.36, 0.24] },
+};
+
+/** 孝女配件的「碰撞取樣用」尺寸＝v0.63.0 第一版（8e61d797）的值。第二輪（docs/experiments/2026-10-07-hands-b3/acceptance-round2-xiaonv.md）
+ *  只調孝女的外觀；三種批 3 手共用一副碰撞取樣骨架（條件 10），若取樣跟著新尺寸變，閭山／爐主的擺位也會跟著變（R2 要求它們 0 像素差）。
+ *  所以碰撞取樣固定用這組舊尺寸建孝女的配件點；畫面上的孝女用 B3_ACC 的新尺寸。新舊差：帶寬 0.10→0.16 dm、結 0.034→0.056、垂尾寬約 ×1.8、方向較往外——
+ *  穿入由 tests/table-hands-b3.test.mjs 的批 3 #C1/#C2（判全部蒙皮頂點、含新配件）把關。 */
+export const B3_ACC_COLLIDE_XIAONV = {
+  HEMP: { Z: 0.05, W: 0.050, T: 0.010, LIFT: 0.006, SEG: 22, C: [0.50, 0.46, 0.37], C2: [0.40, 0.365, 0.29], FRAY_N: 9, FRAY_L: 0.026, FRAY_W: 0.006 },
+  KNOT: { TH: -12, R: 0.034, C: [0.46, 0.42, 0.335] },
+  TAILS: [{ L: 0.33, W: 0.019, T: 0.005, DIR: [0.42, -0.62, -0.66], CURL: 0.35, SEGS: 6 }, { L: 0.29, W: 0.016, T: 0.005, DIR: [0.62, -0.60, -0.42], CURL: -0.25, SEGS: 6 }],
+  TAIL_FRAY: { N: 3, L: 0.022, W: 0.005, C: [0.50, 0.46, 0.37], C2: [0.40, 0.365, 0.29] },
 };
 
 /** 手背符形（閭山）：畫面座標 (s, t)＝(−x 相對手背中線, z)，單位 dm；每筆＝[點列, 起筆半寬, 收筆半寬]。
@@ -153,7 +164,8 @@ function fingerRing(acc, P, nBase, J, fo, f, seg0, C) {
 }
 
 /** 一個角色的配件；回 { acc, parts, swings }（swings＝垂掛物：頂點範圍、結點、尖端、長度、每頂點擺盪權重）。 */
-function buildAcc(rig, d, key) {
+function buildAcc(rig, d, key, collide = false) {
+  const AC = collide && key === 'xiaonv' ? { ...B3_ACC, ...B3_ACC_COLLIDE_XIAONV } : B3_ACC; // 碰撞取樣用孝女舊尺寸（見 B3_ACC_COLLIDE_XIAONV）
   const P = d.P, nBase = d.nBase, J = HR.jointTable(rig).J, fo = fingerOf(P, nBase, J), w0 = boneWorld(rig, 'Wrist'), palmY = boneWorld(rig, 'Palm')[1];
   const acc = accBuilder(), parts = [], swings = [], CF = B3_CUFF[key], CB = CF.BAND;
   const mark = (name, fn, extra = {}) => { const a = acc.P.length / 3; const r = fn(); parts.push({ name, from: a, to: acc.P.length / 3, ...extra }); return r; };
@@ -174,7 +186,7 @@ function buildAcc(rig, d, key) {
   };
 
   if (key === 'xiaonv') {
-    const H = B3_ACC.HEMP, K = B3_ACC.KNOT;
+    const H = AC.HEMP, K = AC.KNOT;
     mark('麻布帶', () => {
       surfBand(acc, P, nBase, w0, H.Z, H.W, H.T, H.LIFT, H.SEG, (i, dz) => (hash(i, dz > 0 ? 1 : 2, 7) > 0.5 ? H.C : H.C2));
       /* 帶的指尖側邊緣一排毛邊（短尖錐） */
@@ -187,15 +199,15 @@ function buildAcc(rig, d, key) {
     const th = K.TH * RAD, sf = wristSurf(P, nBase, w0, H.Z, th, 0.3), n = [Math.cos(th), Math.sin(th), 0];
     const knot = [sf.cx + n[0] * (sf.r + H.LIFT + H.T + K.R * 0.55), sf.cy + n[1] * (sf.r + H.LIFT + H.T + K.R * 0.55), H.Z];
     mark('側結', () => { acc.sphere(knot, K.R, K.C, 6, 4, [0.9, 1.15, 1.0], [0, 0, 1]); acc.sphere(add(knot, [0.012, -0.018, 0.022]), K.R * 0.72, H.C2, 6, 3, [1, 1, 1], n); });
-    B3_ACC.TAILS.forEach((T, i) => {
+    AC.TAILS.forEach((T, i) => {
       const from = acc.P.length / 3, dir = norm(T.DIR), side = norm(cross(dir, [0, 0, 1]).some((x) => Math.abs(x) > 1e-6) ? cross([0, 0, 1], dir) : [1, 0, 0]);
       const p0 = add(knot, mul(dir, K.R * 0.4));
       let tipIdx = -1, r = null;
       mark('垂尾' + (i + 1), () => {
-        r = ribbon(acc, p0, dir, side, T.L, T.W, T.T, T.SEGS, T.CURL, H.C);
+        r = ribbon(acc, p0, dir, side, T.L, T.W, T.T, T.SEGS, T.CURL, AC.TAIL_FRAY.C);
         tipIdx = acc.P.length / 3; acc.vert(r.tip, r.dir, H.C2); // 尖端標記點（量擺盪／長度用；不進任何三角形）
-        const F = B3_ACC.TAIL_FRAY; // 尾端毛邊
-        for (let k = 0; k < F.N; k++) acc.spike(add(r.tip, mul(r.sd, (k - (F.N - 1) / 2) * T.W * 0.7)), norm(add(r.dir, mul(r.sd, (k - 1) * 0.3))), F.L * (0.7 + 0.6 * hash(i, k, 5)), F.W, H.C2);
+        const F = AC.TAIL_FRAY; // 尾端毛邊
+        for (let k = 0; k < F.N; k++) acc.spike(add(r.tip, mul(r.sd, (k - (F.N - 1) / 2) * T.W * 0.7)), norm(add(r.dir, mul(r.sd, (k - 1) * 0.3))), F.L * (0.7 + 0.6 * hash(i, k, 5)), F.W, F.C2);
       }, { tail: true });
       const len = Math.hypot(...sub(r.tip, knot));
       swingOf('垂尾' + (i + 1), from, knot, dir, len, tipIdx, (p) => Math.max(0, Math.min(1, dot(sub(p, knot), dir) / (len * 0.98))));
@@ -291,12 +303,12 @@ export function srcFor(baseSrc, key) {
   return { position: baseSrc.position, color: dressColors(baseSrc.position, baseSrc.color, baseSrc.colorSize, { CUFF: CF.CUFF, CLOTH: CF.CLOTH }), colorSize: 4, skinIndex: baseSrc.skinIndex, skinWeight: baseSrc.skinWeight, index: baseSrc.index };
 }
 /** realGeometry 的 ext：形狀＝預設手（REAL.DEFAULT，不縮放、不改形）；kind＝皮膚序（skin-proto 的三組：aSkin＝kind+1；沒載 skin-proto＝0 預設皮膚）。 */
-export function extFor(rig, key, kind = 0) {
+export function extFor(rig, key, kind = 0, collide = false) {
   const ext = {
     real: { def: HR.REAL.DEFAULT, kind },
     swings: null,
     accessorize(d) {
-      const { acc, parts, swings } = buildAcc(rig, d, key), nOld = d.P.length / 3, ne = acc.P.length / 3;
+      const { acc, parts, swings } = buildAcc(rig, d, key, collide), nOld = d.P.length / 3, ne = acc.P.length / 3;
       d.P = cat(d.P, acc.P, Float32Array); d.C = cat(d.C, acc.C, Float32Array); d.A = cat(d.A, acc.A, Float32Array);
       const si = new Uint16Array(ne * 4), sw = new Float32Array(ne * 4); for (let e = 0; e < ne; e++) sw[e * 4] = 1; // 權重由 realGeometry 依「最近的手部頂點」覆寫
       d.SI = cat(d.SI, si, Uint16Array); d.SW = cat(d.SW, sw, Float32Array);

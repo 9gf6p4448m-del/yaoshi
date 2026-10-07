@@ -223,14 +223,15 @@ export function createTableHands(parent, props, opts = {}) {
         if (k3) { // v0.63.0 批 3：三角色換自己的幾何（形狀＝預設手；皮膚＝skin-proto 那三組，沒載 skin-proto＝預設皮膚）；材質同上一份
           seatKey[h.seat] = k3;
           const gk = 'b3:' + k3 + '|' + h.seat;
-          const build3 = (k) => { const ext = B3.extFor(rig, k, SP ? SP.extraSkin(k) - 1 : 0), g = HR.realGeometry(rig, B3.srcFor(baseSrc, k), baseSrc.position.length / 3, k, { key: k, batch: 3 }, ext); B3.finalize(g, ext); return g; };
+          const build3 = (k, collide = false) => { const ext = B3.extFor(rig, k, SP ? SP.extraSkin(k) - 1 : 0, collide), g = HR.realGeometry(rig, B3.srcFor(baseSrc, k), baseSrc.position.length / 3, k, { key: k, batch: 3 }, ext); B3.finalize(g, ext); return g; };
           if (!realGeos.has(gk)) { variantBuilds++; realGeos.set(gk, build3(k3)); }
           if (!realRigs.has('b3')) {
             /* 碰撞取樣：三種批 3 手共用「一副」取樣骨架（效能，條件 10）——擺位解算的姿勢蒙皮快取以骨架為單位（hand-motion prepare／offsets），
                三種手各一副時同一姿勢要算三遍（實測多出來的時間在 qrot／localPoints，見 docs/experiments/2026-10-07-hands-b3/README.md 條件 10）。
                三種手的原手頂點與袖管逐值相同（形狀＝預設手），取樣＝原手＋袖管＋三種手配件的聯集（降採樣，見 hand-b3 collideSource）——
                保守：每一種手都避開三種配件的靜止位置。同位置＋同權重的重複點只留一個（同批 1）。 */
-            const geos = B3.B3_KEYS.map((k) => { for (let s = 0; s < 4; s++) if (realGeos.has('b3:' + k + '|' + s)) return { g: realGeos.get('b3:' + k + '|' + s), tmp: false }; return { g: build3(k), tmp: true }; });
+            /* 孝女：碰撞取樣固定用第一版配件尺寸另建一份（第二輪只調外觀，閭山／爐主的取樣不得跟著變；見 hand-b3 B3_ACC_COLLIDE_XIAONV） */
+            const geos = B3.B3_KEYS.map((k) => { if (k === 'xiaonv') return { g: build3(k, true), tmp: true }; for (let s = 0; s < 4; s++) if (realGeos.has('b3:' + k + '|' + s)) return { g: realGeos.get('b3:' + k + '|' + s), tmp: false }; return { g: build3(k), tmp: true }; });
             const U = B3.collideSource(geos.map((x) => x.g));
             for (const x of geos) if (x.tmp) x.g.dispose();
             const R3 = buildRig(Object.assign({}, rigSrc0, U));
