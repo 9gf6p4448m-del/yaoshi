@@ -11,8 +11,11 @@ H = 420
 def fit(im, h): return im.resize((round(im.width * h / im.height), h), Image.LANCZOS)
 def crop_hand(path, box):  # 以手的投影包圍盒為中心裁 2:1，再放大到 H 高（遊戲畫面原解析度 844×390）
     im = Image.open(path).convert('RGB'); x0, y0, w, h = box['x0'], box['y0'], box['w'], box['h']
-    cx, cy = x0 + w / 2, y0 + h / 2; hh = max(h, w / 1.6) * 1.5; ww = hh * 1.6
-    l, t = max(0, cx - ww / 2), max(0, cy - hh / 2); r, b = min(im.width, l + ww), min(im.height, t + hh)
+    # 手的投影盒可能含畫面外的袖管：中心夾回畫面內、裁切框固定 16:10、寬 260–520 px
+    xa, ya, xb, yb = max(0, x0), max(0, y0), min(im.width, x0 + w), min(im.height, y0 + h)  # 投影盒先夾進畫面再取中心
+    cx, cy = (xa + xb) / 2, (ya + yb) / 2
+    ww = min(520, max(260, min(w, im.width) * 1.25)); hh = ww / 1.6
+    l, t = max(0, min(im.width - ww, cx - ww / 2)), max(0, min(im.height - hh, cy - hh / 2)); r, b = l + ww, t + hh
     return fit(im.crop((int(l), int(t), int(r), int(b))), H)
 M = {(r['hand'], r['seat'], r['pose']): r for r in json.load(open(os.path.join(raw, f'{tag}-measure.json'), encoding='utf-8'))['results']}
 for role in ROLES:
@@ -20,7 +23,7 @@ for role in ROLES:
     cells = [fit(ref, H)]
     for pose in ['back', 'claw']:
         r = M[(role, 0, pose)]
-        cells.append(crop_hand(os.path.join(raw, r['game']), r['handBox']))
+        cells.append(crop_hand(os.path.join(raw, r['nohud']), r['handBox']))  # 裁切格用同幀無 HUD 版（南席手背常被底部 HUD 蓋住）；第二列整張含 HUD
     full = [fit(Image.open(os.path.join(raw, M[(role, 0, p)]['game'])).convert('RGB'), H) for p in ['back', 'claw']]
     W = sum(c.width for c in cells) + 10 * (len(cells) - 1)
     W2 = sum(c.width for c in full) + 10
@@ -28,10 +31,10 @@ for role in ROLES:
     for c in cells: sheet.paste(c, (x, 30)); x += c.width + 10
     x = 0
     for c in full: sheet.paste(c, (x, H + 40)); x += c.width + 10
-    d = ImageDraw.Draw(sheet); d.text((6, 6), f'{role}: reference | game back-up (crop x) | game grab (crop) ; row 2 = full 844x390 frames', fill=(230, 230, 230))
+    d = ImageDraw.Draw(sheet); d.text((6, 6), f'{role}: reference | game back-up (crop, no HUD) | game grab (crop, no HUD) ; row 2 = full 844x390 frames with HUD', fill=(230, 230, 230))
     sheet.save(os.path.join(out, f'compare-{role}.jpg'), quality=90)
 # 並排總表（三角色各一列，只放參考圖與兩張裁切）
-rows = [Image.open(os.path.join(out, f'compare-{r}.jpg')).crop((0, 0, None or 10**6, H + 30)) for r in ROLES]
+rows = [Image.open(os.path.join(out, f'compare-{r}.jpg')) for r in ROLES]
 rows = [r.crop((0, 0, r.width, H + 30)) for r in rows]
 allw = max(r.width for r in rows); allim = Image.new('RGB', (allw, sum(r.height for r in rows)), (18, 18, 20)); y = 0
 for r in rows: allim.paste(r, (0, y)); y += r.height

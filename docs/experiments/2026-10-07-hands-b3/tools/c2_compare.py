@@ -14,7 +14,7 @@ def cmp(a, b, hands):
         rows[f'{k[0]}-s{k[1]}-{k[2]}'] = {'diffPx': diff, 'handPx': J[a][k]['handPx'], 'state': J[a][k]['state']['kind']}
     return {'cells': len(rows), 'cellsZeroDiff': sum(1 for v in rows.values() if v['diffPx'] == 0), 'rows': rows}
 out = {}
-pairs = [('base1', 'base2'), ('new1', 'new2'), ('new1', 'base1'), ('new2', 'base2')]
+pairs = [('base1', 'base2'), ('new1', 'new2'), ('new1', 'base1'), ('new2', 'base2'), ('new3', 'new4'), ('new3', 'base1'), ('new4', 'base2')]  # v0.63.0：new3／new4＝條件 10 修正後重拍
 for a, b in pairs:
     if a in J and b in J:
         out[f'{a} vs {b}'] = {'既有手（一般＋收驚婆／當鋪／獵人＋批1四角色）': cmp(a, b, EXIST), '批3三角色（正對照）': cmp(a, b, B1)}

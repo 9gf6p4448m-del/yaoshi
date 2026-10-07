@@ -1,0 +1,1202 @@
+{
+ "root": "C:\\Users\\shung\\wt\\yaoshi\\hands-b3",
+ "q": "",
+ "vp": [
+  844,
+  390
+ ],
+ "safe": [
+  0,
+  47,
+  21,
+  47
+ ],
+ "errs": [],
+ "results": [
+  {
+   "hand": "xiaonv",
+   "role": "xiaonv",
+   "seat": 0,
+   "pose": "back",
+   "state": [
+    {
+     "kind": "push",
+     "slot": 1,
+     "t": 0.311111
+    },
+    null,
+    null,
+    null
+   ],
+   "visible": [
+    0
+   ],
+   "variants": [
+    "xiaonv",
+    "zutou",
+    "hunter",
+    "dangpu"
+   ],
+   "tris": 5416,
+   "mats": [
+    "hand-skin-proto-b",
+    "hand-skin-proto-b",
+    "hand-skin-proto-b",
+    "hand-skin-proto-b"
+   ],
+   "real": {
+    "key": "xiaonv",
+    "kind": 8,
+    "verts": 3027,
+    "tris": 5416,
+    "nBase": 2307,
+    "arm": [
+     2897,
+     3027
+    ]
+   },
+   "handBox": {
+    "x0": 288.7,
+    "y0": 253.7,
+    "w": 113.9,
+    "h": 82.1
+   },
+   "knucklePx": 38.2,
+   "pxPerDmHand": 56.7,
+   "parts": [
+    {
+     "name": "袖口",
+     "w": 42.4,
+     "h": 40,
+     "max": 42.4,
+     "pxPerDm": 60.2
+    },
+    {
+     "name": "麻布帶",
+     "w": 42.7,
+     "h": 39.4,
+     "max": 42.7,
+     "pxPerDm": 59.2
+    },
+    {
+     "name": "側結",
+     "w": 5.1,
+     "h": 4.4,
+     "max": 5.1,
+     "pxPerDm": 60.8
+    },
+    {
+     "name": "垂尾1",
+     "w": 3.8,
+     "h": 22.2,
+     "max": 22.2,
+     "pxPerDm": 61.5
+    },
+    {
+     "name": "垂尾2",
+     "w": 5,
+     "h": 18.7,
+     "max": 18.7,
+     "pxPerDm": 60.9
+    },
+    {
+     "name": "紙錢灰",
+     "w": 59.9,
+     "h": 24.2,
+     "max": 59.9,
+     "pxPerDm": 55.8
+    }
+   ],
+   "calls": 1,
+   "centroid": [
+    -0.5540041193167489,
+    0.30449218922766164,
+    1.0964842180281922
+   ],
+   "yaw": -2.2679092147189324,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "final-s0-xiaonv-back-game.png",
+   "nohud": "final-s0-xiaonv-back-nohud.png",
+   "close": "final-s0-xiaonv-back-close.png",
+   "sha256": "eb0624b7203a9c1068649bb216256b84ff1432409344c2fd9d26068b802c7d0c"
+  },
+  {
+   "hand": "xiaonv",
+   "role": "xiaonv",
+   "seat": 0,
+   "pose": "claw",
+   "state": [
+    {
+     "kind": "rake",
+     "slot": 1,
+     "t": 0.133333
+    },
+    {
+     "kind": "hold",
+     "slot": 1,
+     "t": 0.133333
+    },
+    null,
+    null
+   ],
+   "visible": [
+    0,
+    1
+   ],
+   "variants": [
+    "xiaonv",
+    "zutou",
+    "hunter",
+    "dangpu"
+   ],
+   "tris": 5416,
+   "mats": [
+    "hand-skin-proto-b",
+    "hand-skin-proto-b",
+    "hand-skin-proto-b",
+    "hand-skin-proto-b"
+   ],
+   "real": {
+    "key": "xiaonv",
+    "kind": 8,
+    "verts": 3027,
+    "tris": 5416,
+    "nBase": 2307,
+    "arm": [
+     2897,
+     3027
+    ]
+   },
+   "handBox": {
+    "x0": 436.3,
+    "y0": 324.4,
+    "w": 120.6,
+    "h": 71.7
+   },
+   "knucklePx": 29.5,
+   "pxPerDmHand": 54.9,
+   "parts": [
+    {
+     "name": "袖口",
+     "w": 32.2,
+     "h": 38.3,
+     "max": 38.3,
+     "pxPerDm": 58.7
+    },
+    {
+     "name": "麻布帶",
+     "w": 32,
+     "h": 39.2,
+     "max": 39.2,
+     "pxPerDm": 57.4
+    },
+    {
+     "name": "側結",
+     "w": 5.1,
+     "h": 4.1,
+     "max": 5.1,
+     "pxPerDm": 59
+    },
+    {
+     "name": "垂尾1",
+     "w": 9.1,
+     "h": 23.1,
+     "max": 23.1,
+     "pxPerDm": 60.3
+    },
+    {
+     "name": "垂尾2",
+     "w": 4.8,
+     "h": 21,
+     "max": 21,
+     "pxPerDm": 59.7
+    },
+    {
+     "name": "紙錢灰",
+     "w": 60.3,
+     "h": 18.8,
+     "max": 60.3,
+     "pxPerDm": 53.7
+    }
+   ],
+   "calls": 1,
+   "centroid": [
+    0.32089755844502926,
+    0.3367419196325461,
+    0.9546190291830774
+   ],
+   "yaw": -2.2679092147189324,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "final-s0-xiaonv-claw-game.png",
+   "nohud": "final-s0-xiaonv-claw-nohud.png",
+   "close": "final-s0-xiaonv-claw-close.png",
+   "sha256": "d8a9b3287e64b6f219d8ca4b061df4a4f81eefc9dd001ff6acdb46981955cddc"
+  },
+  {
+   "hand": "xiaonv",
+   "role": "xiaonv",
+   "seat": 1,
+   "pose": "back",
+   "state": [
+    null,
+    {
+     "kind": "push",
+     "slot": 2,
+     "t": 0.311111
+    },
+    null,
+    null
+   ],
+   "visible": [
+    1
+   ],
+   "variants": [
+    "zutou",
+    "xiaonv",
+    "hunter",
+    "dangpu"
+   ],
+   "tris": 5416,
+   "mats": [
+    "hand-skin-proto-b",
+    "hand-skin-proto-b",
+    "hand-skin-proto-b",
+    "hand-skin-proto-b"
+   ],
+   "real": {
+    "key": "xiaonv",
+    "kind": 8,
+    "verts": 3027,
+    "tris": 5416,
+    "nBase": 2307,
+    "arm": [
+     2897,
+     3027
+    ]
+   },
+   "handBox": {
+    "x0": 422,
+    "y0": 97.3,
+    "w": 49.7,
+    "h": 68.8
+   },
+   "knucklePx": 26.5,
+   "pxPerDmHand": 36.5,
+   "parts": [
+    {
+     "name": "袖口",
+     "w": 29.7,
+     "h": 16.8,
+     "max": 29.7,
+     "pxPerDm": 35.5
+    },
+    {
+     "name": "麻布帶",
+     "w": 30.6,
+     "h": 16.4,
+     "max": 30.6,
+     "pxPerDm": 36.1
+    },
+    {
+     "name": "側結",
+     "w": 2.5,
+     "h": 3,
+     "max": 3,
+     "pxPerDm": 35.5
+    },
+    {
+     "name": "垂尾1",
+     "w": 5.4,
+     "h": 1.9,
+     "max": 5.4,
+     "pxPerDm": 34.8
+    },
+    {
+     "name": "垂尾2",
+     "w": 4.4,
+     "h": 3.4,
+     "max": 4.4,
+     "pxPerDm": 34.9
+    },
+    {
+     "name": "紙錢灰",
+     "w": 29.6,
+     "h": 41.9,
+     "max": 41.9,
+     "pxPerDm": 37.1
+    }
+   ],
+   "calls": 1,
+   "centroid": [
+    0.2017006817574184,
+    0.3795214337816146,
+    -0.4321896526526209
+   ],
+   "yaw": 0.2432247906620796,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "final-s1-xiaonv-back-game.png",
+   "nohud": "final-s1-xiaonv-back-nohud.png",
+   "close": null,
+   "sha256": "4ea91a87ce9d65a27a75fed60298b834ff39220d74da94349d82d01f2fdbdd55"
+  },
+  {
+   "hand": "lvshan",
+   "role": "lvshan",
+   "seat": 0,
+   "pose": "back",
+   "state": [
+    {
+     "kind": "push",
+     "slot": 1,
+     "t": 0.311111
+    },
+    null,
+    null,
+    null
+   ],
+   "visible": [
+    0
+   ],
+   "variants": [
+    "lvshan",
+    "zutou",
+    "hunter",
+    "dangpu"
+   ],
+   "tris": 5748,
+   "mats": [
+    "hand-skin-proto-b",
+    "hand-skin-proto-b",
+    "hand-skin-proto-b",
+    "hand-skin-proto-b"
+   ],
+   "real": {
+    "key": "lvshan",
+    "kind": 9,
+    "verts": 2991,
+    "tris": 5748,
+    "nBase": 2307,
+    "arm": [
+     2861,
+     2991
+    ]
+   },
+   "handBox": {
+    "x0": 345.8,
+    "y0": 206.7,
+    "w": 110.2,
+    "h": 68.2
+   },
+   "knucklePx": 32,
+   "pxPerDmHand": 53.4,
+   "parts": [
+    {
+     "name": "袖口",
+     "w": 40.7,
+     "h": 38.1,
+     "max": 40.7,
+     "pxPerDm": 56.6
+    },
+    {
+     "name": "念珠1",
+     "w": 5,
+     "h": 5.1,
+     "max": 5.1,
+     "pxPerDm": 55.8
+    },
+    {
+     "name": "念珠2",
+     "w": 5.1,
+     "h": 5.2,
+     "max": 5.2,
+     "pxPerDm": 56.9
+    },
+    {
+     "name": "念珠3",
+     "w": 5.3,
+     "h": 5.1,
+     "max": 5.3,
+     "pxPerDm": 57.5
+    },
+    {
+     "name": "念珠4",
+     "w": 4.9,
+     "h": 5,
+     "max": 5,
+     "pxPerDm": 57.3
+    },
+    {
+     "name": "念珠5",
+     "w": 4.7,
+     "h": 4.9,
+     "max": 4.9,
+     "pxPerDm": 57.2
+    },
+    {
+     "name": "念珠6",
+     "w": 5.2,
+     "h": 5,
+     "max": 5.2,
+     "pxPerDm": 56.8
+    },
+    {
+     "name": "念珠7",
+     "w": 5.2,
+     "h": 5.2,
+     "max": 5.2,
+     "pxPerDm": 56.4
+    },
+    {
+     "name": "念珠8",
+     "w": 4.9,
+     "h": 5,
+     "max": 5,
+     "pxPerDm": 56.1
+    },
+    {
+     "name": "念珠9",
+     "w": 4.9,
+     "h": 5,
+     "max": 5,
+     "pxPerDm": 55.5
+    },
+    {
+     "name": "念珠10",
+     "w": 4.9,
+     "h": 5,
+     "max": 5,
+     "pxPerDm": 54.7
+    },
+    {
+     "name": "念珠11",
+     "w": 4.8,
+     "h": 4.7,
+     "max": 4.8,
+     "pxPerDm": 53.8
+    },
+    {
+     "name": "念珠12",
+     "w": 4.6,
+     "h": 4.6,
+     "max": 4.6,
+     "pxPerDm": 53.2
+    },
+    {
+     "name": "念珠13",
+     "w": 4.7,
+     "h": 4.9,
+     "max": 4.9,
+     "pxPerDm": 53.1
+    },
+    {
+     "name": "骨扳指（拇指）",
+     "w": 12.1,
+     "h": 14.9,
+     "max": 14.9,
+     "pxPerDm": 55
+    },
+    {
+     "name": "朱紅符形",
+     "w": 19,
+     "h": 11.9,
+     "max": 19,
+     "pxPerDm": 54.7
+    }
+   ],
+   "calls": 1,
+   "centroid": [
+    -0.24422900380258725,
+    0.4650724255251597,
+    0.8080760102345245
+   ],
+   "yaw": -2.2679092147189324,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "final-s0-lvshan-back-game.png",
+   "nohud": "final-s0-lvshan-back-nohud.png",
+   "close": "final-s0-lvshan-back-close.png",
+   "sha256": "838529a32075673de195b809e2e483af74ac8d571c8099c7249c5bfc15e2d758"
+  },
+  {
+   "hand": "lvshan",
+   "role": "lvshan",
+   "seat": 0,
+   "pose": "claw",
+   "state": [
+    {
+     "kind": "rake",
+     "slot": 1,
+     "t": 0.133333
+    },
+    {
+     "kind": "hold",
+     "slot": 1,
+     "t": 0.133333
+    },
+    null,
+    null
+   ],
+   "visible": [
+    0,
+    1
+   ],
+   "variants": [
+    "lvshan",
+    "zutou",
+    "hunter",
+    "dangpu"
+   ],
+   "tris": 5748,
+   "mats": [
+    "hand-skin-proto-b",
+    "hand-skin-proto-b",
+    "hand-skin-proto-b",
+    "hand-skin-proto-b"
+   ],
+   "real": {
+    "key": "lvshan",
+    "kind": 9,
+    "verts": 2991,
+    "tris": 5748,
+    "nBase": 2307,
+    "arm": [
+     2861,
+     2991
+    ]
+   },
+   "handBox": {
+    "x0": 441.4,
+    "y0": 225.4,
+    "w": 116.6,
+    "h": 56.5
+   },
+   "knucklePx": 27.9,
+   "pxPerDmHand": 52.8,
+   "parts": [
+    {
+     "name": "袖口",
+     "w": 35.6,
+     "h": 38.2,
+     "max": 38.2,
+     "pxPerDm": 56.5
+    },
+    {
+     "name": "念珠1",
+     "w": 4.8,
+     "h": 5,
+     "max": 5,
+     "pxPerDm": 55.7
+    },
+    {
+     "name": "念珠2",
+     "w": 5,
+     "h": 5.2,
+     "max": 5.2,
+     "pxPerDm": 56.6
+    },
+    {
+     "name": "念珠3",
+     "w": 5.2,
+     "h": 5,
+     "max": 5.2,
+     "pxPerDm": 57.1
+    },
+    {
+     "name": "念珠4",
+     "w": 4.7,
+     "h": 4.7,
+     "max": 4.7,
+     "pxPerDm": 56.8
+    },
+    {
+     "name": "念珠5",
+     "w": 4.6,
+     "h": 4.6,
+     "max": 4.6,
+     "pxPerDm": 56.6
+    },
+    {
+     "name": "念珠6",
+     "w": 5,
+     "h": 4.9,
+     "max": 5,
+     "pxPerDm": 56.3
+    },
+    {
+     "name": "念珠7",
+     "w": 5.1,
+     "h": 5.1,
+     "max": 5.1,
+     "pxPerDm": 55.9
+    },
+    {
+     "name": "念珠8",
+     "w": 4.9,
+     "h": 4.8,
+     "max": 4.9,
+     "pxPerDm": 55.5
+    },
+    {
+     "name": "念珠9",
+     "w": 4.7,
+     "h": 4.8,
+     "max": 4.8,
+     "pxPerDm": 55
+    },
+    {
+     "name": "念珠10",
+     "w": 4.8,
+     "h": 4.9,
+     "max": 4.9,
+     "pxPerDm": 54.3
+    },
+    {
+     "name": "念珠11",
+     "w": 4.8,
+     "h": 4.6,
+     "max": 4.8,
+     "pxPerDm": 53.4
+    },
+    {
+     "name": "念珠12",
+     "w": 4.6,
+     "h": 4.3,
+     "max": 4.6,
+     "pxPerDm": 52.9
+    },
+    {
+     "name": "念珠13",
+     "w": 4.5,
+     "h": 4.7,
+     "max": 4.7,
+     "pxPerDm": 52.9
+    },
+    {
+     "name": "骨扳指（拇指）",
+     "w": 10.8,
+     "h": 15.4,
+     "max": 15.4,
+     "pxPerDm": 54.9
+    },
+    {
+     "name": "朱紅符形",
+     "w": 20.9,
+     "h": 8.9,
+     "max": 20.9,
+     "pxPerDm": 54
+    }
+   ],
+   "calls": 1,
+   "centroid": [
+    0.3578418375259606,
+    0.3367419196325461,
+    0.8424745028555276
+   ],
+   "yaw": -2.2679092147189324,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "final-s0-lvshan-claw-game.png",
+   "nohud": "final-s0-lvshan-claw-nohud.png",
+   "close": "final-s0-lvshan-claw-close.png",
+   "sha256": "25f2540aa97ee6cf6e254027771dcb3dcc386131fa01be3fb74bad351c2d6a63"
+  },
+  {
+   "hand": "lvshan",
+   "role": "lvshan",
+   "seat": 1,
+   "pose": "back",
+   "state": [
+    null,
+    {
+     "kind": "push",
+     "slot": 2,
+     "t": 0.311111
+    },
+    null,
+    null
+   ],
+   "visible": [
+    1
+   ],
+   "variants": [
+    "zutou",
+    "lvshan",
+    "hunter",
+    "dangpu"
+   ],
+   "tris": 5748,
+   "mats": [
+    "hand-skin-proto-b",
+    "hand-skin-proto-b",
+    "hand-skin-proto-b",
+    "hand-skin-proto-b"
+   ],
+   "real": {
+    "key": "lvshan",
+    "kind": 9,
+    "verts": 2991,
+    "tris": 5748,
+    "nBase": 2307,
+    "arm": [
+     2861,
+     2991
+    ]
+   },
+   "handBox": {
+    "x0": 422,
+    "y0": 97.3,
+    "w": 49.7,
+    "h": 68.5
+   },
+   "knucklePx": 26.5,
+   "pxPerDmHand": 36.6,
+   "parts": [
+    {
+     "name": "袖口",
+     "w": 30.9,
+     "h": 19.3,
+     "max": 30.9,
+     "pxPerDm": 35.5
+    },
+    {
+     "name": "念珠1",
+     "w": 3.2,
+     "h": 3.1,
+     "max": 3.2,
+     "pxPerDm": 35.1
+    },
+    {
+     "name": "念珠2",
+     "w": 3,
+     "h": 3.2,
+     "max": 3.2,
+     "pxPerDm": 35.4
+    },
+    {
+     "name": "念珠3",
+     "w": 3.2,
+     "h": 3.3,
+     "max": 3.3,
+     "pxPerDm": 35.8
+    },
+    {
+     "name": "念珠4",
+     "w": 3,
+     "h": 3.1,
+     "max": 3.1,
+     "pxPerDm": 36.1
+    },
+    {
+     "name": "念珠5",
+     "w": 3.1,
+     "h": 3.2,
+     "max": 3.2,
+     "pxPerDm": 36.3
+    },
+    {
+     "name": "念珠6",
+     "w": 3.1,
+     "h": 3.3,
+     "max": 3.3,
+     "pxPerDm": 36.4
+    },
+    {
+     "name": "念珠7",
+     "w": 3.2,
+     "h": 3.4,
+     "max": 3.4,
+     "pxPerDm": 36.5
+    },
+    {
+     "name": "念珠8",
+     "w": 3.2,
+     "h": 3.4,
+     "max": 3.4,
+     "pxPerDm": 36.6
+    },
+    {
+     "name": "念珠9",
+     "w": 3.3,
+     "h": 3.4,
+     "max": 3.4,
+     "pxPerDm": 36.5
+    },
+    {
+     "name": "念珠10",
+     "w": 3.2,
+     "h": 3.3,
+     "max": 3.3,
+     "pxPerDm": 36.5
+    },
+    {
+     "name": "念珠11",
+     "w": 3.1,
+     "h": 3.3,
+     "max": 3.3,
+     "pxPerDm": 36.2
+    },
+    {
+     "name": "念珠12",
+     "w": 3.1,
+     "h": 3.1,
+     "max": 3.1,
+     "pxPerDm": 35.9
+    },
+    {
+     "name": "念珠13",
+     "w": 3.2,
+     "h": 3.3,
+     "max": 3.3,
+     "pxPerDm": 35.6
+    },
+    {
+     "name": "骨扳指（拇指）",
+     "w": 10,
+     "h": 7.4,
+     "max": 10,
+     "pxPerDm": 36.2
+    },
+    {
+     "name": "朱紅符形",
+     "w": 7.1,
+     "h": 10.7,
+     "max": 10.7,
+     "pxPerDm": 37
+    }
+   ],
+   "calls": 1,
+   "centroid": [
+    0.20170068175741834,
+    0.3795214337816146,
+    -0.4321896526526209
+   ],
+   "yaw": 0.2432247906620796,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "final-s1-lvshan-back-game.png",
+   "nohud": "final-s1-lvshan-back-nohud.png",
+   "close": null,
+   "sha256": "0cc04b5406bd184fb57f4b554600f471ff235ab4a85e3ba81851d8b5f54ef542"
+  },
+  {
+   "hand": "luzhu",
+   "role": "luzhu",
+   "seat": 0,
+   "pose": "back",
+   "state": [
+    {
+     "kind": "push",
+     "slot": 1,
+     "t": 0.311111
+    },
+    null,
+    null,
+    null
+   ],
+   "visible": [
+    0
+   ],
+   "variants": [
+    "luzhu",
+    "zutou",
+    "hunter",
+    "dangpu"
+   ],
+   "tris": 5650,
+   "mats": [
+    "hand-skin-proto-b",
+    "hand-skin-proto-b",
+    "hand-skin-proto-b",
+    "hand-skin-proto-b"
+   ],
+   "real": {
+    "key": "luzhu",
+    "kind": 10,
+    "verts": 2964,
+    "tris": 5650,
+    "nBase": 2307,
+    "arm": [
+     2834,
+     2964
+    ]
+   },
+   "handBox": {
+    "x0": 284.2,
+    "y0": 256.1,
+    "w": 114.7,
+    "h": 83.3
+   },
+   "knucklePx": 38.8,
+   "pxPerDmHand": 56.9,
+   "parts": [
+    {
+     "name": "袖口",
+     "w": 49.1,
+     "h": 45.5,
+     "max": 49.1,
+     "pxPerDm": 60.7
+    },
+    {
+     "name": "黃編繩1",
+     "w": 34.7,
+     "h": 34.7,
+     "max": 34.7,
+     "pxPerDm": 59.7
+    },
+    {
+     "name": "黃編繩2",
+     "w": 37.9,
+     "h": 36.9,
+     "max": 37.9,
+     "pxPerDm": 59.5
+    },
+    {
+     "name": "福袋",
+     "w": 6.5,
+     "h": 9.9,
+     "max": 9.9,
+     "pxPerDm": 60.1
+    },
+    {
+     "name": "玉戒（無名指）",
+     "w": 14.5,
+     "h": 14.2,
+     "max": 14.5,
+     "pxPerDm": 54.9
+    }
+   ],
+   "calls": 1,
+   "centroid": [
+    -0.573264323925148,
+    0.30449218922766164,
+    1.119485185800062
+   ],
+   "yaw": -2.2679092147189324,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "final-s0-luzhu-back-game.png",
+   "nohud": "final-s0-luzhu-back-nohud.png",
+   "close": "final-s0-luzhu-back-close.png",
+   "sha256": "c686d26d1d07459bd83708fa27ec36bb4b86fe5ffba1db5d37189f31fd9a9021"
+  },
+  {
+   "hand": "luzhu",
+   "role": "luzhu",
+   "seat": 0,
+   "pose": "claw",
+   "state": [
+    {
+     "kind": "rake",
+     "slot": 1,
+     "t": 0.133333
+    },
+    {
+     "kind": "hold",
+     "slot": 1,
+     "t": 0.133333
+    },
+    null,
+    null
+   ],
+   "visible": [
+    0,
+    1
+   ],
+   "variants": [
+    "luzhu",
+    "zutou",
+    "hunter",
+    "dangpu"
+   ],
+   "tris": 5650,
+   "mats": [
+    "hand-skin-proto-b",
+    "hand-skin-proto-b",
+    "hand-skin-proto-b",
+    "hand-skin-proto-b"
+   ],
+   "real": {
+    "key": "luzhu",
+    "kind": 10,
+    "verts": 2964,
+    "tris": 5650,
+    "nBase": 2307,
+    "arm": [
+     2834,
+     2964
+    ]
+   },
+   "handBox": {
+    "x0": 435.9,
+    "y0": 226.6,
+    "w": 116.5,
+    "h": 57.2
+   },
+   "knucklePx": 28.3,
+   "pxPerDmHand": 52.9,
+   "parts": [
+    {
+     "name": "袖口",
+     "w": 37.7,
+     "h": 40.2,
+     "max": 40.2,
+     "pxPerDm": 56.8
+    },
+    {
+     "name": "黃編繩1",
+     "w": 23.2,
+     "h": 34.2,
+     "max": 34.2,
+     "pxPerDm": 55.5
+    },
+    {
+     "name": "黃編繩2",
+     "w": 25.3,
+     "h": 35.6,
+     "max": 35.6,
+     "pxPerDm": 55.3
+    },
+    {
+     "name": "福袋",
+     "w": 6,
+     "h": 11.1,
+     "max": 11.1,
+     "pxPerDm": 56.3
+    },
+    {
+     "name": "玉戒（無名指）",
+     "w": 10.9,
+     "h": 13.2,
+     "max": 13.2,
+     "pxPerDm": 50.9
+    }
+   ],
+   "calls": 1,
+   "centroid": [
+    0.3209606412296501,
+    0.3367419196325461,
+    0.8555048661824554
+   ],
+   "yaw": -2.2679092147189324,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "final-s0-luzhu-claw-game.png",
+   "nohud": "final-s0-luzhu-claw-nohud.png",
+   "close": "final-s0-luzhu-claw-close.png",
+   "sha256": "ba0c90eaa5aa8627678f0fb40d61e8f27f41444a02075dd399cceae1b184adfd"
+  },
+  {
+   "hand": "luzhu",
+   "role": "luzhu",
+   "seat": 1,
+   "pose": "back",
+   "state": [
+    null,
+    {
+     "kind": "push",
+     "slot": 2,
+     "t": 0.311111
+    },
+    null,
+    null
+   ],
+   "visible": [
+    1
+   ],
+   "variants": [
+    "zutou",
+    "luzhu",
+    "hunter",
+    "dangpu"
+   ],
+   "tris": 5650,
+   "mats": [
+    "hand-skin-proto-b",
+    "hand-skin-proto-b",
+    "hand-skin-proto-b",
+    "hand-skin-proto-b"
+   ],
+   "real": {
+    "key": "luzhu",
+    "kind": 10,
+    "verts": 2964,
+    "tris": 5650,
+    "nBase": 2307,
+    "arm": [
+     2834,
+     2964
+    ]
+   },
+   "handBox": {
+    "x0": 422,
+    "y0": 97.3,
+    "w": 49.7,
+    "h": 68.5
+   },
+   "knucklePx": 26.5,
+   "pxPerDmHand": 36.6,
+   "parts": [
+    {
+     "name": "袖口",
+     "w": 32.2,
+     "h": 20.1,
+     "max": 32.2,
+     "pxPerDm": 35.5
+    },
+    {
+     "name": "黃編繩1",
+     "w": 26.6,
+     "h": 13.2,
+     "max": 26.6,
+     "pxPerDm": 35.9
+    },
+    {
+     "name": "黃編繩2",
+     "w": 29,
+     "h": 14.3,
+     "max": 29,
+     "pxPerDm": 36
+    },
+    {
+     "name": "福袋",
+     "w": 3.6,
+     "h": 4.2,
+     "max": 4.2,
+     "pxPerDm": 35.1
+    },
+    {
+     "name": "玉戒（無名指）",
+     "w": 10.4,
+     "h": 6.1,
+     "max": 10.4,
+     "pxPerDm": 37.6
+    }
+   ],
+   "calls": 1,
+   "centroid": [
+    0.20170068175741834,
+    0.3795214337816146,
+    -0.4321896526526209
+   ],
+   "yaw": 0.2432247906620796,
+   "scale": 0.335,
+   "hudCover": null,
+   "matcmp": null,
+   "game": "final-s1-luzhu-back-game.png",
+   "nohud": "final-s1-luzhu-back-nohud.png",
+   "close": null,
+   "sha256": "23ecb784b241cfa3c4aae2bf299aaebc7130d5010cdb28c929b0f934da3cae78"
+  }
+ ]
+}

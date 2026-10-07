@@ -1,7 +1,7 @@
 // 條件 7 補量：得標抓法寶（award）與詛咒推按（curse）兩種抓取姿勢下，福袋與垂尾的 a/b/c（實頁、grab-probe 同一套決定性時鐘與事件順序）。
 // 用 tests/tools/grab-probe.mjs 匯出的 openPage／withServer／ev／step（量法沿用其事件順序：擺錢→微距→reveal-result 帶 grabMs／curseMs）。
 // 四席角色＝孝女白琴（南 0）／普渡爐主（北 1）／閭山法師（西 2）／組頭（東 3）；只量 0、1 兩席（有垂掛物）。
-// 每情境：reveal-result 後逐幀量到落定（award＝grabMs、curse＝curseMs）＝「移動段」，落定那一幀凍結手（setFrozen；擺盪照跑）再量 150 幀＝「停」段。
+// 每情境：reveal-result 後逐幀量到落定（award＝grabMs、curse＝curseMs）＝「移動段」，落定那一幀起忽略新的抓取規格並凍結手（擺盪照跑）再量 150 幀＝「停」段（stopRigidMaxStepOverLen 記停段手是否真的不動）。
 // 尖端含擺盪＝getVertexPosition；剛性＝setSeats 後抓的靜止副本經 applyBoneTransform（不讀產品 state()）。
 // node c7-grab.mjs --root=<樹> --port=<埠> --out=<資料夾>
 import fs from 'node:fs'; import path from 'node:path';
@@ -31,7 +31,7 @@ await GP.withServer(async () => {
             const sw = new THREE.Vector3(); t.m.getVertexPosition(t.tip, sw); sw.applyMatrix4(t.m.matrixWorld);
             const rg = t.tipRest.clone(); t.m.applyBoneTransform(t.tip, rg); rg.applyMatrix4(t.m.matrixWorld);
             const kn = t.knotRest.clone(); t.m.applyBoneTransform(t.tip, kn); kn.applyMatrix4(t.m.matrixWorld);
-            t.rows.push({ phase, vis: true, off: sw.distanceTo(rg), len: kn.distanceTo(rg), clear: (sw.y - floor) / kn.distanceTo(rg) }); } };
+            t.rows.push({ phase, vis: true, off: sw.distanceTo(rg), len: kn.distanceTo(rg), clear: (sw.y - floor) / kn.distanceTo(rg), rg: [rg.x, rg.y, rg.z] }); } };
       }, ROLES);
       await GP.ev(page, 'ys:bid', { seat: sc.seat, slot: sc.slot, amount: 6 }); await GP.step(page, 50);
       await GP.ev(page, 'ys:bid', { seat: sc.loser, slot: sc.slot, amount: 4 }); await GP.step(page, 70);
@@ -42,10 +42,11 @@ await GP.withServer(async () => {
       await GP.ev(page, 'ys:reveal-result', { winner: sc.seat, slot: sc.slot, transferTarget: isCurse ? sc.target : null, destroy: false, grabMs, curseMs, skip: false });
       const landF = Math.round((isCurse ? curseMs : grabMs) / 1000 * 60);
       for (let f = 0; f < landF; f++) { await GP.step(page, 1); await page.evaluate(() => window.__samp('move')); }
-      await page.evaluate(() => window.__yaoshi3d.tray.hands.setFrozen(true));
+      /* 停：抓取腳本每幀送新的擺位規格（hands.grab）且不經 director 的時間軸，只 setFrozen 停不住——落定那一幀起忽略新規格＋凍結，手才真的不動（量測後還原） */
+      await page.evaluate(() => { const H = window.__yaoshi3d.tray.hands; H.__grab0 = H.grab; H.grab = () => {}; H.setFrozen(true); });
       for (let f = 0; f < 150; f++) { await GP.step(page, 1); await page.evaluate(() => window.__samp('stop')); }
       const rows = await page.evaluate(() => window.__trk.map((t) => ({ seat: t.seat, name: t.name, rows: t.rows })));
-      await page.evaluate(() => window.__yaoshi3d.tray.hands.setFrozen(false));
+      await page.evaluate(() => { const H = window.__yaoshi3d.tray.hands; if (H.__grab0) { H.grab = H.__grab0; H.__grab0 = null; } H.setFrozen(false); });
       for (const t of rows) {
         if (t.seat !== sc.seat) continue; // 只判做動作的那一席（抓／推的手）
         const mv = t.rows.filter((x) => x.vis && x.phase === 'move'), sp = t.rows.filter((x) => x.vis && x.phase === 'stop');
@@ -55,9 +56,11 @@ await GP.withServer(async () => {
         const after = sp.slice(90), mx = after.length ? Math.max(...after.map((x) => x.off)) : NaN;
         const mean = after.reduce((a, x) => a + x.off, 0) / (after.length || 1), sd = Math.sqrt(after.reduce((a, x) => a + (x.off - mean) ** 2, 0) / (after.length || 1));
         const minClear = Math.min(...t.rows.filter((x) => x.vis).map((x) => x.clear));
+        /* 「手停止」是否成立：停段剛性尖端逐幀位移的最大值（相對物件長）；>1% 表示凍結後手仍在動（如詛咒的細顫不走 director） */
+        let rgMove = 0; for (let i = 1; i < sp.length; i++) rgMove = Math.max(rgMove, Math.hypot(sp[i].rg[0] - sp[i - 1].rg[0], sp[i].rg[1] - sp[i - 1].rg[1], sp[i].rg[2] - sp[i - 1].rg[2]) / len);
         res[key] = { landFrames: landF, visMove: mv.length, visStop: sp.length, peakOverLen: +(peak / len).toFixed(4), a_pass: peak >= 0.05 * len && peak > 0,
           after15OverPeak: +(mx / peak).toFixed(5), staticSdOverPeak: +(sd / peak).toFixed(6), b_pass: after.length === 60 && mx < 0.1 * peak && sd < 0.02 * peak,
-          minTipClearOverLen: +minClear.toFixed(4), c_pass: minClear >= -0.05 };
+          minTipClearOverLen: +minClear.toFixed(4), c_pass: minClear >= -0.05, stopRigidMaxStepOverLen: +rgMove.toFixed(5), stopVisibleS: +(sp.length / 60).toFixed(2) };
       }
       console.log(sc.kind, sc.name, 'done');
     }
