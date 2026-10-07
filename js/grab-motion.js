@@ -56,11 +56,11 @@ export function struggle(u, amp = 1) {
   const ry = (0.10 * j2 * Math.sin(u * 2 * Math.PI * 3.1)) * amp;
   return { rx, rz, ry, lat: -rz * GRAB.STRUGGLE_LAT, dy: (j1 + j2) * 0.01 * amp };
 }
-/** 被按住的手顫抖：細、快、只往上不往下（不穿桌）。 */
-export function tremble(t, t0, t1, amp = 0.008) {
+/** 被按住的手顫抖：細、快、只往上不往下（不穿桌）。k＝時間軸縮放（詛咒的 CURSE_MS／MS_REF；v0.62.3：頻率÷k，動作內的圈數與 k＝1 相同；預設 1＝逐位元同舊版）。 */
+export function tremble(t, t0, t1, amp = 0.008, k = 1) {
   if (t <= t0 || t >= t1) return [0, 0, 0];
-  const u = (t - t0) / (t1 - t0), e = Math.sqrt(Math.sin(Math.PI * u));
-  return [Math.sin(t * 2 * Math.PI * 17) * amp * e, Math.abs(Math.sin(t * 2 * Math.PI * 13)) * amp * 0.8 * e, Math.sin(t * 2 * Math.PI * 11 + 1) * amp * 0.6 * e];
+  const u = (t - t0) / (t1 - t0), e = Math.sqrt(Math.sin(Math.PI * u)), tp = t / k;
+  return [Math.sin(tp * 2 * Math.PI * 17) * amp * e, Math.abs(Math.sin(tp * 2 * Math.PI * 13)) * amp * 0.8 * e, Math.sin(tp * 2 * Math.PI * 11 + 1) * amp * 0.6 * e];
 }
 
 /** 外接盒（世界，{x0,x1,y0,y1,z0,z1}）沿水平方向 (dx,dz) 的半寬。 */
@@ -385,7 +385,7 @@ export function makeCurseScript({ seatC, seatV, from, box, tableY, ms, victimIn 
   function victimPalm(t) {
     const u = easeOut(seg(t, VT.reach0, VT.reach1));
     const back = 0.35 * (1 - u) + smooth(seg(t, VT.flinch0, VT.flinch1)) * CURSE.FLINCH - smooth(seg(t, VT.flinch1, T.push)) * CURSE.FLINCH;
-    const tr = tremble(t, T.press - CURSE.TREMBLE_LEAD * k, T.gone, 0.008);
+    const tr = tremble(t, T.press - CURSE.TREMBLE_LEAD * k, T.gone, 0.008, k);
     return [Vp[0] - vx * back + tr[0], Vp[1] + tr[1], Vp[2] - vz * back + tr[2]];
   }
   function at(t) {
@@ -402,7 +402,7 @@ export function makeCurseScript({ seatC, seatV, from, box, tableY, ms, victimIn 
         const u = prof(seg(t, T.go, T.push)), V = via ? [via[0], from.y, via[1]] : null;
         if (route) { const q = polyAt(route, u); p = [q.p[0], from.y, q.p[1]]; }
         else p = V ? (u < 0.4 ? lerp3(P0, V, u / 0.4) : lerp3(V, P1t, (u - 0.4) / 0.6)) : lerp3(P0, P1t, u);
-        item = { x: p[0], y: p[1], z: p[2], rx: 0, rz: Math.sin(t * 2 * Math.PI * 9) * 0.03 * Math.sin(Math.PI * u), ry: Math.sin(Math.PI * u) * 0.25 }; }
+        item = { x: p[0], y: p[1], z: p[2], rx: 0, rz: Math.sin((t / k) * 2 * Math.PI * 9) * 0.03 * Math.sin(Math.PI * u), ry: Math.sin(Math.PI * u) * 0.25 }; }
       else { const u = smooth(seg(t, T.push, T.press)); p = lerp3(P1t, P1, u); item = { x: p[0], y: p[1], z: p[2], rx: 0, rz: 0, ry: 0 }; }
       holder = 'c'; carryNow = carry;
       /* 手掌蓋在堆頂推：手指朝向「自己席位 → 符紙堆現在的位置」（跟著堆轉，指尖不伸進別件拍品）。 */
