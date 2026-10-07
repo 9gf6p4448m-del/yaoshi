@@ -1,0 +1,31 @@
+(node:29420) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/shung/wt/yaoshi/hands-b3/js/grab-motion.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\shung\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ D3：GRAB_MS 單一來源——index.html CFG.GRAB_MS=1260 經 ys:reveal-result 的 grabMs 交給 3D；卡片等待由它推得 (1.1972ms)
+✔ 一般得標：落定＝GRAB_MS、時間軸隨 GRAB_MS 等比縮放；落定後停 HOLD_S 才隱藏（D1） (1.3794ms)
+✔ 掙扎：抓起階段法寶相對掌心的側向位移正負交替 ≥2 次、振幅 >0（拿掉掙扎就紅） (1.4612ms)
+✔ D2：扣法——side 扣肩頸（低於頂、指尖朝上＝手臂從下方伸來，不從天上伸下來）；top（西／東越中線）扣上緣；俯角都 < 0.62 (0.2437ms)
+✔ v0.61.1 CURSE_MS 單一來源：index.html CFG.CURSE_MS=2000 經 ys:reveal-result 的 curseMs 交給 3D；揭卡等到按住結束（CURSE_CARD_K＝CURSE.T.hold/T.press） (0.6064ms)
+✔ 詛咒 A＋C：施放者＝毒標得標席、受害者＝transferTarget；落定＝CURSE_MS（2000 → 1800–2200）、推 ≥1.2s、按住 ≥0.6s；繩只在按住階段、受害者顫抖 (4.7854ms)
+✔ v0.60.1 詛咒不拖回（docs/experiments/2026-10-05-curse-fix/acceptance.md #2）：按住起到演完，符紙堆停在受害者席前（dest）不動；受害者的手不往席位縮（只抖） (0.8846ms)
+✔ v0.61.1 抬升規劃：符紙堆與兩手的高度 ≥ 可達需要量（不穿）且每格變化 ≤ 斜率上限（不瞬移）；按住段受害者固定、施放者不提早抬 (1.4777ms)
+✔ v0.61.1 r2 貼桌繞行：planPath 的每一段都不穿進別件拍品外擴框；直線不撞就是直線；腳本照路徑走、符紙堆高度＝桌面；CURSE_MS≤0 不出 NaN (3.2324ms)
+✔ v0.61.1 r3 手臂來向（acceptance 條件 25，覆審 H-2）：西塞南（槽 3 推給南席）推的整段施放者手臂朝向與「席位→符紙堆」夾角餘弦 ≥0.5、收手往自己席位退；北塞西鑽不過的取樣停在偏角上限（不轉到推的方向後方） (6.2082ms)
+✔ v0.61.1 r3 符紙堆自己的抬升（acceptance 條件 26、14）：給 Lp 時堆照 Lp 走（施放者手臂越過別件要抬 0.7，堆不跟著抬）、施放者仍不低於堆；落定後堆停在手背高度直到隱藏（不在最後幾幀往下沉） (1.1765ms)
+✔ v0.61.1 r3 五種詛咒物（acceptance 條件 27）：外框底不在原點的詛咒物，落定時「堆底」仍在桌面＋HAND_TOP（壓在手背上，不浮在手上方）；施放者掌心蓋在看得見的堆頂 (0.4187ms)
+✔ v0.61.1 r3 錢柱（acceptance 條件 26、3）：手蓋上後等落標的錢從堆底下扒過去才推（goAt，上限 GO_MAX）；堆抬過錢柱的升降速度 ≤ PILE_SLOPE（不一跳、鏡頭不甩） (0.9046ms)
+✔ v0.61.1 r6 北席（acceptance 條件 39–42）：北塞西用手的實際足跡規劃偏角——整段同一側、|偏角| ≤58°、手不進別件外框、蓋上即推且推的途中每 150ms 堆都在動 (51.479ms)
+✔ v0.61.1 r6 收手（acceptance 條件 43、31）：先抬後退——setRetract(抬升量) 拉長收手、每 1/60 秒垂直 ≤0.03、水平 ≤0.06；抬到一半前退不到一成五；落定時刻不變 (3.3199ms)
+✔ D5：紙錢繩幾何預建——new THREE.TubeGeometry 全檔只有一處，且在 ropeMesh() 的「已建就回」守衛之後（每幀 0 次重建）；不 dispose 繩幾何 (0.5204ms)
+✔ D6：純呈現——grab-motion 不碰亂數、不讀賽局；?grab=0 與 CFG.GRAB_ON 兩道開關都在 (0.8264ms)
+✔ D4：抓取專用可達只作用於 grab 類——frames() 在 REACH／俯角掃描之前分流；reveal 不覆寫抓取中的手 (0.1627ms)
+✔ 跳過：doSkip 的 ys:fx-trait-cancel 先把抓取演出跳到終態再收手；跳過中才開的件 3D 直接到終態 (0.2253ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 188.8028
