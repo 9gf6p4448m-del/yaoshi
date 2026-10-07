@@ -1314,6 +1314,9 @@ export function createHandDirector(props, rig, per) {
            ③ 原量也不可行＝記下暖啟動點（下面伸入回退與信物避讓先從它出發）。沿用修正量可行時就不解未修正的那一幀（效能）。
            每一幀用的仍是通過 valid（伸入界線＋信物）的解，不放寬任何不穿透檢查。 */
         const c0 = a.corr, cn = c0 ? Math.hypot(c0[0], c0[1]) : 0, req0 = Object.assign({}, req);
+        /* v0.62.5：上面①②③與下面的 leap／候選依上一幀修正量排序／沿進場方向候選（ALONG）只用在目標靜止的動作。擺錢推的錢柱每幀都在走，
+           沿用上一幀修正量會把手釘在原地（伸入回退把錢柱沿進場方向的位移整段吃掉），錢柱自己滑過去＝試玩回報「手跑出來、錢自己推很長的距離」。推照 v0.62.3。 */
+        const hyst = a.kind !== 'push';
         const canRetry = cn > 1e-3 && !(a.kind === 'rake' && a.lead === undefined) && req.pitch !== undefined && Array.isArray(req.pose);
         let warm = null, fr = null;
         const at = (k) => solveHand(R0, Object.assign({}, req0, { target: [req0.target[0] + c0[0] * k, req0.target[1] + c0[1] * k], fit: undefined }), obs, tableY);
@@ -1321,16 +1324,16 @@ export function createHandDirector(props, rig, per) {
           let k = 0.85, f2 = at(k);
           if (!valid(f2)) {
             k = 1; f2 = at(1);
-            if (!valid(f2)) { warm = { fr: f2, target: [req0.target[0] + c0[0], req0.target[1] + c0[1]] }; return null; }
-            for (let i = 0, lo = 0.85; i < 2; i++) { const m = (lo + k) / 2, fm = at(m); if (valid(fm)) { k = m; f2 = fm; } else lo = m; }
+            if (!valid(f2)) { if (hyst) warm = { fr: f2, target: [req0.target[0] + c0[0], req0.target[1] + c0[1]] }; return null; }
+            for (let i = 0, lo = 0.85; hyst && i < 2; i++) { const m = (lo + k) / 2, fm = at(m); if (valid(fm)) { k = m; f2 = fm; } else lo = m; }
           }
           req.target = [req0.target[0] + c0[0] * k, req0.target[1] + c0[1] * k];
           return f2;
         };
-        if (canRetry && cn > HAND.CORR_KEEP) fr = tryCorr();
+        if (canRetry && hyst && cn > HAND.CORR_KEEP) fr = tryCorr();
         if (!fr && !warm) {
           fr = solveHand(R0, req, obs, tableY);
-          if (canRetry && cn <= HAND.CORR_KEEP && !valid(fr)) { const f2 = tryCorr(); if (f2) fr = f2; }
+          if (canRetry && (cn <= HAND.CORR_KEEP || !hyst) && !valid(fr)) { const f2 = tryCorr(); if (f2) fr = f2; }
         }
         if (warm) { req.target = warm.target; fr = warm.fr; req.fit = undefined; }
         /* 伸入深度（第二輪）：看得見的部分越線就沿進場方向退回，錢（若還在滑）自己走完剩下的路；終點不變。 */
@@ -1362,7 +1365,7 @@ export function createHandDirector(props, rig, per) {
            leap：這一幀不側移也不撞信物、但跟上一幀的修正量差很遠（＞2 步）時，也先看有沒有離上一幀更近的可行側移，有就留在那邊。
            可行判定（relicHit／reach）一字不改；找不到才照舊不畫（leap 則用不側移的解，它本來就可行）。 */
         const cDist = (t) => (c0 ? Math.hypot(t[0] - desired[0] - c0[0], t[1] - desired[1] - c0[1]) : 0);
-        const leap = !warm && !rh && relics.length > 0 && cn > HAND.CORR_KEEP && cDist(req.target) > 2 * HAND.RELIC.STEP; // 只看冷啟動的解；暖啟動後的伸入回退是該有的停住（拍令牌撞到伸入界線），不當成跳
+        const leap = hyst && !warm && !rh && relics.length > 0 && cn > HAND.CORR_KEEP && cDist(req.target) > 2 * HAND.RELIC.STEP; // 只看冷啟動的解；暖啟動後的伸入回退是該有的停住（拍令牌撞到伸入界線），不當成跳
         if (rh || leap) {
           const dx = Math.sin(fr.yaw), dz = Math.cos(fr.yaw), px = dz, pz = -dx;
           const side = rh ? Math.sign(px * (req.target[0] - rh.x) + pz * (req.target[1] - rh.z)) || 1 : 1;
@@ -1373,13 +1376,13 @@ export function createHandDirector(props, rig, per) {
           const shifted = (dxz) => ({ root: [fr.root[0] + dxz[0], fr.root[1], fr.root[2] + dxz[1]], yaw: fr.yaw, pitch: fr.pitch, pose: fr.pose });
           /* 候選＝側移 k 步（垂直進場方向）× 沿進場方向前後 j 步（RELIC.ALONG；量測：只沿垂直線找時，最近的可行點常在斜方向 0.02–0.14 處，
              垂直線上卻要跳到 0.3–0.66 才可行）。依修正量離上一幀多近排序（沒有上一幀＝離不側移多近）；同距離保留原順序（k 由小到大、side 先）。 */
-          const S = HAND.RELIC.STEP, J = HAND.RELIC.ALONG, NC = (2 * HAND.RELIC.STEPS + 1) * (2 * J + 1);
+          const S = HAND.RELIC.STEP, J = hyst ? HAND.RELIC.ALONG : 0, NC = (2 * HAND.RELIC.STEPS + 1) * (2 * J + 1);
           const ex = c0 ? base[0] - desired[0] - c0[0] : 0, ez = c0 ? base[1] - desired[1] - c0[1] : 0; // cDist(base＋d)＝hypot(ex＋d0, ez＋d1)
           const CX = new Float64Array(NC), CZ = new Float64Array(NC), CC = new Float64Array(NC); let m = 0;
           for (let k = 0; k <= HAND.RELIC.STEPS; k++) for (const sg of k ? [side, -side] : [1]) for (let j = -J; j <= J; j++) {
             if (!k && !j) continue;
             const d0 = sg * px * k * S + dx * j * S, d1 = sg * pz * k * S + dz * j * S;
-            CX[m] = d0; CZ[m] = d1; CC[m] = c0 ? Math.hypot(ex + d0, ez + d1) : Math.hypot(d0, d1); m++;
+            CX[m] = d0; CZ[m] = d1; CC[m] = c0 && hyst ? Math.hypot(ex + d0, ez + d1) : Math.hypot(d0, d1); m++;
           }
           const stay = leap ? cDist(base) : Infinity;
           /* 依 c 由小到大試（同 c 保留原順序）；先只排 c＜0.15 的那批，找不到再排其餘——與整批排序同一個順序，只省排序成本。 */

@@ -3,7 +3,7 @@
 // 真的批 1／寫實手碰撞取樣、真的信物與伸入界線解算），不重抄、不 mock 解算。固定 dt=1/60，決定性。
 // 量的是 Palm 骨的世界座標：同一動作段內二階差 >0.10 世界單位＝單幀來回彈跳事件；單幀最大步以固定相機投影成 CSS px（844×390，
 // 相機矩陣取自瀏覽器實測 money 劇本第 0 幀，wobble-out 治具）。
-// 對照：YAOSHI_MOTION_PATH 指向 6394c055 的 hand-motion.js 時，push 與 slam 的斷言必須紅（基準 push 19 事件／131.9 px、slam 13／86.4 px）。
+// 對照：YAOSHI_MOTION_PATH 指向 6394c055 的 hand-motion.js 時，slam 的斷言必須紅（基準 slam 13／86.4 px）；push 彈跳於 v0.62.5 放寬回基準 19／131.9 px（見 push 測試上方註解），改由 pinFrac 脫鉤測試把關（v0.62.4 的 hand-motion.js 會紅）。
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { THREE, loadProps, loadHands, LAYOUTS } from './hand-fixture.mjs';
@@ -78,11 +78,68 @@ const all = [];
 for (const [name, sc] of Object.entries(SCN)) for (const g of segments(await run(sc))) all.push(Object.assign(g, { scn: name }));
 const sum = (act) => { const sel = all.filter((g) => g.act === act); return { events: sel.reduce((a, g) => a + g.events, 0), stepPx: Math.max(0, ...sel.map((g) => g.stepPx)), n: sel.length, detail: sel.filter((g) => g.events).map((g) => `${g.scn}/席${g.seat}@f${g.f0}:${g.events}`).join(' ') }; };
 
-test('擺錢推（push）：四劇本二階差>0.10 的單幀彈跳 ≤4 次、單幀最大步 ≤30 px（基準 19 次／131.9 px）', () => {
+/* 2026-10-07 使用者裁定（選項 A）：push 的「彈跳 ≤4／單幀最大步 ≤30 px」放寬回基準（≤19 事件、≤131.9 px，即不比 v0.62.3 差）。
+   原因：v0.62.4 的避讓暖啟動把手釘在信物旁、錢柱自己滑過去（pinFrac 0.339→0.497），為壓彈跳犧牲了「手推著錢走」；
+   改以下方的「手跟錢不脫鉤」（pinFrac ≤0.345）當 push 的正式驗收。slam／hold／rake／retract 的斷言不動。 */
+test('擺錢推（push）：不比 v0.62.3 差——彈跳 ≤19 次、單幀最大步 ≤131.9 px（使用者 2026-10-07 裁定由 ≤4／≤30 放寬回基準）', () => {
   const r = sum('push');
   assert.ok(r.n >= 8, `四劇本八隻推的手都量到（實際 ${r.n} 段）`);
-  assert.ok(r.events <= 4, `push 彈跳事件 ${r.events} 次 > 4（${r.detail}）`);
-  assert.ok(r.stepPx <= 30, `push 單幀最大步 ${r.stepPx.toFixed(1)} px > 30`);
+  assert.ok(r.events <= 19, `push 彈跳事件 ${r.events} 次 > 19（${r.detail}）`);
+  assert.ok(r.stepPx <= 131.9, `push 單幀最大步 ${r.stepPx.toFixed(1)} px > 131.9`);
+});
+
+/* push 脫鉤量測（獨立於上面的 Palm 彈跳量測）：錢柱這一幀在水平面位移 Δ（>1e-5、非 returning 才計），
+   手（群組根）同幀水平位移 < 0.2Δ 或手不可見＝「手被釘住、錢自己走」，累計該 Δ。pinFrac＝Σ釘住 Δ／Σ全部 Δ。
+   劇本＝四個擺錢方位＋南／北席各一次推 0、1、2 三格排隊。走真實 props＋hands，錢柱位置取 props.stackAt、手位置取 hands.group 子節點，皆不 mock。
+   基準：v0.62.3＝0.339、v0.62.4＝0.497、修法 A＝0.339。 */
+const PIN_SCN = {
+  money: [['bid', 0, 1, 6, 80], ['bid', 1, 1, 4, 80], ['mark', 0, 1, 0, 120]],
+  moneyE: [['bid', 3, 2, 6, 80], ['bid', 2, 2, 4, 80], ['mark', 3, 2, 0, 120]],
+  moneyW: [['bid', 2, 0, 6, 80], ['bid', 0, 0, 4, 80], ['mark', 2, 0, 0, 120]],
+  moneyN: [['bid', 1, 3, 6, 80], ['bid', 3, 3, 4, 80], ['mark', 1, 3, 0, 120]],
+  queue: [['bid', 0, 0, 3, 0], ['bid', 0, 1, 5, 0], ['bid', 0, 2, 2, 260]],
+  queueN: [['bid', 1, 0, 3, 0], ['bid', 1, 1, 5, 0], ['bid', 1, 2, 2, 260]],
+};
+async function pinRun(script) {
+  const parent = new THREE.Group();
+  const props = createTableProps(parent, { handPaths: true });
+  props.setLayout(...LAYOUTS.L);
+  props.setSeats(['qingmian', 'shoujing', 'hongyi', 'xiaonv'].map((role, id) => ({ id, role })));
+  const hands = createTableHands(parent, props); await hands.ready(); parent.updateMatrixWorld(true);
+  let moved = 0, pinned = 0;
+  const prevStack = {}, prevHand = {}; // 每席：上一幀的錢柱／手位置（段落中斷即清）
+  for (const [kind, a, b, c, n] of script) {
+    if (kind === 'bid') { props.bid(a, b, c); hands.bid(a, b, c); }
+    if (kind === 'mark') { props.mark(a, b); hands.mark(a, b); }
+    for (let i = 0; i < n; i++) {
+      props.update(DT); hands.update(DT); parent.updateMatrixWorld(true);
+      const state = hands.stats().state;
+      for (const h of hands.group.children) {
+        const seat = +h.name.split('-')[1], s = state[seat];
+        if (!s || s.kind !== 'push') { delete prevStack[seat]; delete prevHand[seat]; continue; }
+        const st = props.stackAt(seat, s.slot);
+        if (!st) continue;
+        const hp = h.getWorldPosition(new THREE.Vector3());
+        const ps = prevStack[seat], ph = prevHand[seat];
+        if (ps && ps.slot !== s.slot) { delete prevStack[seat]; delete prevHand[seat]; }
+        else if (ps && ph && !st.returning) {
+          const d = Math.hypot(st.x - ps.x, st.z - ps.z), dh = Math.hypot(hp.x - ph.x, hp.z - ph.z);
+          if (d > 1e-5) { moved += d; if (!h.visible || dh < 0.2 * d) pinned += d; }
+        }
+        prevStack[seat] = { x: st.x, z: st.z, slot: s.slot }; prevHand[seat] = { x: hp.x, z: hp.z };
+      }
+    }
+  }
+  hands.dispose();
+  return { moved, pinned };
+}
+
+test('擺錢推（push）手跟錢不脫鉤：錢柱在動而手幾乎不動的位移比例 pinFrac ≤0.345（v0.62.3＝0.339、v0.62.4＝0.497）', async () => {
+  let moved = 0, pinned = 0;
+  for (const sc of Object.values(PIN_SCN)) { const r = await pinRun(sc); moved += r.moved; pinned += r.pinned; }
+  assert.ok(moved > 1, `六劇本推錢都有量到錢柱位移（總位移 ${moved.toFixed(3)} 世界單位）`);
+  const pinFrac = pinned / moved;
+  assert.ok(pinFrac <= 0.345, `pinFrac ${pinFrac.toFixed(3)} > 0.345（手被釘住、錢自己滑過去；總位移 ${moved.toFixed(3)}）`);
 });
 
 test('拍令牌（slam）：彈跳 ≤6 次、單幀最大步 ≤86.4 px（基準 13 次／86.4 px；2026-10-07 使用者簽准由 ≤3 改 ≤6）', () => {
