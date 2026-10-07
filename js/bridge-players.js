@@ -77,7 +77,7 @@ async function loadPicTexture(roleId, state, assetsBase) {
  * 取某角色某氣色的貼圖。氣色的作法與 index.html 的 avHTML() 相同：
  * 把 SVG 根節點的 state-healthy 換成當前狀態的 class，讓 SVG 內建的三態樣式生效。
  * 對外匯出給 duel-figures.js 共用同一份快取與同一套三態規則（防分岔）。
- * v0.62.6：寫實點陣圖優先，抓不到才走上述 SVG 路徑。
+ * v0.63.0：寫實點陣圖優先，抓不到才走上述 SVG 路徑。
  */
 export async function getTexture(roleId, state, assetsBase = 'assets/characters/') {
   const key = `${roleId}:${state}`;
