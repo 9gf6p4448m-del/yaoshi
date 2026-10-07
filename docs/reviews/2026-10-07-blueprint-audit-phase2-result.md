@@ -324,3 +324,4 @@ README、IMPLEMENTATION_GUIDE、`2026-10-01-cloud-to-local.md` 這次沒有需�
   ```
   兩檔都等於任務表列值（autocrlf 沒有改動位元組；來源本來就是 LF）。
 - 本段補記另以一筆只改本報告的提交加入。
+- 2026-10-08 續作提交：`cca7411f`（父提交 `447cbb10`），8 檔、126 行新增、11 行刪除；刪除都是 CLAUDE、README、MASTER、INDEX、天命計畫與本報告的同行改寫（快照標記、R1 定義、G→X、README 兩行、附錄 A 連結數），GAME／ART 只新增。沒有 merge、push 或部署。
