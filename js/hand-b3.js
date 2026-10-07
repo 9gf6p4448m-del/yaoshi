@@ -21,7 +21,7 @@ export function keyOf(role) { return typeof role === 'string' && B3_KEYS.include
 
 /** 袖口（一處色）：CUFF／CLOTH＝dressColors 的袖口與袖布；BAND＝套在袖口外的環（同批 1 欄位）、BAND_C＝環色、CAP＝封口色。【試玩必調】 */
 export const B3_CUFF = {
-  xiaonv: { CUFF: [0.60, 0.585, 0.54], CLOTH: [0.36, 0.35, 0.32], BAND_C: [0.085, 0.150, 0.310], CAP: [0.20, 0.195, 0.18], // 米白麻袖＋丹寧藍滾邊（參考圖）
+  xiaonv: { CUFF: [0.60, 0.585, 0.54], CLOTH: [0.50, 0.485, 0.445], BAND_C: [0.54, 0.52, 0.465], CAP: [0.085, 0.150, 0.310], TRIM: { C: [0.085, 0.150, 0.310], W: 0.013, R: 0.004 }, // 米白麻袖＋袖口一道窄丹寧藍內裡線（參考圖；第二輪第 2 次：原本整圈藍灰滾邊在遊戲取景被讀成當鋪黑袖金邊）
     BAND: { Z: -0.25, LIFT: 0.01, W: 0.10, R: 0.045, PAD: 0.055 } },
   lvshan: { CUFF: [0.020, 0.032, 0.095], CLOTH: [0.012, 0.020, 0.060], BAND_C: [0.016, 0.026, 0.080], CAP: [0.008, 0.012, 0.035], // 深藍道袍袖
     BAND: { Z: -0.25, LIFT: 0.01, W: 0.15, R: 0.05, PAD: 0.060 } },
@@ -32,8 +32,8 @@ export const B3_CUFF = {
 /** 配件尺寸（dm）與色（線性 RGB；量圓度的治具依頂點色挑配件，三件圓物各自一色）。全部【試玩必調】。 */
 export const B3_ACC = {
   /* 孝女：腕上米白粗麻布帶（Z 中心、半寬 W、厚 T、離皮 LIFT）；拇指側打結（TH＝方位角，度）；兩條垂尾（長 L＝0.35–0.55×手掌長）＋尾端毛邊 */
-  HEMP: { Z: 0.06, W: 0.080, T: 0.016, LIFT: 0.006, SEG: 22, C: [0.30, 0.28, 0.225], C2: [0.165, 0.155, 0.125], FRAY_N: 12, FRAY_L: 0.036, FRAY_W: 0.008 },
-  KNOT: { TH: -12, R: 0.068, C: [0.27, 0.25, 0.20] },
+  HEMP: { Z: 0.10, W: 0.080, T: 0.016, LIFT: 0.006, SEG: 22, C: [0.40, 0.38, 0.31], C2: [0.25, 0.235, 0.19], FRAY_N: 12, FRAY_L: 0.036, FRAY_W: 0.008 },
+  KNOT: { TH: -12, R: 0.068, C: [0.37, 0.35, 0.285] },
   TAILS: [{ L: 0.35, W: 0.048, T: 0.008, DIR: [0.85, -0.38, -0.36], CURL: 0.30, SEGS: 6 }, { L: 0.31, W: 0.042, T: 0.008, DIR: [0.95, -0.30, 0.02], CURL: -0.25, SEGS: 6 }],
   TAIL_FRAY: { N: 6, L: 0.050, W: 0.008, C: [0.47, 0.44, 0.36], C2: [0.56, 0.53, 0.45] }, // 垂尾比帶亮（參考圖：淺米色布尾＋毛邊；暗桌面上才看得出）,
   ASH: { C: [0.20, 0.195, 0.19], C2: [0.26, 0.255, 0.25], BACK: 7, TIPS: [0, 1, 2, 3], R0: 0.008, R1: 0.020, LIFT: 0.0035 },
@@ -177,6 +177,8 @@ function buildAcc(rig, d, key, collide = false) {
   mark('袖口', () => {
     acc.ring(cc, zax, xax, up, cs.ra + CB.PAD, cs.rb + CB.PAD * 0.4, CB.R, CB.W, CF.BAND_C, 16, 4);
     acc.disc([cc[0], cc[1], CB.Z - CB.W], xax, up, cs.ra + CB.PAD, cs.rb + CB.PAD * 0.4, [0, 0, -1], CF.CAP, 24);
+    /* 孝女：袖口前緣露出一道窄丹寧藍內裡（碰撞取樣不建，閭山／爐主共用的取樣才不會變） */
+    if (CF.TRIM && !collide) acc.ring([cc[0], cc[1], CB.Z + CB.W - CF.TRIM.W], zax, xax, up, cs.ra + CB.PAD, cs.rb + CB.PAD * 0.4, CB.R + CF.TRIM.R, CF.TRIM.W, CF.TRIM.C, 16, 4);
   });
   /* 垂掛物登記：from..to 的頂點、結點 knot（權重 0）、尖端 tip（量擺盪用的頂點序）、每頂點權重 w（0＝跟骨、1＝整段偏移） */
   const swingOf = (name, from, knot, dir, len, tipIdx, wOf) => {
