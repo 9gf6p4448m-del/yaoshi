@@ -1,0 +1,17 @@
+(node:37848) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/shung/wt/yaoshi/hands-b3/js/hand-motion.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\shung\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ 擺錢推（push）：不比 v0.62.3 差——彈跳 ≤19 次、單幀最大步 ≤131.9 px（使用者 2026-10-07 裁定由 ≤4／≤30 放寬回基準） (1.0627ms)
+✔ 擺錢推（push）手跟錢不脫鉤：錢柱在動而手幾乎不動的位移比例 pinFrac ≤0.345（v0.62.3＝0.339、v0.62.4＝0.497） (687.2023ms)
+✔ 拍令牌（slam）：彈跳 ≤6 次、單幀最大步 ≤86.4 px（基準 13 次／86.4 px；2026-10-07 使用者簽准由 ≤3 改 ≤6） (0.2952ms)
+✔ 不退化護欄：勝方停一拍（hold）彈跳 ≤20、敗方扒錢（rake）≤27（＝基準；本版不宣稱修好，已知問題見 VERSION_NOTE 之外的紀錄） (0.4193ms)
+✔ 正常平滑對照：北席停一拍與拍令牌（沒有信物、伸入界線擋路）零彈跳、單幀最大步 ≤5 px，且手真的上場、有在動 (0.3281ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1857.1045

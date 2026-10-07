@@ -1,0 +1,254 @@
+{
+ "L/S1/s0/垂尾1": {
+  "len": 0.12581,
+  "peak": 0.05661,
+  "peakOverLen": 0.45,
+  "a_pass": true,
+  "maxAfter15s": 0.056613,
+  "after15OverPeak": 1,
+  "settleFrames": -1,
+  "staticSdOverPeak": 0.259063,
+  "b_pass": false,
+  "minTipClearOverLen": 0.3738,
+  "c_pass": true,
+  "visMove": 60,
+  "visStop": 150
+ },
+ "L/S1/s0/垂尾2": {
+  "len": 0.11261,
+  "peak": 0.05067,
+  "peakOverLen": 0.45,
+  "a_pass": true,
+  "maxAfter15s": 0.0506,
+  "after15OverPeak": 0.99853,
+  "settleFrames": -1,
+  "staticSdOverPeak": 0.258321,
+  "b_pass": false,
+  "minTipClearOverLen": 0.333,
+  "c_pass": true,
+  "visMove": 60,
+  "visStop": 150
+ },
+ "L/S1/s1/福袋": {
+  "len": 0.06245,
+  "peak": 0.0281,
+  "peakOverLen": 0.45,
+  "a_pass": true,
+  "maxAfter15s": 0.028101,
+  "after15OverPeak": 1,
+  "settleFrames": -1,
+  "staticSdOverPeak": 0.309358,
+  "b_pass": false,
+  "minTipClearOverLen": 2.9416,
+  "c_pass": true,
+  "visMove": 60,
+  "visStop": 150
+ },
+ "L/S2/s0/垂尾1": {
+  "vis": 71,
+  "peakOverLen": 0.45,
+  "a_pass": true,
+  "minTipClearOverLen": 0.3738,
+  "c_pass": true
+ },
+ "L/S2/s0/垂尾2": {
+  "vis": 71,
+  "peakOverLen": 0.45,
+  "a_pass": true,
+  "minTipClearOverLen": 0.333,
+  "c_pass": true
+ },
+ "L/S2/s1/福袋": {
+  "vis": 71,
+  "peakOverLen": 0.45,
+  "a_pass": true,
+  "minTipClearOverLen": 2.9416,
+  "c_pass": true
+ },
+ "L/S3/s0/垂尾1": {
+  "vis": 167,
+  "bid": {
+   "vis": 71,
+   "peakOverLen": 0.45,
+   "minTipClearOverLen": 0.3738
+  },
+  "mark": {
+   "vis": 40,
+   "peakOverLen": 0.45,
+   "minTipClearOverLen": 0.9435
+  },
+  "reveal": {
+   "vis": 56,
+   "peakOverLen": 0.45,
+   "minTipClearOverLen": 0.5636
+  },
+  "minTipClearOverLen": 0.3738,
+  "c_pass": true
+ },
+ "L/S3/s0/垂尾2": {
+  "vis": 167,
+  "bid": {
+   "vis": 71,
+   "peakOverLen": 0.45,
+   "minTipClearOverLen": 0.333
+  },
+  "mark": {
+   "vis": 40,
+   "peakOverLen": 0.45,
+   "minTipClearOverLen": 0.8072
+  },
+  "reveal": {
+   "vis": 56,
+   "peakOverLen": 0.45,
+   "minTipClearOverLen": 0.4344
+  },
+  "minTipClearOverLen": 0.333,
+  "c_pass": true
+ },
+ "L/S3/s1/福袋": {
+  "vis": 172,
+  "bid": {
+   "vis": 71,
+   "peakOverLen": 0.45,
+   "minTipClearOverLen": 1.549
+  },
+  "mark": {
+   "vis": 40,
+   "peakOverLen": 0.45,
+   "minTipClearOverLen": 1.6646
+  },
+  "reveal": {
+   "vis": 61,
+   "peakOverLen": 0.45,
+   "minTipClearOverLen": 0.5511
+  },
+  "minTipClearOverLen": 0.5511,
+  "c_pass": true
+ },
+ "P/S1/s0/垂尾1": {
+  "len": 0.07548,
+  "peak": 0.03397,
+  "peakOverLen": 0.45,
+  "a_pass": true,
+  "maxAfter15s": 0.033931,
+  "after15OverPeak": 0.99894,
+  "settleFrames": -1,
+  "staticSdOverPeak": 0.268784,
+  "b_pass": false,
+  "minTipClearOverLen": 0.5868,
+  "c_pass": true,
+  "visMove": 60,
+  "visStop": 150
+ },
+ "P/S1/s0/垂尾2": {
+  "len": 0.06757,
+  "peak": 0.0304,
+  "peakOverLen": 0.45,
+  "a_pass": true,
+  "maxAfter15s": 0.03039,
+  "after15OverPeak": 0.9995,
+  "settleFrames": -1,
+  "staticSdOverPeak": 0.272063,
+  "b_pass": false,
+  "minTipClearOverLen": 0.5912,
+  "c_pass": true,
+  "visMove": 60,
+  "visStop": 150
+ },
+ "P/S1/s1/福袋": {
+  "len": 0.03747,
+  "peak": 0.01686,
+  "peakOverLen": 0.45,
+  "a_pass": true,
+  "maxAfter15s": 0.01686,
+  "after15OverPeak": 1,
+  "settleFrames": -1,
+  "staticSdOverPeak": 0.310623,
+  "b_pass": false,
+  "minTipClearOverLen": 4.9462,
+  "c_pass": true,
+  "visMove": 60,
+  "visStop": 150
+ },
+ "P/S2/s0/垂尾1": {
+  "vis": 71,
+  "peakOverLen": 0.45,
+  "a_pass": true,
+  "minTipClearOverLen": 0.5868,
+  "c_pass": true
+ },
+ "P/S2/s0/垂尾2": {
+  "vis": 71,
+  "peakOverLen": 0.45,
+  "a_pass": true,
+  "minTipClearOverLen": 0.5912,
+  "c_pass": true
+ },
+ "P/S2/s1/福袋": {
+  "vis": 71,
+  "peakOverLen": 0.45,
+  "a_pass": true,
+  "minTipClearOverLen": 4.9462,
+  "c_pass": true
+ },
+ "P/S3/s0/垂尾1": {
+  "vis": 167,
+  "bid": {
+   "vis": 71,
+   "peakOverLen": 0.45,
+   "minTipClearOverLen": 0.5868
+  },
+  "mark": {
+   "vis": 40,
+   "peakOverLen": 0.45,
+   "minTipClearOverLen": 2.3221
+  },
+  "reveal": {
+   "vis": 56,
+   "peakOverLen": 0.4124,
+   "minTipClearOverLen": 1.6797
+  },
+  "minTipClearOverLen": 0.5868,
+  "c_pass": true
+ },
+ "P/S3/s0/垂尾2": {
+  "vis": 167,
+  "bid": {
+   "vis": 71,
+   "peakOverLen": 0.45,
+   "minTipClearOverLen": 0.5912
+  },
+  "mark": {
+   "vis": 40,
+   "peakOverLen": 0.45,
+   "minTipClearOverLen": 2.2766
+  },
+  "reveal": {
+   "vis": 56,
+   "peakOverLen": 0.4225,
+   "minTipClearOverLen": 1.8037
+  },
+  "minTipClearOverLen": 0.5912,
+  "c_pass": true
+ },
+ "P/S3/s1/福袋": {
+  "vis": 172,
+  "bid": {
+   "vis": 71,
+   "peakOverLen": 0.45,
+   "minTipClearOverLen": 3.126
+  },
+  "mark": {
+   "vis": 40,
+   "peakOverLen": 0.45,
+   "minTipClearOverLen": 4.0891
+  },
+  "reveal": {
+   "vis": 61,
+   "peakOverLen": 0.45,
+   "minTipClearOverLen": 0.4702
+  },
+  "minTipClearOverLen": 0.4702,
+  "c_pass": true
+ }
+}

@@ -1,0 +1,885 @@
+
+押寶夜 AI 一注決策（onAiStake） 行為測試　目標檔：C:\Users\shung\wt\yaoshi\hands-b3\index.html
+
+  PASS  X＝會進開標的前 MAX_BIDS 筆金額總和（D1'）：4 筆 5/4/3/2、MAX_BIDS=2 → X=9
+  PASS  MAX_BIDS=0（無上限）時全取：同一份計畫 X＝5+4+3+2＝14
+  PASS  被 MAX_BIDS 裁掉的那幾筆不計入 X，但仍留在勾選集裡（全落標）
+  PASS  保守標的 X 受 consCapFor 夾住（壽命 24 → 上限 8，X＝9 夾成 8）
+  PASS  押命標的 X 受「壽命−1」夾住（壽命 12 → 上限 11，X＝14 夾成 11）
+  PASS  型態取原本金額最大那筆（最大那筆是押命標 → 這一注就是押命標）
+  PASS  真人不受影響：UI 封好的一注（stake 記號）照原樣過，不加總、不夾上限
+  PASS  非押寶夜完全不走這一段：同一份計畫在一般夜仍是三筆獨立的標
+
+────────────────────────────
+通過 8　失敗 0
+✔ tests\aistake.test.mjs (1790.5972ms)
+✔ ?handslow／?grabslow：CFG 生效值＝原值×k、3D 讀同一份倍率、reveal-result 帶生效的 grabMs／curseMs；非法值＝1；0 pageerror (32288.1172ms)
+(node:33956) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/shung/wt/yaoshi/hands-b3/js/hand-motion.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\shung\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ 預設（沒有倍率物件／k=1）：推錢落定仍 0.70／1.16／1.62／2.08 秒（±1.5 幀）、手 ≤2.7 秒結束 (661.3632ms)
+✔ handslow=2：推錢四格落定 ≈2×（誤差 ≤1 個 dt）；手結束 ≈2×（≤1 dt） (452.544ms)
+✔ handslow=2：拍令牌（令牌落地、手收完）與敗方扒錢（手收完、錢回席位）總時長 ≈2×（≤1 dt） (2437.2108ms)
+✔ handslow=2 接觸時序不變：真實時間 2t 時的錢柱、令牌與手的擺位＝k=1 時 t 的擺位（推、拍、扒全程逐幀） (1372.0998ms)
+✔ handslow=2：handObstaclesAhead 的外推以「被放慢後的時間」算（真實 ahead 2a ＝ k=1 的 a），詛咒推按規劃看得到同一批錢 (2203.1262ms)
+✔ index.html 單一解析點 animSlowFrom：合法值照用、明確帶 1＝1、無參數與非法（NaN、≤0、>10、空字串）一律落預設 1.5／1.3（v0.62.2） (47.3382ms)
+✔ opt-in observes real acquisition immediately and preserves first time after same-night loss (141.1487ms)
+✔ off/on game results are byte-identical after removing record field and RNG is unchanged (2963.8786ms)
+✔ recorder is detached from game state and reset for the next game (118.3994ms)
+✔ callback exception clears recorder and nested playPolicyGame is rejected before replacing state (71.7554ms)
+✔ previews and lookalike players cannot create holdings (106.4613ms)
+✔ opponent and dead holder remain in first snapshot; duplicate and reacquisition never overwrite first (64.9903ms)
+✔ same-night completion then loss uses real hunter gain and ghost loss (49.4102ms)
+✔ real player identity guard rejects same-id preview mutated through a real hook (160.9767ms)
+✔ auction acquisition and poison transfer are observed before item hooks (20.5769ms)
+✔ event gifts, transfers and forced curse use their real mutation entrances (314.5ms)
+✔ hook transfer, pawn and wind observe each removal and receipt in order (436.3928ms)
+✔ shrine reward, award, release and actual endgame stripping are observed (380.162ms)
+✔ off/on seeds 1..20 also match with default event, rule, wish and shrine flags (3240.9713ms)
+✔ 水陸配方查詢純讀，雙件啟動、重複不疊加、缺件即失效 (41.2896ms)
+✔ 毒標遇有效水陸：付費得標、銷毀一次、未入袋、未算命中 (43.4953ms)
+✔ 缺材料時毒標照常入袋、命中與歷史不加阻擋欄 (20.6198ms)
+✔ 詛咒偽材料不啟動；已有詛咒不清除；自購詛咒沿用自保銷毀 (19.9369ms)
+✔ 同夜先補材料後毒標即擋；毒標先到不能追溯 (40.3665ms)
+✔ 阻擋時虎爺與紅衣受咒 hook 不發，大家樂仍計得標 (19.6566ms)
+✔ 空 CHAINS 表決定性，trace seeds 1–20 重跑逐位元組相等 (2099.8675ms)
+✔ 道具、連鎖、角色與心願的收集層順序固定 (24.9093ms)
+✔ 王船或夜規直接送入詛咒時水陸不攔，既有物件仍在袋中 (27.478ms)
+✔ 被擋毒標不列入回顧命中與最狠一手，歷史仍留企圖目標 (20.1199ms)
+✔ 128 physical coins use the eight-sided square-hole geometry budget (2.0688ms)
+
+保守標上限伺服端夾 行為測試　目標檔：C:\Users\shung\wt\yaoshi\hands-b3\index.html
+
+【一般夜】
+  PASS  設標時合法的保守標，放血把上限壓到金額之下 → 落標實付＝押命標算式
+  PASS  反面：沒放血、保守標仍在上限內 → 落標實付不變（保守標算式）
+  PASS  反面：放血後金額仍在新上限內的保守標，實付照舊不受影響
+  PASS  得標者不受影響：超上限的保守標若得標，實付仍是全額出價＋買路錢
+【押寶夜（singleStake）】
+  PASS  押寶夜：一注設定時合法，放血後超上限 → 落標實付＝押命標算式
+
+────────────────────────────
+通過 5　失敗 0
+✔ tests\conscap.test.mjs (1792.5188ms)
+✔ dupGroups：只有同一側同 ab ≥2 隻才成組；無同型／紙紮（無 ab）一律 null (16.0624ms)
+✔ dupStagger：無同型 ⇒ 三分量全 0；同型三隻 ⇒ 朝向對稱且互異、前排一對內外分開、後排那隻只往前帶不左右挪 (2.1244ms)
+✔ MAIN_OUTLINE：三件主色 hex 逐一等於 assets/creatures/<ab>.json 的 palette 色 (39.748ms)
+✔ outlineColorFromHex：保留主色色相、明度壓在 bloom 門檻下，且與該系描邊色不同（不是空改） (2.0928ms)
+(node:37744) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/shung/wt/yaoshi/hands-b3/js/duel-figures.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\shung\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ all five auction curse cards explain their distinct effect, including locked auctions (2.3013ms)
+✔ all six full curse descriptions state triggers, limits, stacking and purification scope (0.5016ms)
+✔ marking cards explain all curses before the player chooses a target (0.29ms)
+✔ retired power-only copy stays hidden while cards show the actual paper-war move (1.0979ms)
+✔ non-lock curses no longer impose a shared attack penalty (48.1606ms)
+✔ lock affects one strongest front unit only on beat one, stacks, and is cleansed (47.5138ms)
+✔ white tiger adds defeat loss only, before item mitigation, and respects cleansing (20.1188ms)
+✔ water talisman triggers once per battle, stacks damage without recursion (19.8154ms)
+✔ event boat curse weakens one unit without killing it or lowering all attack (26.9649ms)
+✔ wedding gift is charged at night end only after winning an auction, guava is unconditional (72.0367ms)
+✔ cleansed army summary still discloses wedding and guava costs (24.6916ms)
+✔ white tiger does not penalize its holder for winning or drawing (24.807ms)
+✔ curse feedback targets its holder and distinguishes attack reduction from health loss (22.8973ms)
+✔ water waits for simultaneous damage settlement and cannot target an already doomed last ally (39.3655ms)
+✔ unregistered curse events cannot impersonate health damage (17.8762ms)
+✔ water selects the actual survivor after two allies die in one settlement batch (34.2455ms)
+
+對決演出「沒兵仍出招／隻數不同步」行為測試　目標檔：C:\Users\shung\wt\yaoshi\hands-b3\index.html
+
+【D2：一側第 2 拍前全滅 → 第 2、3 拍不得再有該側的 trait 事件】
+  PASS  前提：甲方確實在第 1 拍就已全滅（活性，不是本測試的核心斷言）
+  PASS  行為斷言：新版第 2、3 拍沒有由甲方（全滅方）發出的 trait 事件
+        （備忘）第2拍甲方 trait 事件數＝0，第3拍＝0
+  PASS  鑑別力：舊版（呼叫端傳入的 TARGET）在同一條斷言上必須是紅的，證明治具真的踩到這個桶子
+  PASS  新版：乙方的誘餌群體單位不該被「死人抓交替」燒掉（aliveB 應為 2＝精英＋誘餌都在，不是 1）
+
+【個別驗證：另外三處存活檢查（atkAll／飼鬼甕／迷途）各自的行為斷言】
+  PASS  wardAtkAll1（媽祖令旗，二拍全體 atk+）：全滅方不該再發這個 trait
+  PASS  swarmFeed1（飼鬼甕，拍末對面有燒就本方全體 hp+）：全滅方不該再發這個 trait
+  PASS  hauntLost（魔神仔紅帽，三拍迷途）：全滅方不該再讓對面某隊三拍不出手
+
+結果：7 綠 ／ 0 紅
+✔ tests\duel-desync.test.mjs (336.3538ms)
+徽記剪影互撞：30 個 kind ／ 435 對 ／ 同系門檻 0.8
+  PASS  自我對照＝1.0（30/30）
+  PASS  自我擾動（放大 1.5 倍）必須全部掉到 ≤0.50
+  PASS  相似度有動態範圍（最小 <0.20、最大 >0.85）
+  PASS  人眼公認不像的一對（bolt 雷女之火 vs seal 虎爺印）必須 ≤0.60
+        人眼互撞五組：knife~blade=0.5(第 227 名) seal~tornflag=0.3784(第 337 名) seal~chair=0.3275(第 374 名) hat~wave=0.4247(第 292 名) hat~banner5=0.4864(第 241 名)
+        bell 同系最高：bell~lamp=0.8352（第 4 名）
+  PASS  校準記錄：五組人眼互撞的最小值 < bell 同系的最大值（＝純幾何無法校準到人眼）
+  PASS  同系 IoU ≥0.8 的配對全部在批 1 前置回修清單裡
+  PASS  回修清單裡的每一對現在仍然真的超標（死豁免判紅）
+  PASS  跨系 IoU ≥0.8 的配對全部在跨系記錄清單裡（覆審 r2 N5）
+  PASS  跨系記錄清單裡的每一對現在仍然真的超標（死豁免判紅）
+
+【報告，不進判定】IoU ≥0.8 的配對共 16 對（同系 3 對）：
+   0.9290 bell      shade     跨系 xianghuo/yinqi
+   0.8698 urn       drop      同系 yinqi
+   0.8480 crag      urn       跨系 zuling/yinqi
+   0.8352 bell      lamp      同系 xianghuo
+   0.8333 rhomb     talis     跨系 zuling/xianghuo
+   0.8258 lamp      shade     跨系 xianghuo/yinqi
+   0.8202 talis     tablet    跨系 xianghuo/legend
+   0.8182 bead      drop      跨系 zuling/yinqi
+   0.8161 bead      urn       跨系 zuling/yinqi
+   0.8136 bead      sundisc   跨系 zuling/legend
+   0.8118 seal      urn       跨系 xianghuo/yinqi
+   0.8068 bell      urn       跨系 xianghuo/yinqi
+   0.8034 crag      sundisc   跨系 zuling/legend
+   0.8011 sun       sundisc   跨系 zuling/legend
+   0.8000 knife     tablet    跨系 zuling/legend
+   0.8000 drop      shade     同系 yinqi
+
+結果：9 綠 ／ 0 紅
+✔ tests\emblem-collision.test.mjs (337.9843ms)
+三級視覺分級 F1：目標檔 index.html
+  PASS  fx-consts.mjs 與頁面 PW_FX 的三張表逐鍵相同
+  PASS  頁面 PW_FX 就是 fx-consts 那三張表（走真的載進來的物件，不是 regex）
+  PASS  pwBeatTier 已匯出（沒有就是這一卷還沒做，下面四條一併紅）
+  PASS  三尊大招（TRAITS.tier===3）把整拍鎖在 tier 3
+  PASS  ★修訂一★ 一般擊殺拍走 tier 1（不再因為有 burn 就升 2）
+  PASS  ★修訂一★ 燒掉傳說尊那一拍升 tier 2
+  PASS  pwIsLegendUnit 認的是 LEGENDS 的 m（不是寫死字串），側別用 burn 的 side
+  PASS  ?fxtier=0（TIER_ON=false）時所有拍恆回 tier 2＝v0.53 行為
+  PASS  ★R1 M2★ 招級時長：同一拍裡的普通招上限 2，只有傳說招走 3
+  PASS  pwTierMs／pwBeatMinMs 只認 1／2／3，別的值一律當 2（不給 0 或 undefined）
+  PASS  js/trait-fx.js：沒有 `|| 900` 退路，且缺 detail.ms／baseMs 會 throw
+  PASS  js/camera-director.js：LEAN.ms 退路已刪，缺 detail.ms 會 throw
+  PASS  runtime（index.html＋js/）語意為招式時長的 900 字面值＝0 處
+  PASS  TRAITS 的 tier 欄位只掛在三尊三招上（其餘 27 支不寫，讀作 1）
+
+結果：14 綠 ／ 0 紅
+✔ tests\fxtier.test.mjs (337.5095ms)
+(node:35676) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/shung/wt/yaoshi/hands-b3/js/trait-fx/vocab.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\shung\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+語彙對齊 L12：docs\experiments\2026-09-11-fx-vocab.md ↔ js/trait-fx/vocab.js ↔ js/trait-fx/emblems.js
+  PASS  FX_PAL 三系四色與文件第 1 節逐格相同
+  PASS  BEAT 三級四段與文件第 2 節逐格相同
+  PASS  BEAT_FRAC 是比例不是毫秒（三級各三個切點、遞增、都 <1）
+  PASS  PHASE_GATE 的六個數字都出現在文件第 3 節
+  PASS  EMBLEM_OF 是 trId ↔ kind 的雙射，30 對
+  PASS  EMBLEM_OF 與文件第 4 節逐列相同（trId／系／kind）
+  PASS  FAC_VOCAB 是三系各一組白名單（動詞庫／道具家族／反應家族都非空）
+  PASS  MOVE_SPEC 三欄都非空，且取值落在該系白名單內（P1 ①②）
+  PASS  MOVE_SPEC 覆蓋 27 支招、不含三尊（P1 ③）
+  PASS  STANCE_VOCAB／REACT_AXIS／FAC_GROUND 三張表自身完整（沒有 undefined 可以讓「不同型」恆綠）
+  PASS  已轉正的招都登記了 stance，且取值在白名單內（§A9 ①）
+  PASS  施招姿態與受益／受招反應不同型（§A9 ②）
+  PASS  已轉正的招的編舞真的呼叫了 st.stance／st.groundMark（§A9 ③）
+  PASS  已轉正的招都登記了道具落點 anchor，取值在白名單內，而且編舞真的登記了至少一件（裁定①）
+  PASS  三系編舞與引擎裡不得把「橫向」寫成世界軸（覆審 r5 HIGH-A 的掃描）
+  PASS  ANCHOR_KIND 的六個取值與語彙檔 §A9 逐格相同（防「兩邊各一套」）
+  PASS  selfReact 是「唯一一支沒有第三方」的豁免，不得長成第二支（§A9 ② 的豁免守衛）
+  PASS  STANCE_VOCAB 的幅度與 STANCE_GATE 與語彙檔 §A9 逐格相同（防「兩邊各一套」）
+  PASS  還留著 V054 退路的招不得在 MOVE_SPEC 登記 stance（覆審 M9 的協調盲點）
+  PASS  emblems.js 的 kind 集合等於 EMBLEM_OF 的 kind 集合
+  PASS  每個 kind 的外框頂點 ≤24（ART_BIBLE §10.2 第 3 條）
+  PASS  ICON 四個欄位與文件第 5 節相同
+  PASS  ICON.sizeOf／flatSizeOf 是尺寸的單一事實來源（byKind 覆寫、其餘回預設）
+  PASS  ICON.markSizeOf 是印記尺寸的單一事實來源，且與文件第 5 節的 markByKind 表逐列相同
+  PASS  ICON.byKind／flatByKind 與文件第 5 節的覆寫表逐列相同
+        （分母：4 個編舞檔、82 處 scale 寫法、8 個徽記名字、5 處 st.iconScale；徽記 mesh 被直接縮放 0 處）
+  PASS  徽記世界尺寸不得有第二份來源（o.size 拒收 ＋ 編舞不得碰 scale／geometry／matrix／parent ＋ 不得 grow／add）
+  PASS  ICON._resolve 是三張尺寸表的共同出口（L3 canary 一次蓋三表，覆審 r3 N12）
+  PASS  DEPRECATED／RETIRED_BY_FAC 與文件第 6 節相同
+  PASS  vocab.js 自己不含 TODO／佔位
+  PASS  腳下語彙是 stain 的系別，本體色的相對亮度必須低於桌面（§B3「暗斑」）
+
+結果：30 綠 ／ 0 紅
+✔ tests\fxvocab.test.mjs (356.0881ms)
+(node:29080) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/shung/wt/yaoshi/hands-b3/js/grab-motion.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\shung\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ D3：GRAB_MS 單一來源——index.html CFG.GRAB_MS=1260 經 ys:reveal-result 的 grabMs 交給 3D；卡片等待由它推得 (1.8536ms)
+✔ 一般得標：落定＝GRAB_MS、時間軸隨 GRAB_MS 等比縮放；落定後停 HOLD_S 才隱藏（D1） (2.1008ms)
+✔ 掙扎：抓起階段法寶相對掌心的側向位移正負交替 ≥2 次、振幅 >0（拿掉掙扎就紅） (1.6719ms)
+✔ D2：扣法——side 扣肩頸（低於頂、指尖朝上＝手臂從下方伸來，不從天上伸下來）；top（西／東越中線）扣上緣；俯角都 < 0.62 (0.3756ms)
+✔ v0.61.1 CURSE_MS 單一來源：index.html CFG.CURSE_MS=2000 經 ys:reveal-result 的 curseMs 交給 3D；揭卡等到按住結束（CURSE_CARD_K＝CURSE.T.hold/T.press） (0.7892ms)
+✔ 詛咒 A＋C：施放者＝毒標得標席、受害者＝transferTarget；落定＝CURSE_MS（2000 → 1800–2200）、推 ≥1.2s、按住 ≥0.6s；繩只在按住階段、受害者顫抖 (9.1283ms)
+✔ v0.60.1 詛咒不拖回（docs/experiments/2026-10-05-curse-fix/acceptance.md #2）：按住起到演完，符紙堆停在受害者席前（dest）不動；受害者的手不往席位縮（只抖） (1.1754ms)
+✔ v0.61.1 抬升規劃：符紙堆與兩手的高度 ≥ 可達需要量（不穿）且每格變化 ≤ 斜率上限（不瞬移）；按住段受害者固定、施放者不提早抬 (1.8553ms)
+✔ v0.61.1 r2 貼桌繞行：planPath 的每一段都不穿進別件拍品外擴框；直線不撞就是直線；腳本照路徑走、符紙堆高度＝桌面；CURSE_MS≤0 不出 NaN (4.6526ms)
+✔ v0.61.1 r3 手臂來向（acceptance 條件 25，覆審 H-2）：西塞南（槽 3 推給南席）推的整段施放者手臂朝向與「席位→符紙堆」夾角餘弦 ≥0.5、收手往自己席位退；北塞西鑽不過的取樣停在偏角上限（不轉到推的方向後方） (9.4663ms)
+✔ v0.61.1 r3 符紙堆自己的抬升（acceptance 條件 26、14）：給 Lp 時堆照 Lp 走（施放者手臂越過別件要抬 0.7，堆不跟著抬）、施放者仍不低於堆；落定後堆停在手背高度直到隱藏（不在最後幾幀往下沉） (0.8886ms)
+✔ v0.61.1 r3 五種詛咒物（acceptance 條件 27）：外框底不在原點的詛咒物，落定時「堆底」仍在桌面＋HAND_TOP（壓在手背上，不浮在手上方）；施放者掌心蓋在看得見的堆頂 (0.4224ms)
+✔ v0.61.1 r3 錢柱（acceptance 條件 26、3）：手蓋上後等落標的錢從堆底下扒過去才推（goAt，上限 GO_MAX）；堆抬過錢柱的升降速度 ≤ PILE_SLOPE（不一跳、鏡頭不甩） (1.8858ms)
+✔ v0.61.1 r6 北席（acceptance 條件 39–42）：北塞西用手的實際足跡規劃偏角——整段同一側、|偏角| ≤58°、手不進別件外框、蓋上即推且推的途中每 150ms 堆都在動 (67.2398ms)
+✔ v0.61.1 r6 收手（acceptance 條件 43、31）：先抬後退——setRetract(抬升量) 拉長收手、每 1/60 秒垂直 ≤0.03、水平 ≤0.06；抬到一半前退不到一成五；落定時刻不變 (2.2192ms)
+✔ D5：紙錢繩幾何預建——new THREE.TubeGeometry 全檔只有一處，且在 ropeMesh() 的「已建就回」守衛之後（每幀 0 次重建）；不 dispose 繩幾何 (0.4895ms)
+✔ D6：純呈現——grab-motion 不碰亂數、不讀賽局；?grab=0 與 CFG.GRAB_ON 兩道開關都在 (1.2111ms)
+✔ D4：抓取專用可達只作用於 grab 類——frames() 在 REACH／俯角掃描之前分流；reveal 不覆寫抓取中的手 (0.2138ms)
+✔ 跳過：doSkip 的 ys:fx-trait-cancel 先把抓取演出跳到終態再收手；跳過中才開的件 3D 直接到終態 (0.2528ms)
+(node:35612) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/shung/wt/yaoshi/hands-b3/js/hand-motion.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\shung\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ 擺錢推（push）：不比 v0.62.3 差——彈跳 ≤19 次、單幀最大步 ≤131.9 px（使用者 2026-10-07 裁定由 ≤4／≤30 放寬回基準） (1.4344ms)
+✔ 擺錢推（push）手跟錢不脫鉤：錢柱在動而手幾乎不動的位移比例 pinFrac ≤0.345（v0.62.3＝0.339、v0.62.4＝0.497） (1424.6261ms)
+✔ 拍令牌（slam）：彈跳 ≤6 次、單幀最大步 ≤86.4 px（基準 13 次／86.4 px；2026-10-07 使用者簽准由 ≤3 改 ≤6） (0.3067ms)
+✔ 不退化護欄：勝方停一拍（hold）彈跳 ≤20、敗方扒錢（rake）≤27（＝基準；本版不宣稱修好，已知問題見 VERSION_NOTE 之外的紀錄） (0.2811ms)
+✔ 正常平滑對照：北席停一拍與拍令牌（沒有信物、伸入界線擋路）零彈跳、單幀最大步 ≤5 px，且手真的上場、有在動 (0.3501ms)
+RENDER {"kind":2,"scarY":1,"noise":{"px":0,"stable":921600},"scar":{"px":4638,"stable":921600},"skin":{"px":241524,"stable":921600},"errs":[]}
+✔ 寫實皮膚實頁像素：獵人疤強度歸零⇒疤的像素改變；膚色換純綠⇒手的像素大量改變 (27991.5074ms)
+✔ 預設皮膚＝B 皮膚（青面斑塊與拇指橫紋已調整）；?skin=0／off 退回舊 shader；?skin=a 與 ?handreal=0 照舊 (72561.4706ms)
+✔ 命懸一線只給存活的低血量冠軍，四家全滅不得宣稱活到天明 (2.5917ms)
+✔ 三種高光轉場由單一純讀取 CUTS 表定義 (2.0144ms)
+✔ 轉場只能由真人演出點消費，且每局每種最多一次 (3.9425ms)
+✔ 高光轉場保持 reduced-motion 的靜態替代路徑 (1.3367ms)
+✔ auction abilities state the fee and minimum-life-loss exceptions (1.282ms)
+✔ battle details distinguish initiative ties, the winning side, and precise swap targets (1.0933ms)
+✔ damage copy covers ward fear and armor that triggers only above one remaining damage (0.436ms)
+✔ health growth and sacrifice specify health limits, team scope and battle duration (0.4246ms)
+✔ full unit details explain resonance timing without implying a single attack beat (0.2177ms)
+✔ chair disclosure explains the computer-holder exception (0.1416ms)
+✔ chaser prefers completion, then missing material, keeps original bids by index (42.2698ms)
+✔ one target per night: two missing materials and duplicate offers use first market index (34.8946ms)
+✔ chaser leaves splitter untouched when complete or no material available (18.4649ms)
+✔ chaser respects conservative cap, full fee budget and maximum bid count (23.299ms)
+✔ chaser cannot inspect private opponents or future market (20.394ms)
+✔ zero arm preserves recipe identity and bonus, removes only effects (184.0398ms)
+✔ summary uses full-game and holder denominators, including null zero cases (0.412ms)
+✔ matched pairs align by seed and reject duplicates or missing seeds (1.0647ms)
+✔ real engine seven arms replay identically and carry raw metadata (1770.2529ms)
+✔ input and CLI reject nonpositive, duplicate or malformed samples (0.8551ms)
+✔ untargeted splitter holder fields are not measured, never zero attainment (0.2105ms)
+✔ all 6 cross-faction chains are correctly defined (37.9045ms)
+✔ water chain freeBidFee: resolves with 0 fee, whereas normal player pays fee 1 (57.6522ms)
+✔ twinTiger markTax charges opponents +1 fee when marked, but not本人 (23.2851ms)
+✔ eyes previewDiscount gives -1 cost to items seen in previous preview (21.4129ms)
+✔ water swapNoSelfBurn and teamHalfSplash in paperWar (29.0697ms)
+✔ eyes teamWardFirst and beat1WeakenFront in paperWar (25.9849ms)
+✔ bloodOath yamingEffBonus: gives +1 effective bid in auction comparison (31.0716ms)
+✔ bloodOath paperWar: bloodSacrifice low-life atk and selfCut reflection (25.5062ms)
+✔ godKing shrineAutoIncense: awards +1 incense in resolveShrines without spending life (34.9517ms)
+✔ godKing paperWar: godKingSniper deals 3 damage instead of 1 in openShot (22.0118ms)
+✔ eternalFlame roundExpenseRebate on night end and teamRegenAll in paperWar (20.366ms)
+✔ AI destiny pursuit adds two only to its own missing recipe items above the life floor (37.3762ms)
+✔ AI actual bid rises by exactly two for a missing destiny material (61.4103ms)
+✔ AI plans with actual water-free, ordinary, and tiger-marked entry fees (88.886ms)
+✔ four letters draw independently with replacement without advancing market RNG (70.9241ms)
+✔ rejects sparse explicit private destiny draws (19.3413ms)
+✔ public seed and market cannot determine an unrevealed private letter (41.744ms)
+✔ production draw uses secure bytes and persists private letters across reload (70.665ms)
+✔ production draw fails closed without secure entropy (25.9746ms)
+✔ policy and trace runners accept private draws for paired reproducibility (550.9347ms)
+✔ true eyes sees a private fourth preview only while awakened recipe is held (20.908ms)
+✔ next preview is frozen before auction awakening and survives later material loss (54.2761ms)
+✔ original true water refunds one only for an effective empty-hand auction (61.6503ms)
+✔ original true tiger charges 35% conservative loss on its marked item without bidding (75.458ms)
+✔ true blood oath reduces original every losing life bid, candidate only first (65.5247ms)
+✔ true eyes discounts only its fourth individually recorded preview (38.3342ms)
+✔ true eyes preview distinguishes duplicate copies of the same named item (18.3773ms)
+✔ true god king returns seven life on shrine award and original waives this night tithe (60.4489ms)
+✔ true eternal flame grants the lowest life after auction before death sweep (80.4687ms)
+✔ two paid true eternal holders tied for lowest follow the wind only in candidate (47.3766ms)
+✔ real auction bag ingress awakens designated recipe once; other recipe, duplicates and losses do not (26.2828ms)
+✔ empty bag, cursed lookalike, preview and non-auction mutation never awaken (19.1384ms)
+✔ public projection gates hotseat letters until each actual reveal; replay has only event-time results (20.7997ms)
+✔ two materials won in one auction announce only at the second item and never repeat (25.4712ms)
+✔ unannounced later item cannot leak its private cost through public replay or seat state (44.5028ms)
+✔ malformed noncurse poison transfer remains engine-safe if injected by a headless caller (19.9158ms)
+✔ solo bag shows no premature awakened status before its reveal card (27.2721ms)
+✔ dead seat cannot buy a missing material and gains no private hotseat view (27.9751ms)
+✔ fatal winning payment still enters the bag and awakens before the existing death sweep (25.5613ms)
+✔ public seed never exposes independently drawn private letters (19.6721ms)
+✔ focus instrumentation leaves an ordinary game and both RNG streams unchanged (606.7002ms)
+✔ focus replay forks at an identical complete checkpoint and isolates other seats (536.7166ms)
+✔ checkpoint equality includes treatment mode, RNG state and object identity (0.7831ms)
+✔ checkpoint mismatch aborts before focus intervention (215.692ms)
+✔ focus transform rejects drift in product anchors (1.3406ms)
+✔ tiger loser event is attributed to its true-effect source chain (0.4077ms)
+✔ focus gate requires the frozen sample and a distinct true event (0.2953ms)
+✔ committed raw keeps historical HEAD while current byte hashes are checked (834.776ms)
+✔ function-bearing chain effects get a stable, cloneable source fingerprint (2.4319ms)
+✔ machine-readable protocol freezes six chains, arm IDs and seed blocks (2.6393ms)
+✔ raw validator accepts a complete same-seed six-arm batch and rejects mutations (1288.3351ms)
+✔ ten thousand structurally valid rows cannot be mistaken for a measured result (781.4735ms)
+✔ conditional measures fail closed on an empty denominator (0.6522ms)
+✔ paired effect gate refuses small samples and zero-trigger arms despite a narrow interval (0.9717ms)
+✔ real runner executes paired arms with one private draw table and records engine events (4034.8275ms)
+✔ true tiger weakens only the first front, for the whole battle, once (96.0076ms)
+✔ true tiger has no phantom front to weaken (21.722ms)
+✔ true water follows a successful swap; candidate requires the source team alive (71.9317ms)
+✔ true eyes first-beat armor pierce keeps boat absorb and personal shield rules separate (49.6925ms)
+✔ two true-eye armies with first strike both act before either side settles (22.6632ms)
+✔ true god king gains one attack after an actual opening-shot kill; candidate ends after beat one (85.7308ms)
+✔ true blood oath adds one opening retaliation once despite duplicate knives (39.4633ms)
+✔ true eternal shield follows successful feeding, and candidate needs its source alive (69.004ms)
+✔ candidate eternal shield expires after the next beat, while original shield persists (37.6862ms)
+✔ duplicate urns produce one true shield per successful feed beat (20.3274ms)
+✔ personal shield absorbs after boat and before armor; pierce skips boat only (20.6003ms)
+✔ each true destiny has a readable private rule and night move caption (23.5157ms)
+✔ H9 uses unrounded holder rates at the +3pp boundary (1.0984ms)
+✔ H9 uses unrounded holder rate at the 85% ceiling (0.2407ms)
+✔ H9 keeps information-blind eyes and empty holders incomplete (0.1764ms)
+✔ water chain has zero auction fee in settlement and in single-stake projection (49.8474ms)
+✔ tiger mark charges an opposing bidder two in settlement and single-stake projection (42.5588ms)
+✔ mixed single-stake selection shows conditional fee range and reserves its maximum (21.6356ms)
+✔ mixed-item single stake settles at the winning item fee (40.3489ms)
+✔ normal bidding uses own-mark rebate and charges no fee for zero bids (20.1533ms)
+✔ ordinary bid sheet renders the active seat fee instead of throwing (22.3405ms)
+✔ ordinary bid sheet uses the same own-mark rebate as settlement (20.1992ms)
+✔ luopo full-loss rule preserves the actual water or tiger entry fee (40.267ms)
+✔ raincoat blocks lost stake but preserves water-free or tiger-marked fee (39.312ms)
+✔ xiaonv lost stake preserves the actual water-free or tiger-marked fee (42.3826ms)
+✔ lvshan solo curse discount excludes the actual water-free or tiger-marked fee (39.3974ms)
+✔ frozen eight arms and table modes are explicit (2.0727ms)
+✔ real engine runs all eight tables with complete four-seat ever-held evidence (5005.8528ms)
+✔ H1 uses seat-zero paired win difference and inclusive -8 to +5 pp bounds (11.518ms)
+✔ H9 counts any of four ever-holders, winner among them, separate denominators and 85% ceiling (1.4934ms)
+✔ H9 zero denominators are null/incomplete; blind eyes diagnostic cannot pass (0.9008ms)
+✔ H9 +3/+10 bounds and 85% ceiling are independently checked (16.0369ms)
+✔ formal status requires exactly seeds 1..10000 and a failing metric makes overall fail (1187.625ms)
+✔ aggregate rejects absent arm/seed, duplicate, invalid winner/holders and mixed provenance (7.1269ms)
+✔ CLI requires explicit arm for run and positive n; aggregate is a separate mode (1.8932ms)
+✔ gzip arm files round-trip; all writes are exclusive and report keeps table/limit labels (178.8944ms)
+✔ counts all four endpoint holders, including winners outside seat zero (3.0437ms)
+✔ normal and zero use their own denominator and zero denominator is null (1.6112ms)
+✔ raw parser requires valid JSON lines (0.9606ms)
+✔ rejects invalid arms and duplicate or missing arm seeds (0.7288ms)
+✔ rejects illegal winner and malformed four-seat chain data (0.7433ms)
+✔ validates entire raw before any output and hashes original bytes (18.9699ms)
+✔ refuses an output directory inside the original pilot (4.7415ms)
+✔ refuses a junction that resolves into the original pilot (5.2576ms)
+✔ highest noncurse market item wins tie by index, and a curse cannot be target (2.5944ms)
+✔ largest legal second bid changes the next bid, bounded to base plus two and cap (0.3954ms)
+✔ third legal preview reserves two when its value exceeds tonight best (1.5576ms)
+✔ fee, budget, max bids, empty market and null context are deterministic for both arms (0.4357ms)
+✔ blind adapter exposes only base preview and removes reveal, preserving original base count (0.5509ms)
+✔ policy adapter still consumes information when recipe is already complete, without private reads (38.6144ms)
+✔ paired whole-game and separate ever-held denominators remain distinct (1.1272ms)
+✔ real engine three arms replay, retain raw provenance and report incomplete status (1355.1619ms)
+✔ CLI sample validation (0.7995ms)
+L1 tiger RED/GREEN assertions passed
+✔ tests\l1-tiger.test.mjs (1662.4461ms)
+✔ 3D 托盤具備連鎖共鳴層 (tray-chain-resonance)，且與月相光環 (tray-moon-benefit) 區隔 (1.6751ms)
+✔ market3dItems 正確將當前真人玩家之補件連鎖標記傳入 3D 托盤，並保護私密性 (0.6912ms)
+✔ 托盤插槽生命週期維護 chain 狀態並支援共鳴呼吸脈動 (0.3992ms)
+✔ water and eyes recipes, preview maximum, and duplicate completion (48.3641ms)
+✔ second bid counts tied raw entries and suppresses hidden or short reveal (56.4111ms)
+✔ viewer gate only permits active human at private market (53.622ms)
+✔ AI bid reflects only a newly completed chain (444.8319ms)
+✔ v3 contract records auction-only progress and leaves the full-game gates closed (55.0029ms)
+✔ normal auction iterator exposes all bounded one-item submissions and engine accepts each (573.0487ms)
+✔ single-stake iterator covers each legal selected subset and one shared stake without changing settlement (498.6789ms)
+✔ curse submissions include every living poison target and retain the keep-to-poison rule branch (223.2406ms)
+✔ ordinary submission budgets include each bid fee, shrine contribution and the nightly bid cap (178.0341ms)
+✔ auction observation hides opponent bags, sealed bids, unseen future market and RNG while retaining own destiny (346.4389ms)
+✔ v6 records automatic transitions and leaves whole-game gates closed (36.3772ms)
+✔ automatic battle follows both sides of the engine lightning chance threshold (435.5367ms)
+✔ night settlement resolves drain death and unaffordable shrine tithe through the frozen engine (211.325ms)
+✔ terminal settlement closes shrines, strips endgame items and captures final rank/history (242.0763ms)
+✔ v9 contract advances cross-night restore while keeping chance and release gates incomplete (45.7715ms)
+✔ the cross-night checkpoint comes from a frozen-engine night and captures both RNG streams and runner memory (269.7103ms)
+✔ a separate pinned engine restores the graph and follows the frozen next-round market schedule identically (613.8381ms)
+✔ snapshot restore rejects mutated payloads and state roots not created by its engine wrapper (557.3785ms)
+✔ v9 rejects incomplete runner identity, malformed private draws, and unregistered engines (209.4847ms)
+✔ v9 detects live state drift and refuses to advance from a market boundary twice (535.7247ms)
+✔ v2 contract pins the current product and keeps six-of-four and release gates closed (729.1813ms)
+✔ secure private-destiny draw covers all 252 accepted bytes and rejects modulo-biased tail bytes (222.2256ms)
+✔ four independent private draws expose all 1296 joint tuples, including collisions (438.871ms)
+✔ private draws do not advance or alter the public seeded market stream (510.1989ms)
+✔ state-only snapshot restores the initial auction boundary, aliases, result and next gameplay RNG (295.1733ms)
+✔ public replay keeps opposing sealed bids hidden until the corresponding reveal (360.647ms)
+✔ seat-specific destiny projection is invariant to hidden opponents until a legal reveal (319.6494ms)
+✔ v4 contract adds event decisions but keeps complete-game gates closed (197.4373ms)
+✔ every current event exposes exactly its engine-defined legal choices and settles through the frozen event engine (335.6453ms)
+✔ event observations hide every sealed choice and market state, then reveal all choices only after settlement (266.3533ms)
+✔ zongzi pass and zero-price bid stay distinct, and a mismatched choice profile fails closed (328.882ms)
+✔ v7 contract adds one-seat cross-phase history while keeping complete-game gates closed (74.8741ms)
+✔ a seat retains its own actions across event, mark, sacrifice, auction and shrine-pick histories (4.2941ms)
+✔ full recall accepts immutable projections from the pinned phase adapters in one seat sequence (649.4365ms)
+✔ full recall rejects mixed-seat histories and cross-seat current observations (1.1413ms)
+✔ phase-specific action validation rejects illegal choices, schema spoofing and hidden engine state (0.8832ms)
+✔ history copies observations and actions instead of retaining mutable caller data (0.5971ms)
+✔ v8 pins the product source and keeps unsolved six-of-four and release gates closed (51.0769ms)
+✔ a valid-looking frozen object is not accepted without pinned projection provenance (1.4359ms)
+✔ all five phases accept only observations produced by the pinned projection adapters (524.792ms)
+✔ event phase cannot begin after a later phase has acted in the same round (268.3781ms)
+✔ event phase cannot begin after an auction action in another history (288.8076ms)
+✔ event resolution runs only once per game state and round (161.1645ms)
+✔ event settlement rejects a decision after a later phase advances the state (193.848ms)
+✔ an event decision cannot be reopened after settlement at a later revision (151.1764ms)
+✔ a pinned public event reveal is included in a later information key (393.1114ms)
+✔ a public event reveal must match the seat action recorded in its history (217.7472ms)
+✔ an event action recorded after commitment must match the committed choice (188.7588ms)
+✔ a late event action from another decision object must match the committed state-locus choice (281.8004ms)
+✔ later phase histories and current keys require resolved and committed prior actions (231.6909ms)
+✔ a decision object cannot be rebound to a conflicting action in a forked history (179.9489ms)
+✔ different decision objects at one state locus cannot bind conflicting actions (172.926ms)
+✔ shrine resolution can start only once per game state and round (271.7581ms)
+✔ a recorded action cannot commit after its decision projection becomes stale (248.4525ms)
+✔ a pinned projection from another game state branch cannot join an existing history (428.5007ms)
+✔ one history cannot record the same sacrifice decision locus twice (271.7132ms)
+✔ one full-recall sacrifice action can commit once, then requires a fresh locus (222.0491ms)
+✔ wrapper-tracked state changes invalidate stale projections (510.6971ms)
+✔ v8 preserves same-seat and chronological guards across public transitions (477.1174ms)
+✔ mark timing protocol freezes matched arms, event equality and 10,000 paired seeds (50.157ms)
+✔ formal cohort label requires the exact ordered protocol seed range (2.6559ms)
+✔ paired trial reproduces a small seed cohort and requires first-event equality (4662.8024ms)
+✔ v11 pins the market-draw chance abstraction without claiming full-game chance or release (49.3712ms)
+✔ v11 fails closed when the contract diverges from the enumerator or claims more than partial scope (26.7219ms)
+✔ v11 accepts only its pinned engine and immutable nodes it produced (235.174ms)
+✔ non-refill market node enumerates curse and plain branches with exact weights that sum to one (184.751ms)
+✔ every non-refill branch replays to the same market, deck and cdeck in the frozen drawMarketFor (184.8836ms)
+✔ an empty cdeck still consumes the curse check and merges the curse mass into the plain branch (303.0026ms)
+✔ shousui onMarketDraw hook is enumerated exactly and replays to an all-curse market (208.6927ms)
+✔ a POOL deck refill fails closed, and the frozen engine really consumes extra draws there (404.6345ms)
+✔ a shousui hook that would reshuffle CURSES fails closed, and the engine really consumes extra draws there (179.0777ms)
+✔ unknown or replaced onMarketDraw hooks fail closed (230.3618ms)
+✔ building a market node consumes no gameplay or UI RNG and leaves deck, cdeck, market and nextMarket untouched (153.725ms)
+✔ market purity inspection rejects RNG use or deck mutation and restores the state (164.6042ms)
+✔ shousui plus any additional onMarketDraw hook fails closed instead of modelling only shousui (246.3012ms)
+✔ shousui with exactly MARKET-1 cdeck items fails closed with a CURSES refill error (212.2695ms)
+✔ a deck holding exactly MARKET items needs no refill and every branch replays exactly (202.2553ms)
+✔ audits frozen source references and exposes legacy-scope and missing-adapter gaps (12.9042ms)
+✔ rejects duplicate inventory ids instead of silently overwriting coverage (7.9951ms)
+✔ rejects a pass claim while required adapters and payoff mappings remain missing (6.9534ms)
+✔ does not accept a self-declared pass without exhaustive solver evidence (7.6672ms)
+✔ rejects source evidence symbols absent from the pinned source (32.7917ms)
+✔ recomputes contract, arms, and source integrity inside the exported auditor (21.1977ms)
+✔ uses one immutable contract snapshot for hashing and scope checks (8.1132ms)
+✔ requires a repository root before verifying document references (6.5862ms)
+✔ rejects forged resolved source commit labels (8.2568ms)
+✔ reports malformed rows and incomplete provenance without throwing (1.0727ms)
+✔ fails closed on malformed source-reference and product-scope collections (12.9634ms)
+✔ rejects empty or unparseable source evidence instead of counting zero checks as valid (10.704ms)
+✔ requires valid non-empty chain and destiny scope arrays (27.5332ms)
+✔ rejects documentation evidence paths missing from the repository (9.146ms)
+✔ does not accept documentation reached through an external junction (18.9399ms)
+✔ does not let an edited contract fabricate complete six-chain and destiny coverage (6.4023ms)
+✔ loads the frozen git source, hashes it, and keeps the release gate closed (622.413ms)
+✔ pins JSON content independently of object key order (256.0014ms)
+✔ CLI reports incomplete successfully and fails the explicit require-pass gate (4009.6067ms)
+✔ v5 records remaining player decisions while the full-game gate stays closed (46.9968ms)
+✔ mark choices are the no-mark action plus every current market slot and hide target identities (380.297ms)
+✔ sacrifice actions apply one engine bleed at a time and stop at the life floor (217.5536ms)
+✔ interactive shrine winner can choose any open legend and settlement uses the engine path (668.5744ms)
+✔ v10 pins the wish-draw chance abstraction without claiming full-game chance or release (46.7531ms)
+✔ v10 rejects engine-shaped objects that were not loaded by its pinned engine loader (285.195ms)
+✔ v10 fails closed when a chance contract description diverges from the enumerator (10.5314ms)
+✔ v10 enumerator accepts only immutable nodes produced by its pinned state inspector (292.8868ms)
+✔ the frozen wish node enumerates its entire state-conditioned joint support with exact abstract weights (420.534ms)
+✔ every per-seat wish outcome maps to the same frozen drawWishes result and consumes one draw per living seat (245.3419ms)
+✔ dead seats, disabled wishes and state changes alter draw count or support without adding chance (157.6738ms)
+✔ v10 rejects ambiguous config and malformed seat identities before assigning chance weights (168.5718ms)
+✔ wish support table identities fail closed if a pinned rule is replaced (213.0184ms)
+✔ wish table accessors cannot swap a mutated definition into a pinned chance node (189.8485ms)
+✔ the exported WISHES property itself cannot be replaced with an alternating accessor (172.69ms)
+✔ purity inspection catches captured RNG closures and restores their streams after rejection (230.3725ms)
+✔ a two-life purchase cannot inherit a sixteen-life night or suppress a recorded defeat (50.6141ms)
+✔ death later in the game is not described as death on the loss night (40.3836ms)
+✔ an unrecorded terminal interval is not invented as a named event or numbered night (20.3158ms)
+✔ equal losses select the later snapshot, then lower seat; missing causes remain unknown (20.3063ms)
+✔ a recorded defeat remains evidence when a survival hook reduces its damage to zero (24.4122ms)
+✔ current seeds 1 and 2 reconstruct a loss interval from snapshots and retain exact payment evidence (202.9264ms)
+✔ reader materials retain six frozen seeds and describe loss intervals without inventing events (2339.3927ms)
+✔ research judge labels current reconstruction, preserves original version and lists separate costs (1936.8355ms)
+✔ 凍結 #9 ①②③④：seeds 1–20 句數 3–6、evRef 對得上、無私有資訊、同 seed 逐字相同、cause 與口徑逐欄相等 (2289.2107ms)
+ℹ cause kinds: {"night":20,"interval":0,"none":0} evRef types: {"dawn":20,"night":20,"win":20,"poison":18,"shrine":20,"death":19} no-poison games: 2
+✔ 凍結 #9 ⑤：異事夜殺到剩一人（補快照路徑）、無毒標局、空局都 ≥1 句不 throw (88.3381ms)
+  PASS  H5①請神夜：香火**不綁尊**——燒在哪一格都算同一個池，第一個請神夜由池最高的人請神
+  PASS  H5①同分：依「本夜風位起順時針」的第一個人請神（不是座位 0 恆贏）
+  PASS  H5①已持有者不參加：他的香火再高也不得，該夜由「還沒請到的人」裡最高者請神
+  PASS  H5②得主自選（AI 規則）：挑「袋中最多陣營同系」的那一尊，不是固定第 0 尊
+  PASS  H5②同數取 LEGENDS 順序：空袋（四系皆 0 件）的得主拿第 0 尊
+  PASS  H5②真人得主跳選擇窗：interactive 下先回 pending、尊還沒進袋；finishShrines 帶回 idx 才落地
+  PASS  H5②已被請走的尊不可選：帶回一個已關的 idx，退回 AI 規則、不得重複發同一尊
+  PASS  H5③落空保留：第一個請神夜落空、香火 5 到下一夜仍是 5，而且可以繼續往上加
+  PASS  H5④沒人有資格（全員香火 0）的請神夜：不結算、三尊都留著，下一個請神夜再比
+  PASS  H5④沒人有資格（有資格者都沒香火、香火全在已持有者身上）：一樣不結算、剩下的尊都留著
+  PASS  H5④最後一個請神夜結算完：沒被請走的尊回天，本局不再出現、也不重開
+  PASS  H5⑤一人一尊：請到之後封籤被拒——壽命一毛不扣、香火不累積、out.locked 記一筆
+  PASS  H5⑥封籤不收龕參數：帶了 shrine 也忽略，燒進的是**自己的香火池**、紀錄裡不留龕號
+  PASS  H5⑦供奉：持有者每夜末 −INC_TITHE 壽命；壽命 ≤1 付不出 → 尊回天並移出袋子
+  PASS  H5⑦送神回天鈕：任何一夜可主動放手——當夜起不再扣供奉、尊移出袋、那一尊不重開
+  PASS  H5⑦危急提示：只在「付完壽命 ≤TITHE_WARN」那一夜出現，同一尊只一次；headless 走預設「要」
+  PASS  H5⑦AI 放手走同一條門檻：AI 持有者在「付完 ≤TITHE_WARN」那一夜主動送神回天
+  PASS  H5⑦神債最後收：壽命 2＋詛咒品 −1 → 先 drain 剩 1 → 付不出供奉 → 傳說回天、人活著
+  PASS  H5⑧kill switch：OFF 零亂數、不建 S.shrines；**ON 也不得因尊→夜洗牌多耗 rng**（3.0 把洗牌整支拿掉）
+  PASS  H5補：燒香夾限＋封籤留痕——壽命 3 封 3 → 實燒 2，clip 事件與 shrineStat 都要有
+  PASS  H5補：局末結清依「場上最高香火」的比例——最高 9 時 h=9 退 5＋小法寶、h=6 退 3＋小法寶、h=3 退 1
+  PASS  守衛：傳說不進 S.deck、也不在 POOL 裡——整局市集不會出現傳說，但請神請得下來
+  PASS  守衛：AI 燒香啟發式是資料表驅動——ROLES[*].ai.inc 覆寫 minLifeFrac 之後那個角色就不拜了
+  PASS  守衛：settleShrinesEnd 冪等——連叫兩次不得重複結清、壽命不得再變
+  PASS  守衛：回天結清不得就地改寫「不是本輪收尾」的那一筆 S.history.life
+  PASS  守衛：傳說的招式真的進得了 paperWar——殘日的餘暉灼目會出現在對決 beats 裡
+  PASS  H10傳說共鳴：持殘日（祖靈）＋2 件祖靈法寶 → facCount("zuling")=4（傳說算 2 件）
+  PASS  H11部隊預覽：5 個袋子的逐件隻數／atk／hp／拍序／招式名，逐項等於 buildArmy 展開與 TRAITS 表
+  PASS  H11市集卡招式行：27 件法寶＋3 尊傳說——卡面只印數字、卡片詳情印招式且與 TRAITS 對得上
+  PASS  H11詛咒品那一行看主人：一般人印「只算纏身」，帶 curseWard 的印「已淨化」
+  PASS  H11袋子總計：總隻數／總攻／總血與 buildArmy(整袋) 一致，共鳴 hp 與 pwResLv 一致
+  PASS  決定性：顯式 LEGEND_ON=true 下 trace(1..20) 連跑兩次逐位元組相等，且引擎段零 Math.random
+
+32 過 / 0 失敗
+✔ tests\legend.test.mjs (3655.6262ms)
+✔ 凍結 #8 ①：每個 AI 角色七個鍵各 ≥2 句，佔位只用公開欄位 (62.5725ms)
+✔ 凍結 #8 ②③④⑤：seeds 1–20 evRef 對得上、無私有資訊、同 seed 逐字相同、六類都量到 (2441.1931ms)
+ℹ events per type: {"win":342,"lose":225,"poison":56,"poisoned":36,"mark":459,"death":17,"shrine":28}
+陣列卷 G1：目標檔 index.html
+  PASS  fac 序列＝祖靈…→香火…→陰氣…（不是取得順序）
+  PASS  id 指回 buildArmy 展開的同索引單位（body／fac／ab 逐項相同）
+  PASS  同系內 id 遞增（穩定：同系保留取得順序）
+  PASS  隻數與組成不受排序影響
+  PASS  MAXFIG＝10（裁甲；讀 index.html 的 PW_FX.MAXFIG 字面值）
+  PASS  紅暈側別：真人那一側（跟席位 id 無關；AI 對 AI 的旁觀場兩側都不閃）
+  PASS  紅暈側別：熱座兩位真人對打時**兩側都閃**（各自被打各自閃）
+  PASS  紅暈側別：座位物件缺失時不當成真人（不會誤閃）
+結果：8 綠 ／ 0 紅
+✔ tests\lineup-order.test.mjs (248.9487ms)
+✔ 同槽四席盯牌的投影互不疊字，重設版面與揭盅後仍成立 (78.0044ms)
+✔ 盯印留在同一排、別槽加牌不搬動本槽，木籌槽連回原拍品且換夜清空 (6.7409ms)
+✔ 盯牌在陰影、出價、揭盅與換夜後仍保持原始牌面比例 (9.9578ms)
+✔ disposing the tray releases its moon-ring instance buffer (1.3425ms)
+
+今夜市集規則 行為測試　目標檔：C:\Users\shung\wt\yaoshi\hands-b3\index.html
+
+【落魄夜】
+  PASS  保守標落標全付＝出價＋買路錢（平常只付 CONS_LOSE_FRAC）
+  PASS  押命標落標全付＝出價＋買路錢（平常只付一半）
+  PASS  保命例外不被規則覆寫：黃色小雨衣落標仍只付買路錢，同注無雨衣者付全額
+  PASS  保命例外不被規則覆寫：陰間當鋪在落魄夜被逼到典當，保住 8 壽命＋縛靈鎖
+【收祟夜】
+  PASS  市集 CFG.MARKET 件全為詛咒品
+  PASS  口徑 4′：全場都沒出手時，流標詛咒品進壽命最高者的袋（不記仇、無下手者）
+  PASS  口徑 4′：塞給「沒出手者」中壽命最高者——壽命更高但有出手的人不收（覆審 A5 裁定）
+  PASS  口徑 4′：全員都出手時，落回全場壽命最高者
+  PASS  AI 的「買下銷毀」防禦性標本夜被引擎攔掉（詛咒品只能毒標或流標）
+  PASS  玩家送出的「買下銷毀」標本夜改成毒標塞給戰力最高的對手（人機同語意，覆審 HIGH-2）
+  PASS  收祟夜 AI 的「買下銷毀」意圖被引擎改成毒標；消失的標全部可歸因 MAX_BIDS 名額裁切（覆審 HIGH-2／N3）
+  PASS  押寶夜不發結構恆假的心願牌：貪多務得／敗軍之志／借刀傷人（覆審 HIGH-1）
+【押寶夜】
+  PASS  一注壓 3 件、其中 2 件都最高 → 只得開標順序第一件，實付 X＋1 筆買路錢
+  PASS  一注全落標，只依型態付一次落標費（買路錢也只收一次）
+  PASS  詛咒品本夜不開標：毒標整筆作廢、不入任何人袋
+【三條迴圈一致性（不變量，非鑑別力測試）】
+  PASS  simulate() 與 playPolicyGame() 在規則開啟下 seeds 1..10 結果一致
+
+結果：16 綠 ／ 0 紅
+✔ tests\nightrules.test.mjs (2150.7528ms)
+✔ #3 三章各 seeds 1–50：主角恰好一次、在 AI 席；四席互不重複；真人席照選 (80.793ms)
+✔ #3 真人選主角：開局函式改抽，不會出現兩個主角 (46.7839ms)
+✔ #3 第 1 章：六組連鎖注入 activeChains／chainsCompletedBy 皆空（常規局同注入非空＝正對照） (36.2562ms)
+✔ #3 第 1 章：雙虎合陣不成隊、袋子不列連鎖進度（常規局對照） (21.3227ms)
+✔ #3 第 1、2 章：天命效果判定四席皆 false、AI 不追天命、命函不顯示（常規單人局正對照） (22.2614ms)
+✔ #3 第 2 章：連鎖注入非空；真實開標補齊天命配方也不覺醒、不公開（常規局正對照） (73.0429ms)
+✔ #3 第 3 章：destinyEffectMode 與常規單人局相同（original），連鎖注入非空 (26.3382ms)
+✔ #3／#1 恩怨台詞只耗 S.rngUi，S.rng 不動 (23.271ms)
+✔ #1 常規局：S 不多欄位；座位與亂數流與 3a0d971 相同（seeds 1–50、solo／hotseat） (407.6692ms)
+✔ #4 nightwalkPass 表格：只比真人與主角；平手、真人出局皆未過 (24.9803ms)
+✔ #5 過關寫入 {"v":1,"cleared":[…]}、讀回一致、重複通關不重複、未過關不寫 (31.0329ms)
+✔ #5 壞資料／讀寫丟例外：當空進度、不丟例外、選單只開第 1 章、可開局 (241.5625ms)
+✔ #6 依序開放；?nwall=1 全開 (57.4348ms)
+✔ #6 章節局選角：可選任一池角色，唯獨該章主角不可選；常規模式 10 角色全開且與 3a0d971 相同 (190.0937ms)
+✔ #8 NIGHTWALK 逐字等於讀者驗收過的 copy-r1.json (20.5612ms)
+✔ #8 文案格式：引言 3–5 句、新規則 2–4 條、恩怨三時機各 ≥1、殘卷標題＋150–300 字 (23.1741ms)
+✔ #8 不含簡體字：內建字表 ≥100 字（正對照抓得到），文案與夜行錄介面字串掃描 0 (86.4585ms)
+✔ 開局台詞泡：第 1 夜重畫補回（正對照）、第 2 夜不補回、常規局不動作 (45.3767ms)
+✔ merge: two parts concatenate every attribute and offset the second index range (4.7007ms)
+✔ merge: ghost material groups are dropped, other groups kept; all-ghost part contributes nothing (1.0263ms)
+✔ merge: returns null when a part has no index or a different attribute set (caller falls back to per-part shells) (1.8815ms)
+(node:23588) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/shung/wt/yaoshi/hands-b3/js/creature-figures.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\shung\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ 128-coin perf mode fills every legal seat and market slot through product bids (3.0123ms)
+✔ 128-coin gate rejects a command that omits the required performance mode (762.7812ms)
+✔ 128-coin performance samples precompile the actual scene before timing (0.1918ms)
+✔ 128-coin speed gate uses the interleaved five-run median, not one scheduler outlier (0.2099ms)
+✔ opt-in projects only legal preview and strips fourth item and raw state references (181.9943ms)
+✔ ordinary bell preview remains two when eyes effect is removed (175.1276ms)
+✔ frozen context cannot mutate the original next-market item (129.7548ms)
+✔ first night is null; next night reveal freezes eligibility at reveal time (69.0168ms)
+✔ late acquisition cannot recover previous reveal, hidden entries and fewer than two bids yield null (122.6978ms)
+✔ default caller receives one argument and does not invoke reveal hook (77.7482ms)
+✔ reveal visibility is per seat, and tied second bids keep the second entry amount (22.2885ms)
+✔ unrelated preview effect of four remains visible with or without eyes (99.4685ms)
+✔ ignored context preserves outcomes and next RNG over seeds 1–20 (2555.5897ms)
+✔ callback failure and new game clear per-run reveal memory (58.5292ms)
+✔ formal target selection uses highest life and stable seat order (7.2519ms)
+✔ Wangchuan sends the most recent curse to the highest-life foe (0.9503ms)
+✔ retired power abilities do not modify formal power accounting (3.7284ms)
+✔ hunter AI adds four only when pwTrial improves (7.8447ms)
+✔ hunter compares paper units and takes the largest non-curse troop team (2.7977ms)
+✔ formal simulation and policy game never invoke power() (274.4884ms)
+✔ formal battle records prebattle paper-unit counts without a raw-power context (5.4467ms)
+✔ active wishes and event descriptions use market prices rather than combat power (0.6037ms)
+✔ 首頁、更新探針與資產快取使用相同發布版本 (2.1376ms)
+✔ 舊主畫面版本可以發現本次發布；同版與舊版不提示 (16.4129ms)
+✔ 十個角色各有自己的動作，沒有漏角色 (2.8337ms)
+✔ t≤0 與 t≥1 精確回到原擺位（動作結束時信物不能漂移） (0.7395ms)
+✔ 動作進行中確實有位移，且每個角色的動作互不相同 (1.7797ms)
+✔ 幅度上限：信物只是「小動作」，不能搶拍品 (7.2418ms)
+✔ 決定性：同一個 t 每次結果相同，沒有亂數 (0.4264ms)
+✔ 未知角色（退路素木牌）也有動作，不會丟例外 (0.2107ms)
+✔ replayExport：seeds 1–10 打包→JSON→貼回，history 逐值相同、口徑相同、敘事相同、可重現 (1090.8069ms)
+✔ 回顧畫面只有一顆複製按鈕，copyReplay 不用會擋頁的對話框 (1.0773ms)
+✔ 回顧畫面只有一顆下載按鈕，downloadReplay 走分享面板→下載、檔名決定性、不用對話框 (2.4845ms)
+✔ 揭盅維持 3D 牌桌可見，且不再用黑幕切換 (2.1334ms)
+✔ 托盤有硃砂法陣、月相受惠與揭盅結果三種純演出狀態 (0.6128ms)
+✔ 道具層有廉價接觸陰影並能把開標錢堆並排保留 (0.4281ms)
+✔ 揭盅卡不撞夜況列，完整列出比價與結果 (1.0169ms)
+✔ 揭盅先播錢柱與法寶飛行，再顯示固定的比價卡 (1.3959ms)
+✔ 逐槽微距鏡頭不能被結算事件重設，結果卡也不得遮住托盤 (0.5048ms)
+✔ 逐槽微距必須把攝影機錨到錢柱，且落標錢要有收回動作 (0.3906ms)
+✔ 揭盅卡不被通用燈籠動畫偏移，側欄與令牌在遠景都保持可讀 (0.711ms)
+✔ 局末只留一個進入完整回顧的入口，策略建議不以心願硬優先 (1.0151ms)
+  PASS  seed 3：S.history 存在且形狀正確
+  PASS  seed 3：壽命曲線長度 = 夜數+1，每筆 = 玩家數
+  PASS  seed 3：夜數與 playPolicyGame 的 lifeByRound 一致（同一條迴圈）
+  PASS  seed 3：末筆快照 = 局末各人壽命
+  PASS  seed 3：每夜紀錄 round 連號、closed、拍賣筆數 ≥1、每筆欄位齊全
+  PASS  seed 3：心願筆數 = 該夜開夜時存活人數
+  PASS  seed 3：對決紀錄與死亡紀錄自洽
+  PASS  seed 3：reviewSummary 加總與原始紀錄一致
+  PASS  seed 3：finalizeHistory 冪等；壽命被改動後才補一筆
+  PASS  seed 7：S.history 存在且形狀正確
+  PASS  seed 7：壽命曲線長度 = 夜數+1，每筆 = 玩家數
+  PASS  seed 7：夜數與 playPolicyGame 的 lifeByRound 一致（同一條迴圈）
+  PASS  seed 7：末筆快照 = 局末各人壽命
+  PASS  seed 7：每夜紀錄 round 連號、closed、拍賣筆數 ≥1、每筆欄位齊全
+  PASS  seed 7：心願筆數 = 該夜開夜時存活人數
+  PASS  seed 7：對決紀錄與死亡紀錄自洽
+  PASS  seed 7：reviewSummary 加總與原始紀錄一致
+  PASS  seed 7：finalizeHistory 冪等；壽命被改動後才補一筆
+  PASS  seed 11：S.history 存在且形狀正確
+  PASS  seed 11：壽命曲線長度 = 夜數+1，每筆 = 玩家數
+  PASS  seed 11：夜數與 playPolicyGame 的 lifeByRound 一致（同一條迴圈）
+  PASS  seed 11：末筆快照 = 局末各人壽命
+  PASS  seed 11：每夜紀錄 round 連號、closed、拍賣筆數 ≥1、每筆欄位齊全
+  PASS  seed 11：心願筆數 = 該夜開夜時存活人數
+  PASS  seed 11：對決紀錄與死亡紀錄自洽
+  PASS  seed 11：reviewSummary 加總與原始紀錄一致
+  PASS  seed 11：finalizeHistory 冪等；壽命被改動後才補一筆
+        活性計數： {"bids":142,"poison":8,"deaths":6,"wishesDone":39}
+  PASS  活性：三個種子合計有出價、有毒標、有死亡、有心願達成（不是空紀錄）
+────────────────────────────
+通過 28　失敗 0
+✔ tests\review.test.mjs (1913.5047ms)
+  PASS  斷手書生：同系 4 件時紙紮共鳴等級高於無被動者（pwResLv 真的被改到）
+  PASS  斷手書生：同系 4 件時整場紙紮夜戰的結果真的變好（不只是帳面戰力）
+  PASS  斷手書生：不足 4 件時不生效（被動不是恆真式）
+  PASS  斷手書生：只有達標的那一系吃到（另一系不得跟著 ×1.5）
+  PASS  閭山法師：縛靈鎖不降低自己的首拍攻擊
+  PASS  閭山法師：袋中沒有詛咒品時不生效（被動不是恆真式）
+  PASS  閭山法師：免疫不外洩給其他角色
+  PASS  閭山法師：起始壽命＝CFG.LIFE+2（二版第二輪 life0d 0→+2）
+  PASS  陰間當鋪：起始壽命＝CFG.LIFE
+  PASS  大家樂組頭：夜末掛零不再扣 2 壽命
+  PASS  大家樂組頭：夜末連中 ≥2 件仍然 +2（獎勵側沒被順手拆掉）
+  PASS  紅衣婆婆：被毒標塞中時下手者 −2、自己 +2
+  PASS  紅衣婆婆：不是塞給紅衣時什麼都不發生（被動不是恆真式）
+  PASS  陰間當鋪 H2：life=5 出價 13 → 實付 4、剩 1（不再白拿）
+  PASS  陰間當鋪 H2：life=5 受傷 40 → 剩 1（不再免傷）
+  PASS  陰間當鋪 H2：life=20 出價 30 → 實付 12、剩 8
+  PASS  陰間當鋪 H2：life=−30 夜末 → 1（夜末也走 pawnFloor，不從 ≤0 免費回到 8）
+  PASS  斷手書生 H3：同系 4 件時 power() 不再被推高（被動只走對決路徑）
+  PASS  斷手書生 H3：對決路徑仍然生效（不是把被動整個拆掉）
+  PASS  陰間當鋪：夜末結算致死時典當接住（壽命回正、袋中留下縛靈鎖）
+  PASS  陰間當鋪：出價實付致死時付到剛好剩 CFG.PAWN_KEEP
+  PASS  陰間當鋪：典當一局只有一次（不是恆真式）
+  PASS  盯上宣告：十隻的 markReact 全部維持設計值（三型混桌 3 怯場／4 搶標／3 無視）
+  PASS  青面攤主：ROLES.ai ＝掃描表最佳值 0.6/0.1/contest
+  PASS  斷手書生：ROLES.ai ＝掃描表最佳值 1/0.1/ignore
+  PASS  閭山法師：ROLES.ai ＝掃描表最佳值 0.8/0.1/ignore
+  PASS  陰間當鋪：ROLES.ai ＝掃描表最佳值 0.8/0.1/avoid
+  PASS  收驚婆：ai 與 life0d 與基準相同（B2 不得動）
+  PASS  閭山法師：袋中帶詛咒品時，隻數牌印「詛咒已淨化」而不是「詛咒纏身」
+  PASS  沒有免疫的角色仍印「詛咒纏身」（M6 不是把這段拆掉）
+  PASS  斷手書生 B：AI 估值只對「湊得成套的那一件」加價，其餘系不再被低估
+  PASS  紅衣婆婆 B：玩家座位的記仇換得到東西（對仇人主力陣營的拍品比價 +3）
+
+角色平衡卷單元測試：32 過 / 0 失敗
+✔ tests\roles-balance.test.mjs (1632.1331ms)
+✔ 凍結 #6①：封標／揭盅／受咒／落籌接線與 SKIP、?sfx=0 靜音 (693338.9329ms)
+ℹ seed 1: nights 8 winners 20 poison 5 skipAttempts [{"round":1,"clickAttempted":true,"skipActivated":true,"wakeSignaled":true},{"round":2,"clickAttempted":true,"skipActivated":true,"wakeSignaled":true},{"round":3,"clickAttempted":true,"skipActivated":true,"wakeSignaled":false},{"round":4,"clickAttempted":true,"skipActivated":true,"wakeSignaled":true},{"round":5,"clickAttempted":true,"skipActivated":true,"wakeSignaled":true},{"round":6,"clickAttempted":true,"skipActivated":true,"wakeSignaled":true},{"round":7,"clickAttempted":true,"skipActivated":true,"wakeSignaled":true},{"round":8,"clickAttempted":true,"skipActivated":true,"wakeSignaled":true}] wakeSignals [1,2,4,5,6,7,8] → {"wind":38,"babble":30,"stamp":42,"woodfish":164,"seal":8,"woodslam":8,"gong":21,"reveal":20,"bell":29,"whoosh":20,"cymbal":28,"hurt":14,"curse":5}
+ℹ seed 2: nights 11 winners 31 poison 2 skipAttempts [{"round":1,"clickAttempted":true,"skipActivated":true,"wakeSignaled":true},{"round":2,"clickAttempted":true,"skipActivated":true,"wakeSignaled":true},{"round":3,"clickAttempted":true,"skipActivated":true,"wakeSignaled":true},{"round":4,"clickAttempted":true,"skipActivated":true,"wakeSignaled":true},{"round":5,"clickAttempted":true,"skipActivated":true,"wakeSignaled":true},{"round":6,"clickAttempted":true,"skipActivated":true,"wakeSignaled":true},{"round":7,"clickAttempted":true,"skipActivated":true,"wakeSignaled":true},{"round":8,"clickAttempted":true,"skipActivated":true,"wakeSignaled":true},{"round":9,"clickAttempted":true,"skipActivated":true,"wakeSignaled":true},{"round":10,"clickAttempted":true,"skipActivated":true,"wakeSignaled":true},{"round":11,"clickAttempted":true,"skipActivated":true,"wakeSignaled":true}] wakeSignals [1,2,3,4,5,6,7,8,9,10,11] → {"wind":45,"babble":40,"stamp":55,"woodfish":252,"woodslam":12,"seal":11,"gong":27,"reveal":31,"bell":41,"whoosh":26,"cymbal":32,"hurt":15,"curse":2}
+ℹ seed 3: nights 9 winners 26 poison 3 skipAttempts [{"round":1,"clickAttempted":true,"skipActivated":true,"wakeSignaled":false},{"round":2,"clickAttempted":true,"skipActivated":true,"wakeSignaled":true},{"round":3,"clickAttempted":true,"skipActivated":true,"wakeSignaled":true},{"round":4,"clickAttempted":true,"skipActivated":true,"wakeSignaled":true},{"round":5,"clickAttempted":true,"skipActivated":true,"wakeSignaled":true},{"round":6,"clickAttempted":true,"skipActivated":true,"wakeSignaled":true},{"round":7,"clickAttempted":true,"skipActivated":true,"wakeSignaled":true},{"round":8,"clickAttempted":true,"skipActivated":true,"wakeSignaled":true}] wakeSignals [2,3,4,5,6,7,8] → {"wind":44,"babble":38,"stamp":44,"woodfish":177,"seal":9,"woodslam":9,"gong":24,"reveal":26,"curse":3,"bell":35,"whoosh":24,"cymbal":22,"hurt":17,"death":1}
+✔ table tray + props: every transparent DoubleSide decal material renders in one pass (128.8423ms)
+✔ trait-fx templates: MAT_GLOW / MAT_SOLID warm-up meshes render in one pass (37.2811ms)
+(node:36176) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/shung/wt/yaoshi/hands-b3/js/table-tray.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\shung\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ creature water pool (ab=buoy): disc, edge glow and 3 ripple rings render in one pass (81.7764ms)
+✔ legend kit: canri afterglow disc renders in one pass; dashiye / youyinggong have no such material (13.1433ms)
+(node:23444) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/shung/wt/yaoshi/hands-b3/js/creature-figures.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\shung\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:28944) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/shung/wt/yaoshi/hands-b3/js/skeleton-share.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\shung\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ cloned figure meshes with identical bone sets share one skeleton and skin to the same positions (45.3546ms)
+✔ sharing stays inside one figure: separate clones keep independent skeletons and poses (16.3802ms)
+✔ posedBounds conservatively contains every POOL skin pose across every authored clip (1567.5953ms)
+✔ posedBounds covers mixed and non-normalized skin weights (2.5015ms)
+✔ framing samples the same attached skin pose as the next render after moving its root (9.7501ms)
+✔ framing moves an intact projected subject away from HUD using the least displacement (3.2066ms)
+✔ flight depth prevents approach magnification and projection counts only visible geometry (2.8555ms)
+✔ adaptive camera retreats to fit HUD space without changing model scale (2.367ms)
+✔ an outline shell sharing geometry, skeleton and bind reuses the frame's posed bounds exactly (4.1931ms)
+✔ skinned meshes that only share geometry still get their own posed bounds (3.1574ms)
+✔ instanced stamps participate at their actual instance positions in a framing union (1.582ms)
+(node:34212) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/shung/wt/yaoshi/hands-b3/js/hand-motion.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\shung\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ 批 3：孝女白琴／閭山法師／普渡爐主各拿專屬手（配件全上場）、每手 ≤6,500 面、一份材質、無貼圖無 UV、不縮放 (398.1399ms)
+✔ 批 3：孝女垂尾（結點→尾端）長 0.35–0.55 × 手掌長（Wrist→MiddleA） (217.3331ms)
+✔ 批 3 擺盪：推錢時垂尾／福袋真的晃（≥5% 長）、手停後 1.5 秒收斂（<10% 峰值）；每幀不重建幾何、不耗 Math.random (424.6309ms)
+✔ 批 3 開關：opts.b3=false（同 ?handb3=0）＝三角色退回 v0.62.5 的預設手、不載入批 3 (263.1068ms)
+✔ 批 3 #C1/#C2 L：孝女／閭山／爐主（含配件、擺盪中的垂尾與福袋）推、拍、收每幀不穿錢柱與令牌 (23795.7849ms)
+✔ 批 3 #C1/#C2 P：孝女／閭山／爐主（含配件、擺盪中的垂尾與福袋）推、拍、收每幀不穿錢柱與令牌 (22879.6392ms)
+(node:10356) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/shung/wt/yaoshi/hands-b3/js/hand-motion.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\shung\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ V1 三角色的手：專屬色區域頂點數 >0（預設手＝0）、配件頂點 >0（預設手＝0），三者兩兩不同 (240.7389ms)
+✔ V1 各角色的特徵色真的在手上：袖口主色、紅線、算盤珠色戒指、護腕與舊疤 (199.1719ms)
+✔ V1 收驚婆：老膚色與手背暗斑是頂點色——手背有一批頂點比同角色老膚色基底更暗 (137.7273ms)
+✔ V2 未知／缺角色／空清單／亂格式 → 預設手、不丟例外；其餘 7 角色與斷手書生都拿寫實預設手；寫實幾何每席一份、份數有上限且不洩漏 (619.9441ms)
+✔ V3 L：每隻寫實手 ≤6,500 面、變體多於預設手、寫實皮膚；每席仍是 1 個蒙皮 mesh、四席共用 1 份材質（draw call 增量 ≤4、配件不另開材質） (435.4119ms)
+✔ V3 P：每隻寫實手 ≤6,500 面、變體多於預設手、寫實皮膚；每席仍是 1 個蒙皮 mesh、四席共用 1 份材質（draw call 增量 ≤4、配件不另開材質） (277.0079ms)
+✔ V4 變體幾何只在 setSeats 建一次（以角色鍵快取），整段動作／每幀 update 都不重建、幾何物件不換 (775.866ms)
+✔ 批 1：青面／紅衣婆婆／斷手書生／組頭各拿專屬手——變體鍵＝角色、辨識物齊全且真的畫出來、與預設手不同；共用 1 份材質；每幀 update 不重建、幾何物件不換 (756.202ms)
+✔ 純演出：變體建構不耗亂數（props 自己的亂數不算：同 props 下有變體與無變體的 Math.random 呼叫數必須相同，建構函式本身 0 次）；原頂點位置／權重／索引與預設手逐值相同；同輸入兩次建構逐值相同 (1229.4761ms)
+✔ 純演出：同一串事件下，每席手的動作只取決於自己的手形（別席換角色不影響）；變體手形真的進了擺位解算 (2058.4319ms)
+✔ 配件隨骨：推／拍整段動作每一幀，配件頂點與它的錨點在蒙皮後的距離不超過綁定距離（＋容差）；硬配件整顆同一組權重（不被拉變形） (2277.9767ms)
+✔ 配件幾何：每個配件三角形的面法線與頂點法線同向（繞序朝外）；索引不越界 (108.8317ms)
+✔ 變體手 L 種子 123456789：推（1/8/12 枚）與拍令牌每幀，三變體手的每個蒙皮頂點（含配件）都不在任何錢或令牌體內 (34703.8317ms)
+✔ 變體手 L 種子 987654321：推（1/8/12 枚）與拍令牌每幀，三變體手的每個蒙皮頂點（含配件）都不在任何錢或令牌體內 (28851.5824ms)
+✔ 變體手 L 種子 192837465：推（1/8/12 枚）與拍令牌每幀，三變體手的每個蒙皮頂點（含配件）都不在任何錢或令牌體內 (25068.6154ms)
+✔ 變體手 P 種子 123456789：推（1/8/12 枚）與拍令牌每幀，三變體手的每個蒙皮頂點（含配件）都不在任何錢或令牌體內 (26085.3901ms)
+✔ 變體手 P 種子 987654321：推（1/8/12 枚）與拍令牌每幀，三變體手的每個蒙皮頂點（含配件）都不在任何錢或令牌體內 (26453.4492ms)
+✔ 變體手 P 種子 192837465：推（1/8/12 枚）與拍令牌每幀，三變體手的每個蒙皮頂點（含配件）都不在任何錢或令牌體內 (23285.7241ms)
+✔ R1a 腕部色塊面積（節點層、dm²）：收驚婆／當鋪 ≥ 基準×2、獵人 ≥ 基準×1.5；預設手＝0 (161.5754ms)
+✔ R1b（色彩層）三角色色塊「面積加權平均色」sRGB 兩兩歐氏距離 ≥60（實拍層的距離在 hands-roles-shots --measure 另量） (146.5319ms)
+✔ R2 識別物互斥（各角色實際頂點色；第三輪改版）：收驚婆有紅繩＋佛珠、無錢無毛無骨；當鋪有方孔錢、無紅繩無佛珠無毛無骨；獵人有疤＋鐵扣＋毛皮＋骨牙、無錢無紅繩無佛珠；預設手皆無 (124.3313ms)
+✔ R3 動作中（推／拍）四席皮膚頂點 alpha 全為 1、material.opacity＝1；袖尾漸隱仍在（有頂點 alpha<1）；漸隱沒吃進膚色（z ≥ CUFF_FROM） (280.0946ms)
+✔ R3-2 無綠：獵人與當鋪變體幾何的全部頂點（原頂點＋配件）綠色主導（g−r>0.08 且 g−b>0.08）＝0 (28.015ms)
+✔ R3-4 金色只屬當鋪：當鋪金色頂點 >0；獵人、收驚婆全部頂點金色＝0 (50.9647ms)
+✔ R3-4 當鋪方孔錢：錢色連通塊 ≥5，每塊沿平均面法線過質心的射線不命中（有孔）、0.8×外半徑處命中（不是空的） (15.6547ms)
+✔ R3-3 獵人毛皮邊：毛皮色組面積 ≥ 任一其他配件色；毛皮平均色與當鋪金邊、收驚婆白袖口 sRGB 兩兩 ≥60；骨牙護符 ≥3 顆且是尖形 (26.8005ms)
+✔ R3-5 shoujing 袖口封口：從袖口外側沿手臂軸往內看的每條射線，第一個會被畫出的命中（正面）必須存在、落在袖口區、且不透明 (127.3834ms)
+✔ R3-5 dangpu 袖口封口：從袖口外側沿手臂軸往內看的每條射線，第一個會被畫出的命中（正面）必須存在、落在袖口區、且不透明 (104.3123ms)
+✔ R3-5 hunter 袖口封口：從袖口外側沿手臂軸往內看的每條射線，第一個會被畫出的命中（正面）必須存在、落在袖口區、且不透明 (60.3736ms)
+(node:24700) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/shung/wt/yaoshi/hands-b3/js/hand-motion.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\shung\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ #B1 GLB 資產 ≤6,000 面、單一 primitive、24 骨；畫面上每隻寫實手 >GLB 面數且 ≤6,500、用寫實皮膚；四隻手共用一份材質、同一顆 GLB 只抓一次（走 cloneSkinnedGlb 管線） (111.5284ms)
+✔ #C1/#C2 L：推（四席×四格×1/8/12 枚）每幀的手部蒙皮頂點都不在任何一枚錢或令牌體內 (53681.02ms)
+✔ #C1/#C2 L：拍（令牌舉高→拍下→微顫→收）與收（敗方扒回、勝方停一拍）每幀不穿錢柱與令牌 (9975.0245ms)
+✔ #C1/#C2 P：推（四席×四格×1/8/12 枚）每幀的手部蒙皮頂點都不在任何一枚錢或令牌體內 (41246.8571ms)
+✔ #C1/#C2 P：拍（令牌舉高→拍下→微顫→收）與收（敗方扒回、勝方停一拍）每幀不穿錢柱與令牌 (9633.6554ms)
+✔ #C1 手的地板外框蓋得住錢柱的真實幾何：每一幀 stackAt 的頂高／半徑 ≥ 該柱每枚錢實例頂點的實際最高點／最遠水平距離（含傾斜、一串立錢、得標脈衝） (67.4328ms)
+✔ #C1 收：勝方錢柱得標脈衝放大（×1.24）的那幾幀，旁邊扒錢的手也不穿入（實頁探針抓到的情境，細步進 1/400 秒） (13189.8245ms)
+✔ #C1 收手後整隻不可見（閒置＝收在畫面外）：推／拍／收各自做完，四隻手都回到不可見 (1169.0183ms)
+✔ #C2 直式的手比橫式小（SCALE_P），兩版面都以同一組常數換算 (99.2153ms)
+✔ #C3 縮時：同一事件序列以 1/120、1/60、1/20 秒步進，錢與令牌的終點逐位元相同、四隻手都已收；且與「不開手」的錢終點相同 (4099.4437ms)
+✔ #C3 跳過：動作進行到一半按跳過（props.finish＋hands.finish），手立刻全收、錢與令牌直接到終點，且終點與正常播完相同 (1305.4455ms)
+✔ #C4 決定性：整段事件序列 Math.random 呼叫 0 次；同一事件序列跑兩次，手勢序列（每幀擺位＋骨旋轉）逐值相同 (2065.1934ms)
+✔ #C5 同席同格重複出價＝覆寫：永遠只有一隻手、場上手的物件數不增加；amount 0（熱座清場）同一幀立即收 (193.418ms)
+✔ #C6 落地事件只由令牌發：手的模組不派任何 DOM 事件；四枚令牌各一次 onSlam，且就在令牌 t 到 1 的那一幀 (168.0063ms)
+✔ 第二輪伸入深度（L）：推／拍／收全程，看得見的手（袖口邊以前的真實蒙皮頂點）——北席 z ≤ 托盤北緣＋NORTH_IN；西席 x ≤ −MID、東席 x ≥ MID；南／西／東 z ≥ 托盤前緣−SOUTH_IN (3370.6617ms)
+✔ 第二輪拍：令牌飛行中（t<1）手不上場，落地後才伸進來；令牌落地後四隻手都出現過 (176.8121ms)
+✔ 第三輪袖尾平滑淡出：四手共用材質為真透明（transparent、不用 alphaHash 抖色）、寫深度、alphaTest 丟掉完全隱去的袖布；頂點色帶 alpha (22.3999ms)
+✔ 第三輪信物（L）：推（起手錢柱壓在自家信物上）、拍、收（錢拖回信物旁）全程，看得見的手不進任何信物的本地包圍盒 (4093.7632ms)
+✔ 第三輪信物（P）：推（起手錢柱壓在自家信物上）、拍、收（錢拖回信物旁）全程，看得見的手不進任何信物的本地包圍盒 (4518.8474ms)
+✔ 第四輪排隊時序：一席同一幀推 4 格——各格依序起步 0／0.76／1.22／1.68 秒、落定 0.70／1.16／1.62／2.08 秒（±1.5 幀）；手動作 ≤2.7 秒結束（v0.59.11 放慢：FLY_MS 0.70、QUEUE_FLY 0.40、推後收手 ×PACE） (147.5807ms)
+✔ 第四輪排隊：排隊的第二格推的時候，同一隻手就在那一格的錢柱旁（重新抓這一格的位置），不是留在上一格 (177.4739ms)
+✔ 時序：推＝籌碼飛行 0.42 秒；收＝0.22 秒延遲＋0.42 秒返回；拍跟著令牌（SLAM_MS 0.30） (0.127ms)
+✔ 第二輪縮放：橫式掌寬（GLB Palm 主骨頂點 x 跨度 × SCALE）為錢柱直徑的 2～2.5 倍，且小於第一輪的 0.35 (0.6854ms)
+✔ 第二輪袖子：沒有成團黑塊——看得見（alpha≥0.5）的頂點都不是近黑；袖口以後漸隱；看得見的袖子長度 ≤ 前臂 1/5 (0.5043ms)
+tier1-push: camera envelope, tier gates, reduced motion, cancel/end and per-beat wiring PASS
+✔ tests\tier1-push.test.mjs (621.0913ms)
+✔ scene-shot only fixes the ordinary UI journey when --seed is explicit and reports it (6.3372ms)
+✔ market card capture accepts a repo-relative output and pins baseline git reads (3.8715ms)
+✔ iphone layout capture accepts a repo-relative output without changing its default (1.606ms)
+✔ public reveal capture accepts URL and repo-relative output while keeping seed/defaults (5.4514ms)
+✔ tool option guards reject unsafe paths before starting a browser (1854.2965ms)
+✔ baseline and URL options reject invalid combinations before capture (1753.2881ms)
+✔ scene-shot rejects an invalid explicit seed before capture (513.1424ms)
+✔ scene-shot rejects an empty explicit seed instead of silently using seed 1 (775.4994ms)
+tremble x 圈數：k=1 → 35；k=1.3（傳 k）→ 35；k=1.3（不傳 k）→ 46
+rz 擺動圈數（推的階段）：k=1 → 13；k=1.3 → 13
+(node:10344) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/shung/wt/yaoshi/hands-b3/js/grab-motion.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\shung\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ tremble 17 Hz：k＝1.3 時動作內圈數＝k＝1（±1 圈）；沒傳 k 的行為（＝舊版）會多 1.3 倍 (15.0504ms)
+✔ 推按時符紙堆 rz 9 Hz：CURSE_MS＝2600（k＝1.3）時推的階段內圈數＝CURSE_MS＝2000（±1 圈） (29.0899ms)
+✔ 振幅不動：k＝1.3 的 tremble／rz 峰值與 k＝1 同量級（不被頻率縮放改動） (2.8115ms)
+﹣ k＝1 逐位元：tremble 與 rz 擺動與 v0.62.2（d11d8e9c）逐值 ===（需 YAOSHI_OLD_GM_PATH） (0.1567ms) # 未給 YAOSHI_OLD_GM_PATH
+✔ 3D 拍賣桌把私有心願收進局勢列，不佔桌心 stage (1.7019ms)
+✔ 從側欄查看拍品時，3D 桌上同一件也會進入檢視態 (0.568ms)
+✔ 首頁顯示可核對的發布版本 (0.9793ms)
+
+心願第二批 16 張 行為測試　目標檔：C:\Users\shung\wt\yaoshi\hands-b3\index.html
+
+【甲】
+  PASS  祖靈召喚 達成：得標祖靈法寶
+  PASS  祖靈召喚 未達成：得標的是香火
+  PASS  香火鼎盛 達成：得標香火法寶
+  PASS  香火鼎盛 未達成：得標的是祖靈
+  PASS  三教歸一 達成：袋有祖靈＋香火，本夜補進陰氣
+  PASS  三教歸一 未達成：袋只有祖靈，補進陰氣後仍缺香火
+  PASS  一擲千金 達成：得標戰力 7 的法寶
+  PASS  一擲千金 未達成：得標的只有戰力 5
+【乙】
+  PASS  孤注一擲 達成：只下一筆且得標
+  PASS  孤注一擲 未達成：下了兩筆（都得標也不算）
+  PASS  撿漏 達成：出價 2 得標
+  PASS  撿漏 未達成：出價 5 得標
+  PASS  押命得手 達成：押命標得標
+  PASS  押命得手 未達成：保守標得標
+  PASS  獨行俠 達成：無人競標的拍品得標
+  PASS  獨行俠 未達成：有人跟標（仍得標）
+【丙】
+  PASS  隔岸觀火 達成：鎖定東家，對決把東家打掉 ≥4
+  PASS  隔岸觀火 未達成：東家整夜沒失血
+  PASS  虎口奪食 達成：三人搶同一件、我最高
+  PASS  虎口奪食 未達成：只有一人跟標
+  PASS  禍水東引 達成：毒標塞給鎖定的東家
+  PASS  禍水東引 未達成：毒標塞給了別人
+  PASS  血流成河 達成：兩位對手各被打掉 ≥3
+  PASS  血流成河 未達成：只有一位對手失血
+【丁】
+  PASS  全身而退 達成：對決獲勝、零失血
+  PASS  全身而退 未達成：對決落敗失血
+  PASS  大獲全勝 達成：戰力差 17 → 傷害 6
+  PASS  大獲全勝 未達成：戰力差 2 → 傷害 3
+  PASS  東山再起 達成：得標任一件
+  PASS  東山再起 未達成：整夜沒得標
+  PASS  驅邪 達成：買下銷毀詛咒品
+  PASS  驅邪 未達成：拿詛咒品去毒別人
+【canDraw】
+  PASS  三教歸一：袋已三系齊 → 不發（恆真）
+  PASS  東山再起：不是壽命最低者 → 不發
+  PASS  全身而退：袋中有侵蝕品 → 不發（恆假）
+  PASS  禍水東引：市場無詛咒品 → 不發；有則發且鎖定壽命最高對手
+
+結果：PASS=36 FAIL=0
+✔ tests\wish16.test.mjs (2495.1916ms)
+ℹ tests 504
+ℹ suites 0
+ℹ pass 503
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 1
+ℹ todo 0
+ℹ duration_ms 706530.3308
+
+real	11m46.627s
+user	0m0.015s
+sys	0m0.000s
+exit 0

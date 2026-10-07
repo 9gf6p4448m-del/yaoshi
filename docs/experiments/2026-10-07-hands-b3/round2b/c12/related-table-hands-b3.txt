@@ -1,0 +1,18 @@
+(node:7620) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/shung/wt/yaoshi/hands-b3/js/hand-motion.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\shung\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ 批 3：孝女白琴／閭山法師／普渡爐主各拿專屬手（配件全上場）、每手 ≤6,500 面、一份材質、無貼圖無 UV、不縮放 (308.2144ms)
+✔ 批 3：孝女垂尾（結點→尾端）長 0.35–0.55 × 手掌長（Wrist→MiddleA） (123.343ms)
+✔ 批 3 擺盪：推錢時垂尾／福袋真的晃（≥5% 長）、手停後 1.5 秒收斂（<10% 峰值）；每幀不重建幾何、不耗 Math.random (267.0036ms)
+✔ 批 3 開關：opts.b3=false（同 ?handb3=0）＝三角色退回 v0.62.5 的預設手、不載入批 3 (160.3209ms)
+✔ 批 3 #C1/#C2 L：孝女／閭山／爐主（含配件、擺盪中的垂尾與福袋）推、拍、收每幀不穿錢柱與令牌 (10152.6769ms)
+✔ 批 3 #C1/#C2 P：孝女／閭山／爐主（含配件、擺盪中的垂尾與福袋）推、拍、收每幀不穿錢柱與令牌 (10079.4861ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 21316.3959
