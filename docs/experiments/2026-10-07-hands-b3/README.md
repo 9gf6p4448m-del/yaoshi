@@ -4,7 +4,8 @@
 驗收以 `acceptance.md`（凍結 ff66c398）為準，**一字未改、門檻未放寬**。量測位置：本機桌機 Chromium（ANGLE D3D11）／node；**iPhone 未驗**。未 push、未 merge。
 
 ## 結論
-- 過（有實測證據）：1、2、3、4、5、6、7（含抓取兩種姿勢）、8、10、11、12（相關測試全綠＋全套見下）
+- 過（有實測證據）：1、2、3、4、5、6、7（含抓取兩種姿勢）、8、10、11
+- 12：相關測試全綠、新測試在基準紅；全套 502/504 其中 1 紅（sfx-wiring 超時，同碼另兩次綠、未歸因）＝全套訊號不可信，不宣告全套通過
 - 依指示未做：9 盲讀、13 使用者簽收（素材已產，路徑見下）
 - 部分：14（版本字串已改；不 push ⇒ 線上 curl／Pages 時間未做）
 - 需主對話知悉：條件 8 的最大遮擋在條件 10 修正後由 3.15% 升到 4.18%（仍 ≤10%）；`tests/ui-hierarchy.test.mjs:25` 版本釘改動（主對話另報使用者）
@@ -23,7 +24,7 @@
 | 9 盲讀 | 未做（依指示） | 素材見下 |
 | 10 效能 | **過** | 見下「條件 10 診斷與修正」。修正後 `c10/r2/summary.txt`：A 段 p95 base [2.7, 3.0, 3.5, 2.5, 2.8] 中位 2.8；new [3.1, 3.0, 3.1, 3.0, 2.9] 中位 3.0 ≤ 門檻 2.8×1.15＝3.22（也 ≤ 第一輪基準算的 3.45）。iPhone 未驗 |
 | 11 開關 | 過 | `tools/eq-frames-b3.mjs` 手的 GPU 輸入逐幀雜湊，`tools/eq_compare.py` → `c11/compare-*.txt`：時鐘起點 1e7，`?handb3=0` 對 85c38c6a 連 3 次 **190/190 ×3**；起點 4000 再 1 次 190/190；正對照（批 3 開）108/190（不等 82 幀全在批 3 段，欄＝幾何、矩陣）；`?handreal=0` 新版對基準 190/190。無波動。附記：起點 4000 的兩次（基準與新版都有）console 各 12 筆 404，兩邊相同、原因未查，不影響雜湊；1e7 的各次 0 錯誤 |
-| 12 測試 | 過（見附記） | 相關測試 `c12/related.txt`：table-hands 24/24、table-hands-roles 29/29、table-hands-b3 6/6、hand-jitter 5/5、hand-realism-render 1/1、hand-skin-default 1/1、grab-motion 19/19、ui-hierarchy 3/3（hand-acc-roundness 沒有 .test 檔，以條件 5 治具代替）。全套：第一次 `c12/full-suite-run1-lf-workcopy.txt` 496 過／1 紅（l1-destiny-focus），歸因＝我用 Python 改檔時把工作複本的 CRLF 寫成 LF，該治具用 `\r\n` 錨點比對 index.html；git 內容不變。重新 checkout 恢復 CRLF 後該檔 7/7；全套重跑結果 `c12/full-suite.txt`（見下方「全套重跑」）。新增斷言在 85c38c6a 上：`c12/new-tests-on-85c38c6a.txt`／`-r2.txt` 全紅，紅在行為斷言。既有斷言：只有 ui-hierarchy:25 版本釘（主對話另報） |
+| 12 測試 | 相關測試過；全套不可信 | 相關測試 `c12/related.txt`：table-hands 24/24、table-hands-roles 29/29、table-hands-b3 6/6、hand-jitter 5/5、hand-realism-render 1/1、hand-skin-default 1/1、grab-motion 19/19、ui-hierarchy 3/3（hand-acc-roundness 沒有 .test 檔，以條件 5 治具代替）。全套：第一次 `c12/full-suite-run1-lf-workcopy.txt` 496 過／1 紅（l1-destiny-focus），歸因＝我用 Python 改檔時把工作複本的 CRLF 寫成 LF，該治具用 `\r\n` 錨點比對 index.html；git 內容不變。重新 checkout 恢復 CRLF 後該檔 7/7。全套重跑 `c12/full-suite.txt`：504 項 502 過／1 紅／1 略過——紅的是 `sfx-wiring.test.mjs` 凍結 #6①（seed 3 第 9 夜 driveUntil 300 s 超時，揭盅動畫旗標未落）。同一份產品碼：第一次全套該項綠（782 s）、單獨重跑綠（`c12/sfx-wiring-new-solo.txt`，12 m 14 s）、基準單獨重跑綠（`c12/sfx-wiring-base-solo.txt`）。該測試走真實時間、同 seed 每次夜數不同（非決定性），本卷的手與揭盅結算無資料往來；**這 1 紅未歸因，按 §6.2 標『訊號不可信』，不據以宣告全套通過**（相關測試 8 檔全綠另見上）。新增斷言在 85c38c6a 上：`c12/new-tests-on-85c38c6a.txt`／`-r2.txt` 全紅，紅在行為斷言。既有斷言：只有 ui-hierarchy:25 版本釘（主對話另報） |
 | 13 簽收 | 未做（依指示）；素材已產 | 見「素材」 |
 | 14 版本 | 部分 | index.html VERSION／RELEASE_VERSION／theme.css、safe-area.css `?v=0.63.0`、VERSION_NOTE 前置一段；未 push ⇒ 線上 curl 與 Pages 時間未做 |
 
