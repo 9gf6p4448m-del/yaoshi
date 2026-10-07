@@ -225,4 +225,15 @@ README、IMPLEMENTATION_GUIDE、`2026-10-01-cloud-to-local.md` 這次沒有需�
 
 ## 提交後補記
 
-（提交後填入 commit SHA 與 blob 位元組驗證）
+- 文件提交：`09197e55`（父提交 `f0df42b8`），20 檔、505 行新增、8 行刪除。只用明確檔案清單 `git add`，沒有用 `git add -A`；沒有 merge、push、deploy。
+- commit 內 blob 位元組驗證：
+  ```
+  $ git show HEAD:docs/handoffs/2026-09-15-highlight-cuts.md | sha256sum ; ... | wc -c
+  ac4fa738d53c4669a7c6782bf919d8508f8f11f0795e8b96cfc9d83c7b3bd0cf *-
+  3025
+  $ git show HEAD:docs/handoffs/2026-09-15-mark-scale-and-followups.md | sha256sum ; ... | wc -c
+  8a7d2b8de13e8fca785b9f7a16ba88b7a1f65572ae9c4648f83eafb9f6c2c8e1 *-
+  6350
+  ```
+  兩檔都等於任務表列值（autocrlf 沒有改動位元組；來源本來就是 LF）。
+- 本段補記另以一筆只改本報告的提交加入。
