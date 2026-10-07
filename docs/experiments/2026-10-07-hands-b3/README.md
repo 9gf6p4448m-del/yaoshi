@@ -5,7 +5,7 @@
 
 ## 結論
 - 有證據且過：1、2、3、4、5、6、7、8、11 的一半（只做了 `?handb3=0` 的 node 端退回，GPU 逐幀雜湊未做）
-- 傾向未過（資料未收齊）：**10 效能**——已跑 4 輪交錯，新版 A 段 p95 3.6–3.8 ms vs 基準 2.8–3.2 ms（約 ×1.2，門檻 ×1.15）
+- 未過：**10 效能**——5 輪中位 new 3.7 ms vs 門檻 3.45 ms（基準 3.0×1.15）
 - 未做：9（依指示不做）、11 的 GPU 逐幀雜湊（eq-frames）、12 的相關測試整批與全套、13（依指示不做；並排圖與盲讀截圖**還沒產**）、14 推後 curl（不 push，未做；版本字串已改）
 
 ## 逐條
@@ -20,7 +20,7 @@
 | 7 擺盪 | 過（a/b/c/d） | `node tools/c7-swing.mjs --freeze=60` → `c7/c7-swing-freeze60.json`（量法獨立於產品 state()：尖端頂點 getVertexPosition vs 靜止副本 applyBoneTransform）。**a** 峰值/長：L 垂尾 0.234／0.234、福袋 0.45；P 垂尾 0.279／0.301、福袋 0.45（全 ≥0.05）。**b** 停後 1.5 s 最大偏移/峰值 0.0060–0.0078（<0.10），靜止段 sd/峰值 0.0013–0.0018（<0.02），回到 10% 以下 26–33 幀。**c** 尖端離桌/長 最小 0.18（L 垂尾 2）（≥ −0.05）；全套推→拍→扒 S3 最小 0.17。**d** `c7/c7d-scan.json`：更新路徑（write/flush/reset/update 54 行＋table-hands swingStep 12 行）new／BufferGeometry／clone／陣列配置 0 處；執行期 Math.random 0（條件 1）。鑑別力：GAIN=0 突變 `c7/mutant-gain0.json` a 全紅（峰值 0）；ZETA=0 `c7/mutant-zeta0.json` b 全紅（停後/峰值 ≈1.0）。freeze=24 版 `c7/c7-swing-freeze24.json` 也全過 |
 | 8 遮擋 | 過 | `tools/hands-occlusion-b3.mjs --seats=xiaonv,lvshan,luzhu,zutou` 連 5 次 → `c8/occl-b3seats-{1..5}.json`＋.log：5/5 pass，最大 3.15–3.17%（≤10%）。各情境逐次有小差（如「推」0.0000 vs 0.0074），是治具時鐘起點用真實時間（批 1 README 已歸因），不影響判定 |
 | 9 盲讀 | 未做（依指示） | — |
-| 10 效能 | **未收齊，傾向未過** | `tools/perf-b3.mjs` 交錯 base/new，`c10/progress.log`：A 段（孝女／閭山／爐主／組頭）p95：base 3.0, 2.8, 3.2, 2.8；new 3.7, 3.7, 3.6, 3.8（mean 幾乎相同 1.55–1.68 vs 1.66–1.68）。第 5 輪仍在背景跑。四輪中位 base 2.9 → 門檻 3.34，new 3.7 ⇒ 若第 5 輪不翻轉即**紅**。未診斷來源（推測：配件頂點進碰撞取樣，placeAt 點數 +~20%）；`tools/cpu-node.mjs` 已寫未跑 |
+| 10 效能 | **未過** | `tools/perf-b3.mjs` 5 輪交錯（base/new），`python tools/c10_summary.py "" c10` → A 段（孝女／閭山／爐主／組頭）hands.update p95：base [3.0, 2.8, 3.2, 2.8, 3.0] 中位 3.0；new [3.7, 3.7, 3.6, 3.8, 4.1] 中位 3.7；門檻 3.0×1.15＝3.45 ⇒ **紅**（mean 幾乎相同 ~1.6–1.7 ms，差在尾端）。B 段既有手 4.1→4.2（參考）。來源未診斷（推測：配件／垂掛物頂點進碰撞取樣，placeAt 點數 +~20%；擺盪 swingStep 另有每幀 updateWorldMatrix）；`tools/cpu-node.mjs` 已寫未跑。依凍結檔不放寬，需改實作（例：配件碰撞點降採樣）後重量 6／7／8／10 |
 | 11 開關 | 部分 | node：`opts.b3=false` 三角色退回預設手（測試第 4 條綠）；實頁 `?handb3=0` c3 13/47 同基準。**GPU 輸入逐幀雜湊 3 次對 85c38c6a：未做**（`tools/eq-frames-b3.mjs` 已備未跑）。`?handreal=0`：未做 |
 | 12 測試 | 部分 | 新測試 `node --test tests/table-hands-b3.test.mjs` 4/4 綠；同檔放到 85c38c6a 跑 `c12/new-tests-on-85c38c6a.txt` 0/4（紅在行為斷言：variants／垂尾數）。既有相關測試整批、全套：**未跑** |
 | 13 簽收 | 未做（依指示）；素材也未產 | `tools/contact_b3.py` 已寫未跑 |
