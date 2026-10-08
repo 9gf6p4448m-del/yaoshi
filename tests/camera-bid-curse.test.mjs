@@ -62,6 +62,7 @@ function run(src, script, { reduced = false, three = THREE, extra = {}, gate = n
   for (const op of script) {
     if (op[0] === 'fire') for (const f of listeners.get(op[1]) || []) f({ detail: op[2] });
     else if (op[0] === 'step') for (let i = 0; i < op[1]; i++) { now += MS; if (gate) gate.on = true; director.update(DT, now); if (gate) gate.on = false; rec(); }
+    else if (op[0] === 'hitch') for (let i = 0; i < op[1]; i++) { now += op[2] * 1000; director.update(op[2], now); rec(); } // 卡頓幀：dt＝op[2] 秒
     else if (op[0] === 'mark') marks[op[1]] = frames.length - 1; // 這一格＝目前最後一幀（事件前那一幀）
   }
   return { frames, marks, camera, ref0 };
@@ -159,6 +160,33 @@ test('§6.2 喊價者切換時從當前 K 接續：相鄰幀 |ΔK| ≤ 0.15、�
 });
 
 // ───────────────────────── §6.1 中咒鏡頭 ─────────────────────────
+test('§6.2 卡頓幀（dt 0.1s）餵入：喊價 K 單幀 |ΔK| 仍 ≤ 0.15（dt 夾限），視線單幀 ≤1.5°；dt＝1/60 的幀不受夾限影響', () => {
+  const full = run(NEW_SRC, [...SETTLE, ['mark', 'pre'], ['fire', 'ys:bid', { seat: 1, slot: 0, amount: 4 }], ['step', 40]]);
+  const d0 = len(sub(full.frames[full.marks.pre].p, ANCHOR_TABLE));
+  const kmax = Math.max(...pushOf(full.frames, ANCHOR_TABLE, d0));
+  const script = [...SETTLE, ['mark', 'pre'],
+    ['fire', 'ys:bid', { seat: 1, slot: 0, amount: 4 }], ['step', 3], ['hitch', 1, 0.1], ['step', 10], ['hitch', 2, 0.1],
+    ['fire', 'ys:bid', { seat: 3, slot: 2, amount: 6 }], ['hitch', 1, 0.1], ['step', 20], ['hitch', 1, 0.1], ['step', 150]];
+  const { frames, marks } = run(NEW_SRC, script);
+  const K = pushOf(frames, ANCHOR_TABLE, d0).map((x) => x / kmax);
+  assert.ok(Math.max(...K) > 0.5, '前置：卡頓序列中鏡頭有推近');
+  for (let i = marks.pre + 1; i < frames.length; i++) {
+    assert.ok(Math.abs(K[i] - K[i - 1]) <= 0.15 + 1e-9, `第 ${i} 幀 |ΔK|=${Math.abs(K[i] - K[i - 1])} > 0.15（卡頓幀 dt 沒夾限）`);
+    assert.ok(fwd(frames[i]).angleTo(fwd(frames[i - 1])) / DEG <= 1.5, `第 ${i} 幀視線單幀轉 >1.5°`);
+  }
+  assert.ok(diffFrame(frames.at(-1), frames[marks.pre]) <= 1e-9, '卡頓序列結束後回位');
+});
+
+test('§6.2 喊價 amount＝0（收回／清場）不推鏡；推近比例釘住：單次出價微推平台＝3.5%（push 10% × micro 0.35）', () => {
+  const zero = run(NEW_SRC, [...SETTLE, ['mark', 'pre'], ['fire', 'ys:bid', { seat: 2, slot: 1, amount: 0 }], ['step', 60],
+    ['fire', 'ys:bid', { seat: 2, slot: 1, amount: -1 }], ['step', 60]]);
+  assert.ok(maxDiff(zero.frames, zero.frames.map(() => zero.frames[zero.marks.pre]), zero.marks.pre) <= 1e-12, 'amount≤0 時相機要完全不動');
+  const one = run(NEW_SRC, [...SETTLE, ['mark', 'pre'], ['fire', 'ys:bid', { seat: 2, slot: 1, amount: 5 }], ['step', 60]]);
+  const d0 = len(sub(one.frames[one.marks.pre].p, ANCHOR_TABLE));
+  const pk = Math.max(...pushOf(one.frames, ANCHOR_TABLE, d0));
+  assert.ok(Math.abs(pk - 0.035) <= 1e-6, `喊價微推平台應為 3.5%（量到 ${pk}）；推近比例 0.10 被改動會在這裡紅`);
+});
+
 test('§6.1 中咒：朝受咒者推近、到位 ∈[0.6,1.0]s、推近段不減／回位段不增、純徑向、回位 ≤1e-9', () => {
   const script = [...SETTLE, ...AT_SLOT1, ['mark', 'pre'], ['fire', 'ys:reveal-result', curseDetail()], ['step', 200]];
   const { frames, marks } = run(NEW_SRC, script);
@@ -168,6 +196,7 @@ test('§6.1 中咒：朝受咒者推近、到位 ∈[0.6,1.0]s、推近段不減
   const p = pushOf(frames, ANCHOR_SLOT1, d0);
   const pk = Math.max(...p);
   assert.ok(pk > 1e-3, `中咒後相機要推近（最大推近比例 ${pk}）`);
+  assert.ok(Math.abs(pk - 0.14) <= 1e-3, `中咒推近比例釘住 14%（量到 ${pk}）；push 0.14 被改動會在這裡紅`);
   const peakAt = p.findIndex((x, i) => i > marks.pre && x >= pk - 1e-12);
   const peakMs = frames[peakAt].t - frames[marks.pre].t;
   assert.ok(peakMs >= 600 && peakMs <= 1000, `到位時間 ${peakMs}ms 不在 [600,1000]`);

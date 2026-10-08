@@ -164,6 +164,7 @@ const BID_CAM = {
   holdMs: 1000, // 出價後微推停留多久（之後回位）（不用 900：那是招式時長的字面值，fxtier F1 守門）
   rate: 2.5, // K 的固定變化速率（每秒）：上下都走直線，喊價者切換時從當下 K 接續、不跳
   aimDegPerS: 300, // 喊價者切換時，視線的方位角以固定角速度轉過去（不瞬移）
+  maxDt: 1 / 50, // K／視線步進用的 dt 上限（秒）：卡頓幀 dt 大時不讓 K 單幀跳 >0.15（以微推平台為 1）；dt≤1/50 的幀不受影響
 };
 
 /** prefers-reduced-motion（判法照抄 js/trait-fx.js:83）：(a)(b) 整段 no-op，(c) 的 punch 維持現行行為。 */
@@ -724,12 +725,12 @@ export function createCameraDirector(camera, lanterns) {
     // 以固定速率 BID_CAM.rate 往目標走（上下都是直線、單調），回到 0 的那一幀補寫基座。全部確定性，不抽亂數。
     const bidWant = now < bidUntil ? BID_CAM.micro : 0;
     if (bidK !== bidWant) {
-      const stepK = BID_CAM.rate * dt;
+      const stepK = BID_CAM.rate * Math.min(dt, BID_CAM.maxDt);
       bidK = bidK < bidWant ? Math.min(bidWant, bidK + stepK) : Math.max(bidWant, bidK - stepK);
       if (bidK === 0) forceWrite = true;
     }
     if (bidK > 0 && bidAimYaw !== bidSeatYaw) {
-      const dd = shortestDelta(bidAimYaw, bidSeatYaw), m = BID_CAM.aimDegPerS * dt;
+      const dd = shortestDelta(bidAimYaw, bidSeatYaw), m = BID_CAM.aimDegPerS * Math.min(dt, BID_CAM.maxDt);
       bidAimYaw = Math.abs(dd) <= m ? bidSeatYaw : bidAimYaw + Math.sign(dd) * m;
     }
     if (!orbitHold && orbitU < 1 && !focusOn) orbitU = Math.min(1, orbitU + (dt * 1000) / ORBIT.ms);
