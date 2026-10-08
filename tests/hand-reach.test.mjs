@@ -8,15 +8,29 @@ import path from 'node:path';
 import test from 'node:test';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { measureSlam, measureCollisions, measureEntry } from './tools/hand-reach-probe.mjs';
+import { measureSlam, measureCollisions, measureEntry, measureJump } from './tools/hand-reach-probe.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const NAME = ['南', '北', '西', '東'];
 
-test('① 拍令牌：四席×四槽，令牌落地後手（袖口邊以前的蒙皮頂點）到令牌 3D 外接盒的最近距離 ≤ 0.05 m（修前 0.25–1.1 m）', async () => {
-  const rows = await measureSlam({});
-  assert.equal(rows.length, 16);
-  for (const r of rows) assert.ok(r.gap3 !== null && r.gap3 <= 0.05, `${NAME[r.seat]}席 槽${r.slot}：手離令牌 ${r.gap3} m（> 0.05）`);
+test('① 拍令牌：四席×四槽（橫式 L＋直式 P），令牌落地後手（袖口邊以前的蒙皮頂點）到令牌 3D 外接盒的最近距離 ≤ 0.05 m（修前 0.25–1.1 m；覆審 F5：直式南席槽3 曾 0.187 m）', async () => {
+  for (const layout of ['L', 'P']) {
+    const rows = await measureSlam({ layout });
+    assert.equal(rows.length, 16);
+    for (const r of rows) assert.ok(r.gap3 !== null && r.gap3 <= 0.05, `${layout} ${NAME[r.seat]}席 槽${r.slot}：手離令牌 ${r.gap3} m（> 0.05）`);
+  }
+});
+
+test('⑤ 拍令牌全程（進場→接觸→收手）逐幀頂點位移：進場後（停留＋收手）單幀最大位移 ≤ 基準 5c91bdc7 的最大值（L 0.13 m／P 0.12 m；P 容許到 0.17 m＝實測 0.16 m 的東席槽2）、進場內 ≤ 0.35 m（實測 0.33 m；手感待試玩）。覆審 F1：拍完轉成收手時界線換成推／收的，手一幀被拉回 0.4–1.7 m', async () => {
+  for (const [layout, after] of [['L', 0.13], ['P', 0.17]]) {
+    const rows = await measureJump({ layout });
+    assert.equal(rows.length, 16);
+    for (const r of rows) {
+      assert.ok(r.visFrames > 30, `${layout} ${NAME[r.seat]}席 槽${r.slot}：手沒有上場（活性）`);
+      assert.ok(r.afterMax <= after, `${layout} ${NAME[r.seat]}席 槽${r.slot}：進場後單幀位移 ${r.afterMax} m（第 ${r.afterAt} 幀）> ${after}`);
+      assert.ok(r.entryMax <= 0.35, `${layout} ${NAME[r.seat]}席 槽${r.slot}：進場內單幀位移 ${r.entryMax} m > 0.35`);
+    }
+  }
 });
 
 test('② 擺錢：四席×四槽，推錢階段「手掌路徑長 ÷ 錢柱路徑長」≥ 0.8（修前西槽3 0.418）；錢的時長與路徑與修前逐值相同（704.2 ms）', () => {

@@ -89,7 +89,7 @@ async function measure(slow) {
                 if (lb <= CONTACT) {
                   g.mIn += d; if (gap <= CONTACT) { g.cIn += d; g.runIn = 0; } else { g.runIn += d; g.runOutIn = Math.max(g.runOutIn, g.runIn); }
                   if (g.hprev) { g.pmIn += d; if (!h.visible || Math.hypot(hp.x - g.hprev[0], hp.z - g.hprev[1]) < 0.2 * d) g.pinIn += d; }
-                } else g.lg = Math.max(g.lg, lineGap(h, Lb));
+                } else { const lgv = lineGap(h, Lb); g.lg = Math.max(g.lg, lgv); g.lgMin = Math.min(g.lgMin === undefined ? Infinity : g.lgMin, lgv); }
               }
             }
             g.prev = [st.x, st.z]; g.hprev = [hp.x, hp.z];
@@ -123,6 +123,11 @@ for (const slow of [1, 1.5]) {
     for (const k of ['money:1:1', 'moneyN:1:3', 'queueN:1:0', 'queueN:1:1', 'queueN:1:2']) assert.ok(out.some((r) => r.key === k), `北席 ${k} 要有界線外幀（實際 ${out.map((r) => r.key).join(',')}）`);
     assert.ok(out.length >= 5, `北席五段都有界線外幀（實際 ${out.length} 段）`);
     for (const r of out) assert.ok(r.lg <= 0.05, `${r.key} lineGap ${r.lg.toFixed(3)} > 0.05`);
+  });
+  test(`擺錢推（slow=${slow}）條件 5：錢柱出了手搆得到的範圍後，手不越過伸入界線（lineGap 最小值 ≥ −0.005；覆審 F7：條件 2 只看「停得夠近」，界線被拿掉時手越線也綠）`, () => {
+    const out = rows.filter((r) => r.lg > -Infinity);
+    assert.ok(out.length >= 5, `有界線外幀的段（實際 ${out.length} 段）`);
+    for (const r of out) assert.ok(r.lgMin >= -0.005, `${r.key} 手越過伸入界線 ${(-r.lgMin).toFixed(3)} m`);
   });
   test(`擺錢推（slow=${slow}）條件 4：界線內「錢在動、手幾乎不動」的位移比例 pinFrac_in ≤0.20`, () => {
     const PM = rows.reduce((a, r) => a + r.pmIn, 0), PI = rows.reduce((a, r) => a + r.pinIn, 0);

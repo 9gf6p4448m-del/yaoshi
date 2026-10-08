@@ -82,11 +82,33 @@ const STRIDE = 6;
 const handMin = (r, a, b) => { const A = handVerts(r, a), B = handVerts(r, b); if (!A || !B) return null; let m = 1e9;
   for (let i = 0; i < A.length; i += STRIDE) for (let j = 0; j < B.length; j += STRIDE) { const dx = A[i][0] - B[j][0], dy = A[i][1] - B[j][1], dz = A[i][2] - B[j][2], d = dx * dx + dy * dy + dz * dz; if (d < m) m = d; }
   return Math.sqrt(m); };
+/** 拍令牌全程（進場→接觸→收手）逐幀「看得見的蒙皮頂點」單幀位移（公尺，同一頂點相鄰兩幀的距離最大值）。
+ *  entryMax＝手第一個可見幀起 ENTRY_FRAMES 幀內（進場滑行）；afterMax＝其後（停留＋收手）。覆審 F1：收手一轉成 retract 就換界線時，手單幀瞬移 0.4–0.9 m（基準 5c91bdc7 最大 0.13 m）。 */
+export async function measureJump({ layout = 'L', seats = [0, 1, 2, 3], slots = [0, 1, 2, 3], entryFrames = 26 } = {}) {
+  const r = await rig(layout), out = [];
+  for (const seat of seats) for (const slot of slots) {
+    r.props.clearRound(); r.hands.clear(); for (let i = 0; i < 12; i++) step(r);
+    r.props.mark(seat, slot); r.hands.mark(seat, slot);
+    let prev = null, first = null, entryMax = 0, afterMax = 0, afterAt = -1, vis = 0;
+    for (let i = 0; i < 60 * 4; i++) {
+      step(r); const pts = handVerts(r, seat);
+      if (!pts) { prev = null; continue; }
+      if (first === null) first = i; vis++;
+      if (prev && prev.length === pts.length) {
+        let m = 0; for (let k = 0; k < pts.length; k += 3) m = Math.max(m, Math.hypot(pts[k][0] - prev[k][0], pts[k][1] - prev[k][1], pts[k][2] - prev[k][2]));
+        if (i - first < entryFrames) entryMax = Math.max(entryMax, m); else if (m > afterMax) { afterMax = m; afterAt = i - first; }
+      }
+      prev = pts;
+    }
+    out.push({ seat, slot, entryMax: +entryMax.toFixed(4), afterMax: +afterMax.toFixed(4), afterAt, visFrames: vis });
+  }
+  r.hands.dispose(); r.props.dispose(); return out;
+}
 const boxHit = (a, b) => a.mn[0] < b.mx[0] && a.mx[0] > b.mn[0] && a.mn[1] < b.mx[1] && a.mx[1] > b.mn[1] && a.mn[2] < b.mx[2] && a.mx[2] > b.mn[2];
 export async function measureCollisions({ layout = 'L' } = {}) {
   const r = await rig(layout);
-  /* 令牌拍下接觸窗口（修訂1，同 hands-occlusion）：該席令牌落地起 ENTRY_MAX＋TREMBLE_MS＋HOLD_MS 秒。hhOut＝兩隻手都不在窗口內的手×手 AABB 相交幀數（窗口外，門檻原值）。 */
-  let land = {}, n = 0; const WIN = Math.ceil((M.HAND.SLAM.ENTRY_MAX + M.HAND.SLAM.TREMBLE_MS + M.HAND.SLAM.HOLD_MS) * 60);
+  /* 令牌拍下接觸窗口（修訂1，同 hands-occlusion）：該席令牌落地起 0.66 秒（寫死）。hhOut＝兩隻手都不在窗口內的手×手 AABB 相交幀數（窗口外，門檻原值）。 */
+  let land = {}, n = 0; const WIN = Math.ceil(0.66 * 60); // 寫死 0.66 s（覆審 F3：不從受測實作的 ENTRY_MAX 讀入）；node 版手速倍率＝1
   const inWin = (s) => land[s] !== undefined && n >= land[s] && n <= land[s] + WIN; let hh = 0, hhOut = 0, hhMesh = 0, hhMin = 1e9, ho = 0, live = 0, ph = 'bid', sh = 0; const where = {}, detail = {};
   for (let shift = 0; shift < 4; shift++) {
     sh = shift; ph = 'bid';
@@ -118,10 +140,11 @@ export async function measureCollisions({ layout = 'L' } = {}) {
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
   const arg = (k) => process.argv.find((a) => a.startsWith(`--${k}=`))?.slice(k.length + 3);
   const layout = arg('layout') || 'L';
-  const slam = await measureSlam({ layout }), entry = await measureEntry({ layout }), col = await measureCollisions({ layout });
+  const slam = await measureSlam({ layout }), entry = await measureEntry({ layout }), jump = await measureJump({ layout }), col = await measureCollisions({ layout });
   console.log('slam gap3(m) 席×槽'); for (const s of [0, 1, 2, 3]) console.log(NAME[s], slam.filter((x) => x.seat === s).map((x) => (x.gap3 ?? 'NA').toString().padStart(7)).join(' '));
   console.log('進場首幀在托盤布面內的頂點數（席×槽）'); for (const s of [0, 1, 2, 3]) console.log(NAME[s], entry.filter((x) => x.seat === s).map((x) => (x.inside ?? 'NA').toString().padStart(7)).join(' '));
+  console.log('單幀頂點位移 (進場內最大｜其後最大，m)'); for (const s of [0, 1, 2, 3]) console.log(NAME[s], jump.filter((x) => x.seat === s).map((x) => `${x.entryMax.toFixed(2)}|${x.afterMax.toFixed(2)}`.padStart(11)).join(' '));
   console.log('collisions', JSON.stringify({ ...col, detail: undefined })); if (process.env.DETAIL) console.log(JSON.stringify(col.detail));
-  if (arg('json')) fs.writeFileSync(arg('json'), JSON.stringify({ slam, entry, col }, null, 1));
+  if (arg('json')) fs.writeFileSync(arg('json'), JSON.stringify({ slam, entry, jump, col }, null, 1));
   process.exit(0);
 }

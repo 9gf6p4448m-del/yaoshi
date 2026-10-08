@@ -13,7 +13,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 
 const HERE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const opt = {}; for (const a of process.argv.slice(2)) { const m = a.match(/^--([a-z]+)(?:=(.*))?$/); if (m) opt[m[1]] = m[2] === undefined ? true : m[2]; }
+const opt = {}; for (const a of process.argv.slice(2)) { const m = a.match(/^--([a-z-]+)(?:=(.*))?$/); if (m) opt[m[1]] = m[2] === undefined ? true : m[2]; }
 const ROOT = opt.root ? path.resolve(opt.root) : HERE;
 const PORT = Number(opt.port || 8983);
 const SHEETS = opt.sheets ? path.resolve(HERE, opt.sheets) : null;
@@ -41,7 +41,7 @@ try {
     else await page.evaluate(() => [...document.querySelectorAll('#stage button')].find((b) => !b.disabled)?.click());
     await page.waitForTimeout(20);
   }
-  await page.evaluate(async () => {
+  await page.evaluate(async (EXEMPT_RETRACT) => {
     const T = await import('three');
     const Y = window.__yaoshi3d; await Y.tray.loaded(); if (Y.tray.hands.ready) await Y.tray.hands.ready();
     Y.tray.props.clearRound(); Y.tray.hands.clear && Y.tray.hands.clear();
@@ -87,15 +87,16 @@ try {
       saved.forEach(([o, v]) => { o.visible = v; });
       scene.background = bg; R.setClearColor(cc, ca); R.setRenderTarget(null);
       const per = without.n.map((a, i) => (a >= 40 ? (a - withHands.n[i]) / a : null));
-      return { hands: hands.length, items: roots.length, itemPx: without.n, occl: per, perHand, handShare: handOnly.any / (W * H) };
+      return { kinds: Object.entries(Y.tray.hands.stats().state).map(([k, v]) => k + ':' + (v && v.kind)).join(','), hands: hands.length, items: roots.length, itemPx: without.n, occl: per, perHand, handShare: handOnly.any / (W * H) };
     }
     /* 修訂1（docs/experiments/2026-10-08-hand-reach/README.md）：令牌拍下接觸窗口＝該席令牌落地（ys:mark-slam）起到手拍完（進場 ENTRY_MAX＋微顫＋停留）為止。
        只有這一段、而且只有那一席的手，遮擋量另列、不進 ≤10% 閘門；其餘時段與情境照舊。 */
-    const HM = await import('/js/hand-motion.js'); const SLM = HM.HAND.SLAM;
-    const land = {}; document.addEventListener('ys:mark-slam', (e) => { const k = e.detail && e.detail.slot; if (k !== undefined && land[k] === undefined) land[k] = clock.n; }); // detail 只有 slot；拍場景每席一格（slot＝(席+1)%4）
-    const WIN = Math.ceil((SLM.ENTRY_MAX + SLM.TREMBLE_MS + SLM.HOLD_MS) * 60);
+        const land = {}; document.addEventListener('ys:mark-slam', (e) => { const k = e.detail && e.detail.slot; if (k !== undefined && land[k] === undefined) land[k] = clock.n; }); // detail 只有 slot；拍場景每席一格（slot＝(席+1)%4）
+    /* 窗口長度寫死 0.66 s（覆審 F3：不得從受測實作的 ENTRY_MAX 讀入，否則進場改 3 秒窗口跟著變長、閘門照過）× 手速倍率（頁面預設 handslow＝1.5：手的時間整個放慢，
+       取自網址設定 window.YS_ANIM_SLOW，不是受測實作的常數；沒有＝1）。1.5 時＝60 步。 */
+    const HS = (window.YS_ANIM_SLOW && window.YS_ANIM_SLOW.hand > 0) ? window.YS_ANIM_SLOW.hand : 1, WIN = Math.ceil((0.66 + (EXEMPT_RETRACT ? 0.30 : 0)) * HS * 60); // --exempt-retract（預設關）：把收手（RETRACT_MS 0.30 s）也算進豁免——這是再一次移動及格線，沒有使用者同意不得當正式結果
     window.__ho = { clock, land, WIN, measure, ev: (n, d) => document.dispatchEvent(new CustomEvent(n, { detail: d })) };
-  });
+  }, !!opt['exempt-retract']);
 
   /** 一段動作：派事件、走 steps 步，每 2 步量一次；shots＝要截圖的步數。 */
   async function scenario(name, prep, fire, steps, shots = [], slamSlotOf = null) {
@@ -124,14 +125,14 @@ try {
     return { name, samples: samples.length, samplesWithHands: live.length,
       occlusionMax: occ.length ? Math.max(...occ) : 0, slamWindow: win ? { samplesInWindow: winN, occlusionMaxInWindow: winMax, winSteps: win.WIN, land: win.land } : null, occlusionMeanOfFrameMax: perSampleMax.length ? perSampleMax.reduce((a, b) => a + b, 0) / perSampleMax.length : 0,
       handShareMax: live.length ? Math.max(...live.map((x) => x.handShare)) : 0, handShareMean: live.length ? live.reduce((a, x) => a + x.handShare, 0) / live.length : 0,
-      worst: live.slice().sort((a, b) => b.gate - a.gate)[0] || null, frames };
+      series: live.map((x) => [x.step, x.hands, +x.gate.toFixed(3), x.kinds]), worst: live.slice().sort((a, b) => b.gate - a.gate)[0] || null, frames };
   }
   const six = (n) => [0, 1, 2, 3, 4, 5].map((k) => 1 + Math.round(k * (n - 1) / 5));
   const bids = (list) => list.map(([s, k, a]) => ['ys:bid', { seat: s, slot: k, amount: a }]);
   const runs = [];
   runs.push(await scenario('推', [], bids([[0, 1, 8], [1, 2, 5], [2, 0, 3], [3, 3, 6]]), 46, six(44)));
   runs.push(await scenario('推（四家同一格）', [], bids([[0, 2, 3], [1, 2, 6], [2, 2, 8], [3, 2, 12]]), 46));
-  runs.push(await scenario('拍', [], [0, 1, 2, 3].map((s) => ['ys:mark', { seat: s, slot: (s + 1) % 4 }]), 56, six(54), (s) => (s + 1) % 4));
+  runs.push(await scenario('拍', [], [0, 1, 2, 3].map((s) => ['ys:mark', { seat: s, slot: (s + 1) % 4 }]), 130, six(128), (s) => (s + 1) % 4)); // 130 步＝令牌落地（約第 27 步）＋窗口（手速 1.5 時 60 步）＋收手（0.3 s×1.5）還有餘（覆審 F2：原 56 步在窗口結束前就停了、窗口外樣本＝0）
   runs.push(await scenario('收', bids([[0, 1, 3], [1, 1, 6], [2, 1, 8], [3, 1, 5]]), [['ys:reveal-result', { slot: 1, winner: 3 }]], 62, six(60)));
   /* 第四輪：一席推多格改排隊，整段演出最長 ≈1.56 秒——量測窗從 46 步（0.77 秒）拉到 100 步（1.67 秒），排隊後段也量到 */
   runs.push(await scenario('AI 一次推多格', [], bids([1, 2, 3].flatMap((s) => [0, 1, 2, 3].map((k) => [s, k, 2 + ((s + k) % 6)]))), 100, six(98)));
@@ -189,6 +190,8 @@ const summary = Object.fromEntries(result.runs.map((r) => [r.name, { occlMax: +r
 /* 第二輪加嚴的自我驗收：橫式三動作（含同格、一次多格）每一格拍品被手遮住的比例，最大值 ≤10%；每段都要真的有手上場（活性）。 */
 const gates = {
   occlusion_le_10pct: result.runs.every((r) => r.samplesWithHands > 5 && r.occlusionMax <= 0.10),
+  /* 窗口外要真的量到手（覆審 F2：量測在窗口結束前就停、或窗口被設成吞掉整段，閘門會空轉）；--exempt-retract 時收手也被豁免，窗口外本來就沒有手，不檢。 */
+  slam_outside_window_measured: opt['exempt-retract'] ? true : result.runs.filter((r) => r.slamWindow).every((r) => r.samplesWithHands - r.slamWindow.samplesInWindow >= 5),
   handoffClears: result.handoff.visibleAfter === 0, skipClears: result.skip.visibleAfter === 0,
   duelHides: result.duel.trayVisible === false && result.duel.handsRendered === 0, noPageErrors: result.errors.length === 0,
 };
