@@ -2,7 +2,11 @@
 // 到達場景後解凍等 0.8 秒，再量 2.5 秒：draw call＝在 WebGL context 上數 drawElements／drawArrays（含 Instanced）每次 renderer.render
 // 實際送出的數量（含陰影圖那幾趟）；CPU 幀時間＝同一個 rAF 時間戳底下所有回呼的 JS 執行時間合計；幀間隔＝rAF 時間戳差。
 // 與示意不同處：示意在同一頁執行期切燈光；產品的燈光開頁就定，所以每案各開一頁（v0.64.0 樹 vs 本分支），由呼叫端交錯跑兩輪。
-// 用法：node tests/tools/light-aplus-perf.mjs <root> <query> <bid|reveal|phone> <out.json> [--vsync]
+// 用法：node tests/tools/light-aplus-perf.mjs <root> <query> <bid|reveal|phone> <out.json> [--vsync] [--cam-trigger]
+// --cam-trigger（v0.65.1 運鏡乙驗收 §5，只加觸發、不改量法）：量測窗一開始就派鏡頭事件，讓 2.5 秒窗落在新鏡頭作用中——
+//   bid：每 100ms 派一次 ys:bid-clock（剩餘 2600→100ms＝「最後 3 秒收緊」，seat 1；1.2 秒時換 seat 3＝喊價者切換）；
+//   reveal：派一次 ys:reveal-result（transferTarget 3、curseMs 2000、slot null）＝中咒 0.8 秒推近＋停留＋回位都在窗內。
+//   slot null 讓 renderer 的托盤結算整段早退（只有鏡頭收這個事件），基準樹（5c91bdc7）沒有這兩個監聽者＝同一份觸發下的空操作。
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
@@ -14,6 +18,7 @@ const { chromium } = createRequire(path.join(HERE, '../../tools/anyCreature/pack
 const [ROOT, QUERY = '', SCENE = 'bid', OUTF] = process.argv.slice(2);
 // --vsync：不關 vsync、不解鎖幀率（rAF 約 60Hz）。覆審 HIGH-1：不鎖幀時重畫比會被高幀率稀釋，所以「每幀陰影重畫比」與 draw 中位數以 60Hz 這組為準。
 const VSYNC = process.argv.includes('--vsync');
+const CAM_TRIGGER = process.argv.includes('--cam-trigger');
 const PORT = 9960 + Math.floor(Math.random() * 30);
 const SEED = 3;
 const VP = SCENE === 'phone' ? { width: 844, height: 390 } : { width: 1280, height: 720 };
@@ -105,7 +110,19 @@ try {
     sm.render = function (l, s, c) { if (window.__dcOn && sm.enabled && (sm.autoUpdate || sm.needsUpdate) && l.length) window.__sr++; return so.call(this, l, s, c); };
     window.__rafStats = { byT: new Map() }; window.__dcOn = true;
   });
+  if (CAM_TRIGGER) await page.evaluate((scene) => {
+    const fire = (n, d) => document.dispatchEvent(new CustomEvent(n, { detail: d }));
+    // 活性紀錄（不進量測）：觸發前與窗內某一刻的相機位置——基準樹應相同、新版應不同，證明觸發真的有被鏡頭吃到
+    const C = window.__yaoshi3d.camera, snap = () => C.position.toArray();
+    window.__camLive = { before: snap() };
+    setTimeout(() => { window.__camLive.during = snap(); }, scene === 'reveal' ? 1200 : 2300);
+    if (scene === 'reveal') { fire('ys:reveal-result', { winner: 2, slot: null, transferTarget: 3, destroy: false, grabMs: 1260, curseMs: 2000, skip: false }); return; }
+    const t0 = performance.now();
+    const tick = () => { const e = performance.now() - t0, r = Math.max(0, 2600 - Math.floor(e / 100) * 100); fire('ys:bid-clock', { seat: e < 1200 ? 1 : 3, remainMs: r }); if (r <= 0 || !window.__dcOn) clearInterval(window.__camTick); };
+    tick(); window.__camTick = setInterval(tick, 100);
+  }, SCENE);
   await page.waitForTimeout(2500);
+  if (CAM_TRIGGER) out.camLive = await page.evaluate(() => window.__camLive);
   const r = await page.evaluate(() => { window.__dcOn = false; const st = window.__rafStats; window.__rafStats = null; return { ts: [...st.byT.keys()], cpu: [...st.byT.values()], dc: window.__dc, sr: window.__sr, programs: window.__yaoshi3d.renderer.info.programs.length }; });
   const intv = []; for (let i = 1; i < r.ts.length; i++) intv.push(r.ts[i] - r.ts[i - 1]);
   out.raw = { cpu: r.cpu, intv, dc: r.dc };
@@ -114,4 +131,4 @@ try {
 } finally { await browser.close(); srv.kill(); }
 fs.writeFileSync(OUTF, JSON.stringify(out));
 const med = (x) => { const s = [...x].sort((p, q) => p - q); return s.length ? s[Math.floor(s.length / 2)] : null; };
-console.log(JSON.stringify({ scene: SCENE, q: QUERY, frames: out.frames, cpuMed: med(out.raw.cpu), dcMed: med(out.raw.dc), intvMed: med(out.raw.intv), shadowRenders: out.shadowRenders, errors: out.errors }));
+console.log(JSON.stringify({ scene: SCENE, q: QUERY, trig: CAM_TRIGGER, camLive: out.camLive, frames: out.frames, cpuMed: med(out.raw.cpu), dcMed: med(out.raw.dc), intvMed: med(out.raw.intv), shadowRenders: out.shadowRenders, errors: out.errors }));
