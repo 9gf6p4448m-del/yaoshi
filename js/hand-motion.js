@@ -48,9 +48,12 @@ export const HAND = {
     CUFF: [0.130, 0.045, 0.030], // 舊棗紅袖口（sRGB 約 #643b30）：和暗紅桌布／木色同一族，不是黑
     CLOTH: [0.060, 0.022, 0.016], // 漸隱段的袖布：比袖口暗一階，仍非純黑
   },
-  /** 每席手能伸到哪（第二輪）：北席指尖不越過「自己那側的托盤前緣」再多 NORTH_IN；西／東席不越過托盤中線 x＝0（留 MID）。
-   *  南席（玩家自己）指尖不伸進托盤前緣以內超過 SOUTH_IN（量測：伸過去就擋在拍品腳前）。 */
-  REACH: { NORTH_IN: 0.05, MID: 0.06, SOUTH_IN: 0.02 },
+  /** 每席手能伸到哪（第二輪；放寬）：北席指尖不越過「自己那側的托盤前緣」再多 NORTH_IN；西／東席不越過 x＝−MID（MID 負值＝可越過中線伸到對側）；
+   *  南席（玩家自己）指尖不伸進托盤前緣以內超過 SOUTH_IN；西／東席同一條前緣線改用 SIDE_IN（側面伸入、手不會擋在拍品腳前）。
+   *  放寬（使用者試玩「手拍令牌離令牌有距離」「西家丟錢手停了錢還在飛」，裁定放寬到搆得到所有槽）：原值 NORTH_IN 0.05／MID 0.06／SOUTH_IN 0.02
+   *  是第二輪 5a794080 為了「手不擋拍品」收的（北席停在托盤北緣、西／東不越中線、南／西／東不進前緣），代價是令牌落在前緣、離席位遠的槽手根本搆不到。
+   *  量測（tests/tools/hand-reach-probe.mjs、throw-seat-timing.mjs all）：拍令牌最近距離 0.25–1.1 m→≤0.032 m；推錢「手掌路徑÷錢柱路徑」最低 0.42→≥0.8。 */
+  REACH: { NORTH_IN: 1.2, MID: -1.5, SOUTH_IN: 0.05, SIDE_IN: 0.5 },
   /** 托盤布面半寬／半深（與 table-tray 的 TRAY.CLOTH、直式 CLOTH_SX／SZ 同值）：布有皺褶起伏，手指在布上要多留 CLOTH_TOP。 */
   TRAY: { L: { hw: 1.8, hd: 0.46 }, P: { hw: 0.756, hd: 0.331 }, CLOTH_TOP: 0.012 },
   /** 正式資產（走 creature-figures.js 的 GLB 管線載入）。 */
@@ -1036,8 +1039,9 @@ export function createHandDirector(props, rig, per) {
     if (seat === 0) return [front];
     if (seat === 1) return [{ n: [0, 1], c: tz - T.hd + HAND.REACH.NORTH_IN }];
     /* 西／東：不越過托盤中線，也不伸進托盤前緣以內（量測：伸進去就擋在最左／最右那格拍品的腳前）。 */
-    if (seat === 2) return [{ n: [1, 0], c: -HAND.REACH.MID }, front];
-    if (seat === 3) return [{ n: [-1, 0], c: -HAND.REACH.MID }, front];
+    const side = { n: [0, -1], c: -(tz + T.hd - HAND.REACH.SIDE_IN) };
+    if (seat === 2) return [{ n: [1, 0], c: -HAND.REACH.MID }, side];
+    if (seat === 3) return [{ n: [-1, 0], c: -HAND.REACH.MID }, side];
     return [];
   }
   /** 障礙表的簡短指紋（記憶化用；同一幀內位置沒變＝同一組指紋）。 */
@@ -1122,6 +1126,8 @@ export function createHandDirector(props, rig, per) {
   function yawOf(seat, seatP, a) {
     if (HAND.SIDE_YAW && seat === 2) return Math.PI / 2;
     if (HAND.SIDE_YAW && seat === 3) return -Math.PI / 2;
+    /* 放寬：拍令牌時南席手正對槽直進（不斜著從席位中央掃過去）——斜著進時指尖先頂到前緣界線、掌心搆不到外側兩槽的令牌（北／西／東不需要，維持朝目標）。 */
+    if (a.kind === 'slam' && seat === 0) return Math.PI;
     return yawToward(seatP.x, seatP.z, a.tx, a.tz);
   }
   function specOf(h, obstacles) {

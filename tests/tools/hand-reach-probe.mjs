@@ -1,0 +1,100 @@
+/* 手的伸展範圍（REACH）量測：node 版真 props＋真 hands（同 tests/hand-fixture.mjs），1/60 秒步進。
+   用法：node tests/tools/hand-reach-probe.mjs [--json=<out>] [--layout=L]
+   ① slam：四席×四槽，單席拍令牌，落地後逐幀取手（袖口邊以前）真實蒙皮頂點 vs 令牌 3D AABB，記最小 3D 間距 gap3（公尺）與是否相交。
+   ② 碰撞計數：四席同時拍（槽 = (席+shift)%4，shift 0..3）＋同時擺錢，逐幀數「手 AABB × 別席手 AABB」「手 AABB × 別槽令牌／別槽錢柱」的相交幀數。
+   也可 import：measureSlam()／measureCollisions()。 */
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { THREE, M, loadProps, loadHands, LAYOUTS } from '../hand-fixture.mjs';
+const { createTableProps } = await loadProps();
+const { createTableHands } = await loadHands();
+const DT = 1 / 60, NAME = ['南', '北', '西', '東'];
+const TK = { W: 0.075, H: 0.095, T: 0.05 };
+async function rig(layout) {
+  const parent = new THREE.Group();
+  const props = createTableProps(parent, { handPaths: true });
+  props.setLayout(...LAYOUTS[layout]);
+  props.setSeats(['qingmian', 'shoujing', 'hongyi', 'xiaonv'].map((role, id) => ({ id, role })));
+  const hands = createTableHands(parent, props); await hands.ready();
+  parent.updateMatrixWorld(true);
+  return { parent, props, hands };
+}
+const step = (r) => { r.props.update(DT); r.hands.update(DT); r.parent.updateMatrixWorld(true); };
+const v = new THREE.Vector3();
+/** 某席手（看得見的部分，袖口邊以前）的世界 AABB；不可見回 null。 */
+function handBox(r, seat) {
+  const h = r.hands.group.children[seat]; if (!h || !h.visible) return null;
+  let mesh; h.traverse((o) => { if (o.isSkinnedMesh) mesh = o; }); if (!mesh) return null;
+  mesh.skeleton.update(); const P = mesh.geometry.attributes.position;
+  const mn = [1e9, 1e9, 1e9], mx = [-1e9, -1e9, -1e9];
+  for (let i = 0; i < P.count; i++) {
+    if (P.getZ(i) < M.HAND.SLEEVE.CUFF_TO) continue;
+    mesh.getVertexPosition(i, v); v.applyMatrix4(mesh.matrixWorld);
+    if (v.x < mn[0]) mn[0] = v.x; if (v.y < mn[1]) mn[1] = v.y; if (v.z < mn[2]) mn[2] = v.z;
+    if (v.x > mx[0]) mx[0] = v.x; if (v.y > mx[1]) mx[1] = v.y; if (v.z > mx[2]) mx[2] = v.z;
+  }
+  return { mn, mx, mesh };
+}
+function handVerts(r, seat) {
+  const b = handBox(r, seat); if (!b) return null;
+  const P = b.mesh.geometry.attributes.position, out = [];
+  for (let i = 0; i < P.count; i++) { if (P.getZ(i) < M.HAND.SLEEVE.CUFF_TO) continue; b.mesh.getVertexPosition(i, v); v.applyMatrix4(b.mesh.matrixWorld); out.push([v.x, v.y, v.z]); }
+  return out;
+}
+const gap3 = (pts, mn, mx) => { let g = 1e9; for (const p of pts) g = Math.min(g, Math.hypot(Math.max(0, mn[0] - p[0], p[0] - mx[0]), Math.max(0, mn[1] - p[1], p[1] - mx[1]), Math.max(0, mn[2] - p[2], p[2] - mx[2]))); return g; };
+export async function measureSlam({ layout = 'L', seats = [0, 1, 2, 3], slots = [0, 1, 2, 3] } = {}) {
+  const r = await rig(layout), out = [];
+  for (const seat of seats) for (const slot of slots) {
+    r.props.clearRound(); r.hands.clear(); for (let i = 0; i < 12; i++) step(r);
+    r.props.mark(seat, slot); r.hands.mark(seat, slot);
+    let best = 1e9, landed = false, n = 0;
+    for (let i = 0; i < 60 * 4; i++) {
+      step(r); const tk = r.props.tokenAt(seat); if (!tk || tk.t < 1) continue; landed = true; n++;
+      const pts = handVerts(r, seat); if (!pts) continue;
+      const g = r.props.group || r.parent; const mn = [tk.x - TK.W, tk.y - TK.T / 2, tk.z - TK.H], mx = [tk.x + TK.W, tk.y + TK.T / 2, tk.z + TK.H];
+      best = Math.min(best, gap3(pts, mn, mx));
+    }
+    out.push({ seat, slot, gap3: landed ? +best.toFixed(4) : null });
+  }
+  r.hands.dispose(); r.props.dispose(); return out;
+}
+const boxHit = (a, b) => a.mn[0] < b.mx[0] && a.mx[0] > b.mn[0] && a.mn[1] < b.mx[1] && a.mx[1] > b.mn[1] && a.mn[2] < b.mx[2] && a.mx[2] > b.mn[2];
+export async function measureCollisions({ layout = 'L' } = {}) {
+  const r = await rig(layout); let hh = 0, ho = 0, live = 0, ph = 'bid', sh = 0; const where = {}, detail = {};
+  for (let shift = 0; shift < 4; shift++) {
+    sh = shift; ph = 'bid';
+    r.props.clearRound(); r.hands.clear();
+    for (let s = 0; s < 4; s++) { r.props.bid(s, (s + shift) % 4, 4); r.hands.bid(s, (s + shift) % 4, 4); }
+    const phase = (n) => { for (let i = 0; i < n; i++) { step(r); check(); } };
+    const check = () => {
+      const bx = [0, 1, 2, 3].map((s) => handBox(r, s)); live += bx.filter(Boolean).length;
+      for (let a = 0; a < 4; a++) { if (!bx[a]) continue;
+        for (let b = a + 1; b < 4; b++) if (bx[b] && boxHit(bx[a], bx[b])) { hh++; where[`hh${a}${b}`] = (where[`hh${a}${b}`] || 0) + 1; const k = `s${sh}-${ph}-hh${a}${b}`; detail[k] = (detail[k] || 0) + 1; }
+        const own = (a + shift) % 4;
+        for (const o of r.props.handObstacles()) {
+          const isTok = o.hx !== undefined; if (isTok) { /* 令牌：別席的令牌（同槽或別槽都算別人的東西） */ }
+          const ob = isTok ? { mn: [o.x - o.hx, (o.bottom ?? 0), o.z - o.hz], mx: [o.x + o.hx, o.top, o.z + o.hz] } : { mn: [o.x - o.r, 0, o.z - o.r], mx: [o.x + o.r, o.top, o.z + o.r] };
+          if (!isTok && Math.abs(0) > 1) continue;
+          // 自己的錢柱（自己席位同槽）不算：由距離排除——手推自己的錢柱必然貼著它
+          const st = r.props.stackAt(a, own); if (!isTok && st && Math.abs(st.x - o.x) < 1e-6 && Math.abs(st.z - o.z) < 1e-6) continue;
+          const tkA = r.props.tokenAt(a); if (isTok && tkA && Math.abs(tkA.x - o.x) < 1e-6 && Math.abs(tkA.z - o.z) < 1e-6) continue;
+          if (boxHit(bx[a], ob)) { ho++; where[`ho${a}`] = (where[`ho${a}`] || 0) + 1; }
+        }
+      }
+    };
+    phase(200); ph = 'mark';
+    for (let s = 0; s < 4; s++) { r.props.mark(s, (s + shift) % 4); r.hands.mark(s, (s + shift) % 4); }
+    phase(240);
+  }
+  r.hands.dispose(); r.props.dispose(); return { handHand: hh, handObstacle: ho, liveHandFrames: live, where, detail };
+}
+if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
+  const arg = (k) => process.argv.find((a) => a.startsWith(`--${k}=`))?.slice(k.length + 3);
+  const layout = arg('layout') || 'L';
+  const slam = await measureSlam({ layout }), col = await measureCollisions({ layout });
+  console.log('slam gap3(m) 席×槽'); for (const s of [0, 1, 2, 3]) console.log(NAME[s], slam.filter((x) => x.seat === s).map((x) => (x.gap3 ?? 'NA').toString().padStart(7)).join(' '));
+  console.log('collisions', JSON.stringify({ ...col, detail: undefined })); if (process.env.DETAIL) console.log(JSON.stringify(col.detail));
+  if (arg('json')) fs.writeFileSync(arg('json'), JSON.stringify({ slam, col }, null, 1));
+  process.exit(0);
+}
