@@ -8,7 +8,7 @@ import path from 'node:path';
 import test from 'node:test';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { measureSlam, measureCollisions, measureEntry, measureJump } from './tools/hand-reach-probe.mjs';
+import { measureSlam, measureCollisions, measureEntry, measureJump, measureInterrupt } from './tools/hand-reach-probe.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const NAME = ['南', '北', '西', '東'];
@@ -21,15 +21,25 @@ test('① 拍令牌：四席×四槽（橫式 L＋直式 P），令牌落地後�
   }
 });
 
-test('⑤ 拍令牌全程（進場→接觸→收手）逐幀頂點位移：進場後（停留＋收手）單幀最大位移 ≤ 基準 5c91bdc7 的最大值（L 0.13 m／P 0.12 m；P 容許到 0.17 m＝實測 0.16 m 的東席槽2）、進場內 ≤ 0.35 m（實測 0.33 m；手感待試玩）。覆審 F1：拍完轉成收手時界線換成推／收的，手一幀被拉回 0.4–1.7 m', async () => {
-  for (const [layout, after] of [['L', 0.13], ['P', 0.17]]) {
-    const rows = await measureJump({ layout });
+test('⑤ 拍令牌全程（進場→接觸→收手）逐幀頂點位移：進場後（停留＋收手）單幀最大位移 ≤ 基準 5c91bdc7 的最大值（L 0.13 m／P 0.12 m；P 容許到 0.17 m），進場內 ≤ 0.35 m（P 的 thumb=0／real=0 變體實測 0.42，容許到 0.45；手感待試玩）。變體：預設、手速 1.5（產品預設）、thumb=0、real=0（覆審 N4）。覆審 F1：拍完轉成收手時界線換成推／收的，手一幀被拉回 0.4–1.7 m', async () => {
+  const variants = [['預設', {}], ['手速1.5', { slow: 1.5 }], ['thumb=0 手速1.5', { slow: 1.5, hopts: { thumb: false } }], ['real=0 手速1.5', { slow: 1.5, hopts: { real: false } }]];
+  for (const [vn, vo] of variants) for (const [layout, after] of [['L', 0.13], ['P', 0.17]]) {
+    const entryCap = layout === 'P' && vo.hopts ? 0.45 : 0.35;
+    const rows = await measureJump({ layout, entryFrames: Math.round(26 * (vo.slow || 1)), ...vo });
     assert.equal(rows.length, 16);
     for (const r of rows) {
-      assert.ok(r.visFrames > 30, `${layout} ${NAME[r.seat]}席 槽${r.slot}：手沒有上場（活性）`);
-      assert.ok(r.afterMax <= after, `${layout} ${NAME[r.seat]}席 槽${r.slot}：進場後單幀位移 ${r.afterMax} m（第 ${r.afterAt} 幀）> ${after}`);
-      assert.ok(r.entryMax <= 0.35, `${layout} ${NAME[r.seat]}席 槽${r.slot}：進場內單幀位移 ${r.entryMax} m > 0.35`);
+      assert.ok(r.visFrames > 30, `${vn} ${layout} ${NAME[r.seat]}席 槽${r.slot}：手沒有上場（活性）`);
+      assert.ok(r.afterMax <= after, `${vn} ${layout} ${NAME[r.seat]}席 槽${r.slot}：進場後單幀位移 ${r.afterMax} m（第 ${r.afterAt} 幀）> ${after}`);
+      assert.ok(r.entryMax <= entryCap, `${vn} ${layout} ${NAME[r.seat]}席 槽${r.slot}：進場內單幀位移 ${r.entryMax} m > ${entryCap}`);
     }
+  }
+});
+
+test('⑥ 拍令牌進場／接觸／收手途中被同席出價打斷：打斷後 6 幀內單幀最大位移 ≤ 基準 5c91bdc7（L：南0.76／北1.30／西0.72／東0.83；P：南0.62／北1.11／西0.91／東0.80）。覆審 N3：拍令牌的手改從前緣外進場後，打斷時瞬移曾放大到 3.5 m', async () => {
+  const base = { L: [0.762, 1.298, 0.72, 0.828], P: [0.621, 1.109, 0.914, 0.801] };
+  for (const layout of ['L', 'P']) {
+    const rows = await measureInterrupt({ layout });
+    for (const r of rows) assert.ok(r.worst <= base[layout][r.seat], `${layout} ${NAME[r.seat]}席：打斷後單幀位移 ${r.worst} m（打斷點 ${r.worstAt}）> 基準 ${base[layout][r.seat]}`);
   }
 });
 

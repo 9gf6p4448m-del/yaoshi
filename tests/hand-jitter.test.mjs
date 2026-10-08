@@ -162,8 +162,8 @@ test('正常平滑對照：北席停一拍與拍令牌（沒有信物、伸入�
     assert.ok(g.path > 0.05, `moneyN 席1 ${act} 手有移動（路徑 ${g.path.toFixed(3)} 世界單位）`);
     assert.equal(g.events, 0, `moneyN 席1 ${act} 零彈跳`);
     /* 10-08：停一拍（hold）維持 ≤5 px。拍令牌（slam）是「令牌拍下接觸窗口」整段（進場滑行 ENTRY_MS～ENTRY_MAX＋微顫＋停留）：北席從托盤後緣外滑進來（使用者要求首幀不在盤中），
-       進場那幾幀的單幀步本來就大；上界＝實測 11.2 px（ENTRY_MAX 0.40，橫式 844×390 投影）取整 12，進場改快（ENTRY_MAX 縮短）會超過；進場被改成瞬現由 hand-reach ④（首幀不在布面）守。零彈跳（上一條 events＝0）不變。 */
-    const lim = act === 'slam' ? 12 : 5;
+       進場那幾幀的單幀步本來就大；上界＝實測 19.6 px（ENTRY_MAX 0.40、四席都從前緣外直進＝近鏡頭那一側，橫式 844×390 投影）取整 20（覆審 N1 改路徑前 11.2 px），進場改快（ENTRY_MAX 縮短）會超過；進場被改成瞬現由 hand-reach ④（首幀不在布面）守。零彈跳（上一條 events＝0）不變。 */
+    const lim = act === 'slam' ? 20 : 5;
     assert.ok(g.stepPx <= lim, `moneyN 席1 ${act} 單幀最大步 ${g.stepPx.toFixed(1)} px ≤${lim}`);
   }
 });

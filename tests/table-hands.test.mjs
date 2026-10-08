@@ -337,20 +337,20 @@ test('#C6 落地事件只由令牌發：手的模組不派任何 DOM 事件；�
 /* ═══ 第二輪：伸入深度（北席不越過自己那側托盤前緣、西／東不越過托盤中線）═══════════ */
 test('第二輪伸入深度（L）：推／拍／收全程，看得見的手（袖口邊以前的真實蒙皮頂點）——北席 z ≤ 托盤北緣＋NORTH_IN；西席 x ≤ −MID、東席 x ≥ MID；南／西／東 z ≥ 托盤前緣−SOUTH_IN', async () => {
   const r = await rig('L');
-  const tz = LAYOUTS.L[3], hd = M.HAND.TRAY.L.hd, R = M.HAND.REACH, S = M.HAND.REACH_SLAM;
+  const tz = LAYOUTS.L[3], hd = M.HAND.TRAY.L.hd, R = M.HAND.REACH;
   const front = (p) => (tz + hd - R.SOUTH_IN) - p.z;
   /* 10-08：REACH 拆席（推／收／停一拍＝REACH；拍令牌＝REACH_SLAM 全放寬）。窗口外（含推／收／停一拍、令牌拍完收手）仍是原本的界線形式，只換成各席自己的常數；
      窗口內（該席令牌落地 ys:mark-slam 起 0.66 秒內（寫死），同 hands-occlusion 修訂1）改用 REACH_SLAM 的包絡——手仍不得超出全放寬的界線。 */
   const limOut = { 0: front, 1: (p) => p.z - (tz - hd + Math.min(R.NORTH_IN, 2 * hd)), 2: (p) => Math.max(p.x + R.MID_W, (tz + hd - R.SIDE_IN_W) - p.z), 3: (p) => Math.max(-p.x + R.MID_E, (tz + hd - R.SIDE_IN_E) - p.z) };
-  const limIn = { 0: front, 1: (p) => p.z - (tz - hd + S.NORTH_IN), 2: (p) => Math.max(p.x + S.MID_W, (tz + hd - S.SIDE_IN_W) - p.z), 3: (p) => Math.max(-p.x + S.MID_E, (tz + hd - S.SIDE_IN_E) - p.z) };
-  const WIN = Math.ceil(0.66 * 60); // 寫死 0.66 s（覆審 F3：不從受測實作的 ENTRY_MAX 讀入，否則進場改 3 秒窗口跟著變長）
+  const limIn = { 0: front, 1: front, 2: front, 3: front }; // 拍令牌：四席都從前緣外直進，只剩南緣一條（SOUTH_IN 取 REACH_SLAM）
+  const WIN = Math.ceil((0.66 + 0.40) * 60); // 寫死：接觸段 0.66 s＋收手段 0.40 s（修訂2；覆審 F3：不從受測實作的 ENTRY_MAX 讀入）
   let n = 0, land = {}, inWin = 0;
   let worst = -Infinity, where = null, live = { 0: 0, 1: 0, 2: 0, 3: 0 };
   const check = () => {
+    for (let q = 0; q < 4; q++) { const tk = r.props.tokenAt(q); if (tk && tk.t >= 1 && land[q] === undefined) land[q] = n; } // 令牌落地（ys:mark-slam）＝窗口起點，不等手可見
     for (const h of holders(r)) {
       const seat = +h.name.split('-')[1]; if (!h.visible || !limOut[seat]) continue;
       live[seat]++;
-      const tk = r.props.tokenAt(seat); if (tk && tk.t >= 1 && land[seat] === undefined) land[seat] = n;
       const win = land[seat] !== undefined && n >= land[seat] && n <= land[seat] + WIN, lim = win ? limIn : limOut; if (win) inWin++;
       let mesh; h.traverse((o) => { if (o.isSkinnedMesh) mesh = o; }); mesh.skeleton.update();
       const P = mesh.geometry.attributes.position;
@@ -366,7 +366,7 @@ test('第二輪伸入深度（L）：推／拍／收全程，看得見的手（�
     for (let s = 0; s < 4; s++) ev.bid(r, s, slot, 6);
     for (let i = 0; i < 50; i++) { ev.step(r); n++; check(); }
     for (let s = 0; s < 4; s++) ev.mark(r, s, slot);
-    for (let i = 0; i < 50; i++) { ev.step(r); n++; check(); }
+    for (let i = 0; i < 110; i++) { ev.step(r); n++; check(); } // 110 步：令牌落地約 +17、窗口 +40、收手 +18，之後才開標（窗口不跨進收錢）
     ev.reveal(r, slot, (slot + 1) % 4);
     for (let i = 0; i < 70; i++) { ev.step(r); n++; check(); }
   }

@@ -11,12 +11,12 @@ const { createTableProps } = await loadProps();
 const { createTableHands } = await loadHands();
 const DT = 1 / 60, NAME = ['南', '北', '西', '東'];
 const TK = { W: 0.075, H: 0.095, T: 0.05 };
-async function rig(layout) {
+async function rig(layout, hopts = {}) {
   const parent = new THREE.Group();
   const props = createTableProps(parent, { handPaths: true });
   props.setLayout(...LAYOUTS[layout]);
   props.setSeats(['qingmian', 'shoujing', 'hongyi', 'xiaonv'].map((role, id) => ({ id, role })));
-  const hands = createTableHands(parent, props); await hands.ready();
+  const hands = createTableHands(parent, props, hopts); await hands.ready();
   parent.updateMatrixWorld(true);
   return { parent, props, hands };
 }
@@ -84,8 +84,9 @@ const handMin = (r, a, b) => { const A = handVerts(r, a), B = handVerts(r, b); i
   return Math.sqrt(m); };
 /** 拍令牌全程（進場→接觸→收手）逐幀「看得見的蒙皮頂點」單幀位移（公尺，同一頂點相鄰兩幀的距離最大值）。
  *  entryMax＝手第一個可見幀起 ENTRY_FRAMES 幀內（進場滑行）；afterMax＝其後（停留＋收手）。覆審 F1：收手一轉成 retract 就換界線時，手單幀瞬移 0.4–0.9 m（基準 5c91bdc7 最大 0.13 m）。 */
-export async function measureJump({ layout = 'L', seats = [0, 1, 2, 3], slots = [0, 1, 2, 3], entryFrames = 26 } = {}) {
-  const r = await rig(layout), out = [];
+export async function measureJump({ layout = 'L', seats = [0, 1, 2, 3], slots = [0, 1, 2, 3], entryFrames = 26, hopts = {}, slow = 1 } = {}) {
+  globalThis.YS_ANIM_SLOW = slow === 1 ? undefined : { hand: slow, grab: 1 };
+  const r = await rig(layout, hopts), out = [];
   for (const seat of seats) for (const slot of slots) {
     r.props.clearRound(); r.hands.clear(); for (let i = 0; i < 12; i++) step(r);
     r.props.mark(seat, slot); r.hands.mark(seat, slot);
@@ -101,6 +102,25 @@ export async function measureJump({ layout = 'L', seats = [0, 1, 2, 3], slots = 
       prev = pts;
     }
     out.push({ seat, slot, entryMax: +entryMax.toFixed(4), afterMax: +afterMax.toFixed(4), afterAt, visFrames: vis });
+  }
+  r.hands.dispose(); r.props.dispose(); return out;
+}
+/** 拍令牌進場／接觸／收手途中被「同席出價」打斷（覆審 N3）：打斷點掃 f＝14..70 每 8 幀，打斷後 6 幀內同一頂點相鄰兩幀的最大位移（公尺）。
+ *  動作換手時本來就不接續（基準 5c91bdc7 同樣會跳 0.7–1.6 m），這個量只要求不比基準大。 */
+export async function measureInterrupt({ layout = 'L', seats = [0, 1, 2, 3], at = [14, 22, 30, 38, 46, 54, 62, 70], hopts = {}, slow = 1 } = {}) {
+  globalThis.YS_ANIM_SLOW = slow === 1 ? undefined : { hand: slow, grab: 1 };
+  const r = await rig(layout, hopts), out = [];
+  for (const seat of seats) {
+    let worst = 0, worstAt = -1;
+    for (const f0 of at) {
+      r.props.clearRound(); r.hands.clear(); for (let i = 0; i < 12; i++) step(r);
+      r.props.mark(seat, 1); r.hands.mark(seat, 1);
+      for (let i = 0; i < f0; i++) step(r);
+      let prev = handVerts(r, seat);
+      r.props.bid(seat, 2, 4); r.hands.bid(seat, 2, 4);
+      for (let i = 0; i < 6; i++) { step(r); const pts = handVerts(r, seat); if (prev && pts && prev.length === pts.length) { let m = 0; for (let k = 0; k < pts.length; k += 3) m = Math.max(m, Math.hypot(pts[k][0] - prev[k][0], pts[k][1] - prev[k][1], pts[k][2] - prev[k][2])); if (m > worst) { worst = m; worstAt = f0; } } prev = pts; }
+    }
+    out.push({ seat, worst: +worst.toFixed(3), worstAt });
   }
   r.hands.dispose(); r.props.dispose(); return out;
 }
@@ -140,11 +160,12 @@ export async function measureCollisions({ layout = 'L' } = {}) {
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
   const arg = (k) => process.argv.find((a) => a.startsWith(`--${k}=`))?.slice(k.length + 3);
   const layout = arg('layout') || 'L';
-  const slam = await measureSlam({ layout }), entry = await measureEntry({ layout }), jump = await measureJump({ layout }), col = await measureCollisions({ layout });
+  const slam = await measureSlam({ layout }), entry = await measureEntry({ layout }), jump = await measureJump({ layout }), intr = await measureInterrupt({ layout }), col = await measureCollisions({ layout });
   console.log('slam gap3(m) 席×槽'); for (const s of [0, 1, 2, 3]) console.log(NAME[s], slam.filter((x) => x.seat === s).map((x) => (x.gap3 ?? 'NA').toString().padStart(7)).join(' '));
   console.log('進場首幀在托盤布面內的頂點數（席×槽）'); for (const s of [0, 1, 2, 3]) console.log(NAME[s], entry.filter((x) => x.seat === s).map((x) => (x.inside ?? 'NA').toString().padStart(7)).join(' '));
   console.log('單幀頂點位移 (進場內最大｜其後最大，m)'); for (const s of [0, 1, 2, 3]) console.log(NAME[s], jump.filter((x) => x.seat === s).map((x) => `${x.entryMax.toFixed(2)}|${x.afterMax.toFixed(2)}`.padStart(11)).join(' '));
+  console.log('出價打斷拍令牌（打斷後 6 幀內最大單幀位移 m｜打斷點）', intr.map((x) => `${NAME[x.seat]}${x.worst}@${x.worstAt}`).join(' '));
   console.log('collisions', JSON.stringify({ ...col, detail: undefined })); if (process.env.DETAIL) console.log(JSON.stringify(col.detail));
-  if (arg('json')) fs.writeFileSync(arg('json'), JSON.stringify({ slam, entry, jump, col }, null, 1));
+  if (arg('json')) fs.writeFileSync(arg('json'), JSON.stringify({ slam, entry, jump, intr, col }, null, 1));
   process.exit(0);
 }

@@ -121,7 +121,7 @@ try {
       const inA = x.perHand.filter((_, i) => ph[i] === 'A'), inB = x.perHand.filter((_, i) => ph[i] === 'B'), out = x.perHand.filter((_, i) => win && ph[i] === null);
       if (inA.length) { aN++; aMax = Math.max(aMax, ...inA.map((h) => maxOf(h.occl))); }
       if (inB.length) { bN++; bMax = Math.max(bMax, ...inB.map((h) => maxOf(h.occl))); }
-      if (win) { late += out.length; x.gate = maxOf(out.flatMap((h) => h.occl)); } else x.gate = maxOf(x.occl);
+      late += out.length; x.gate = maxOf(x.occl); // 覆審 N1 後拍令牌四席從前緣外直進，遮擋已降到 10% 內（橫式 7.2%），修訂1／2 的豁免不再需要：閘門值＝所有手合併（A／B 段仍另列供參考）
     }
     const occ = live.map((x) => x.gate);
     const perSampleMax = occ;
@@ -192,13 +192,8 @@ if (opt.out) fs.writeFileSync(path.resolve(HERE, opt.out), JSON.stringify(result
 const summary = Object.fromEntries(result.runs.map((r) => [r.name, { occlMax: +r.occlusionMax.toFixed(4), ...(r.slamWindow ? { occlMaxInSlamWindow: +r.slamWindow.occlusionMaxInWindow.toFixed(4), samplesInSlamWindow: r.slamWindow.samplesInWindow, occlMaxInRetract: +r.slamWindow.retractMax.toFixed(4), samplesInRetract: r.slamWindow.samplesInRetract } : {}), occlMeanFrameMax: +r.occlusionMeanOfFrameMax.toFixed(4), handShareMax: +r.handShareMax.toFixed(4), handShareMean: +r.handShareMean.toFixed(4), n: r.samplesWithHands }]));
 /* 第二輪加嚴的自我驗收：橫式三動作（含同格、一次多格）每一格拍品被手遮住的比例，最大值 ≤10%；每段都要真的有手上場（活性）。 */
 const gates = {
-  /* 直式只保「不退步」：基準 5c91bdc7 直式「四家同一格」本來就 35.6%（>10%），該情境上限放在基準＋小餘裕 38%；其餘情境 10%。橫式一律 10%。 */
-  occlusion_le_10pct: result.runs.every((r) => r.samplesWithHands > 5 && r.occlusionMax <= (opt.portrait && r.name === '推（四家同一格）' ? 0.38 : 0.10)),
-  /* 修訂2：收手段（B）另設上限 L 30%／P 40%（實測 L 24.5–24.7%；P 基準 36.2%、現 37.0%），要真的量到（≥5 取樣，防窗口吞掉整段或量測截斷），
-     B 段之後不得還有手（收手時長上限）；A 段不進閘門、另列。 */
-  slam_retract_le_cap: result.runs.filter((r) => r.slamWindow).every((r) => r.slamWindow.retractMax <= (opt.portrait ? 0.40 : 0.30)),
-  slam_retract_measured: result.runs.filter((r) => r.slamWindow).every((r) => r.slamWindow.samplesInRetract >= 5),
-  slam_hands_gone_after_cap: result.runs.filter((r) => r.slamWindow).every((r) => r.slamWindow.lateHandSamples === 0),
+  /* 直式只保「不退步」：基準 5c91bdc7 直式「四家同一格」本來就 35.6%（>10%），該情境上限放在基準＋小餘裕 38%；拍＝實測 12.6% 放 15%（基準 36.2%）；其餘情境 10%。橫式一律 10%（所有手、所有時段，無豁免）。 */
+  occlusion_le_10pct: result.runs.every((r) => r.samplesWithHands > 5 && r.occlusionMax <= (opt.portrait ? ({ '推（四家同一格）': 0.38, '拍': 0.15 }[r.name] ?? 0.10) : 0.10)),
   handoffClears: result.handoff.visibleAfter === 0, skipClears: result.skip.visibleAfter === 0,
   duelHides: result.duel.trayVisible === false && result.duel.handsRendered === 0, noPageErrors: result.errors.length === 0,
 };
