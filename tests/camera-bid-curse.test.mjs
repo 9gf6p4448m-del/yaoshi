@@ -106,9 +106,10 @@ const pushOf = (frames, anchor, d0) => frames.map((f) => 1 - len(sub(f.p, anchor
 const SETTLE = [['step', 30]];
 const AT_SLOT1 = [['fire', 'ys:reveal-slot', { slot: 1, ms: 650 }], ['step', 60]];
 const curseDetail = (extra = {}) => ({ winner: 2, slot: 1, transferTarget: 3, destroy: false, grabMs: 1260, curseMs: CURSE_MS, skip: false, ...extra });
-const countdown = (seat, from, to, stepMs = 100) => {
+/** 同一席連續出價 n 次、每次間隔 every 幀（每次 ys:bid 都把微推停留重新延長 holdMs）——讓喊價鏡頭持續作用中 */
+const rebid = (seat, n, every = 6, extra = {}) => {
   const out = [];
-  for (let r = from; r >= to; r -= stepMs) out.push(['fire', 'ys:bid-clock', { seat, remainMs: r }], ['step', Math.round(stepMs / MS)]);
+  for (let i = 0; i < n; i++) out.push(['fire', 'ys:bid', { seat, slot: seat % 3, amount: 3 + i, ...extra }], ['step', every]);
   return out;
 };
 
@@ -136,37 +137,18 @@ test('§6.2 出價微推喊價者：有觸發、朝喊價者、純徑向推近�
   assert.ok(p.at(-1) === 0 || Math.abs(p.at(-1)) <= 1e-12);
 });
 
-test('§6.2 最後 3 秒隨倒數收緊：>3 秒只有微推、最後 3 秒單調不減、最後一刻最大、歸零後回位、缺 remainMs 即 throw', () => {
-  const script = [...SETTLE, ['mark', 'pre'], ['fire', 'ys:bid', { seat: 1, slot: 0, amount: 3 }], ['step', 12],
-    ['mark', 'clock0'], ...countdown(1, 5000, 3100), ['mark', 'last3'], ...countdown(1, 3000, 100), ['mark', 'zero'],
-    ['fire', 'ys:bid-clock', { seat: 1, remainMs: 0 }], ['step', 120]];
-  const { frames, marks } = run(NEW_SRC, script);
-  const pre = frames[marks.pre];
-  const d0 = len(sub(pre.p, ANCHOR_TABLE));
-  const p = pushOf(frames, ANCHOR_TABLE, d0);
-  const plateau = p.slice(marks.clock0 + 1, marks.last3 + 1);
-  const finalP = p[marks.zero];
-  assert.ok(finalP > Math.max(...plateau) + 1e-4, `最後 3 秒必須收緊（倒數末 ${finalP} vs 平台 ${Math.max(...plateau)}）`);
-  assert.ok(Math.max(...plateau) > 1e-3, '剩 >3 秒時仍要有微推');
-  assert.ok(Math.max(...plateau) - Math.min(...plateau) <= 1e-12, '剩 >3 秒時 K 只含微推常數（不得提前收緊）');
-  for (let i = marks.last3 + 1; i <= marks.zero; i++) assert.ok(p[i] >= p[i - 1] - 1e-12, `最後 3 秒第 ${i} 幀 K 反向（${p[i - 1]}→${p[i]}）`);
-  const lastSecond = p.slice(marks.zero - 60, marks.zero + 1);
-  assert.equal(Math.max(...lastSecond), Math.max(...p), '最後一秒 K 最大');
-  const kmax = Math.max(...p);
-  for (let i = marks.pre + 1; i < frames.length; i++) assert.ok(Math.abs(p[i] - p[i - 1]) / kmax <= 0.15, `第 ${i} 幀 |ΔK|>0.15`);
-  assert.ok(diffFrame(frames.at(-1), pre) <= 1e-9, `倒數歸零後要回位（差 ${diffFrame(frames.at(-1), pre)}）`);
-  assert.throws(() => run(NEW_SRC, [...SETTLE, ['fire', 'ys:bid-clock', { seat: 1 }], ['step', 2]]), /remainMs/, 'ys:bid-clock 缺 remainMs 要 throw');
-});
-
 test('§6.2 喊價者切換時從當前 K 接續：相鄰幀 |ΔK| ≤ 0.15、視線不瞬移、改看新喊價者', () => {
-  const full = run(NEW_SRC, [...SETTLE, ['mark', 'pre'], ...countdown(1, 3000, 100), ['mark', 'z'], ['step', 1]]);
+  // K 的單位＝單次出價微推的平台推近比例（K＝1 即微推到位）。原本以「倒數最後一刻」為 1，該段已刪（10-08 使用者同意），
+  // 微推平台只有它的 0.35 倍，所以同一個 |ΔK| ≤ 0.15 在這個單位下是更嚴的門檻（換回舊單位等於 ≤ 0.0525）。
+  const full = run(NEW_SRC, [...SETTLE, ['mark', 'pre'], ['fire', 'ys:bid', { seat: 1, slot: 0, amount: 4 }], ['step', 40]]);
   const d0 = len(sub(full.frames[full.marks.pre].p, ANCHOR_TABLE));
-  const kmax = Math.max(...pushOf(full.frames, ANCHOR_TABLE, d0)); // K＝1 時的推近比例（倒數最後一刻）
+  const kmax = Math.max(...pushOf(full.frames, ANCHOR_TABLE, d0)); // K＝1 時的推近比例（微推到位）
+  assert.ok(kmax > 1e-3, `前置：單次出價要有微推（${kmax}）`);
   const script = [...SETTLE, ['mark', 'pre'], ['fire', 'ys:bid', { seat: 1, slot: 0, amount: 4 }], ['step', 30], ['mark', 'sw'],
     ['fire', 'ys:bid', { seat: 3, slot: 2, amount: 6 }], ['step', 40], ['mark', 'after'], ['step', 120]];
   const { frames, marks } = run(NEW_SRC, script);
   const K = pushOf(frames, ANCHOR_TABLE, d0).map((x) => x / kmax);
-  assert.ok(K[marks.sw] > 0.1, `切換前要已在推（K=${K[marks.sw]}）`);
+  assert.ok(K[marks.sw] > 0.5, `切換前要已在推（K=${K[marks.sw]}）`);
   assert.equal(towards(frames[marks.sw], frames[marks.after]).best, 3, '切換後視線落點往新喊價者（東家）移');
   for (let i = marks.pre + 1; i < frames.length; i++) {
     assert.ok(Math.abs(K[i] - K[i - 1]) <= 0.15, `第 ${i} 幀 |ΔK|=${Math.abs(K[i] - K[i - 1])} > 0.15`);
@@ -221,7 +203,7 @@ test('§6.1 中咒：四個受咒席都朝對的那一席；非毒標／跳過�
 test('§6.1／§6.2 取消／結束事件收得掉新鏡頭（ys:duel-end／ys:table／ys:end／ys:fx-trait-cancel）', () => {
   for (const ev of ['ys:duel-end', 'ys:table', 'ys:end', 'ys:fx-trait-cancel']) {
     for (const [name, trig] of [['中咒', [['fire', 'ys:reveal-result', curseDetail()], ['step', 60]]],
-      ['喊價倒數', [['fire', 'ys:bid', { seat: 2, slot: 1, amount: 5 }], ['step', 6], ...countdown(2, 1500, 600)]]]) {
+      ['喊價', [['fire', 'ys:bid', { seat: 2, slot: 1, amount: 5 }], ['step', 6], ...rebid(2, 10)]]]) {
       const trigSteps = trig.filter((o) => o[0] === 'step').reduce((s, o) => s + o[1], 0);
       const main = run(NEW_SRC, [...SETTLE, ...AT_SLOT1, ...trig, ['mark', 'cancel'], ['fire', ev, {}], ['step', 90]]);
       const twin = run(NEW_SRC, [...SETTLE, ...AT_SLOT1, ['step', trigSteps], ['fire', ev, {}], ['step', 90]]);
@@ -234,9 +216,8 @@ test('§6.1／§6.2 取消／結束事件收得掉新鏡頭（ys:duel-end／ys:t
 
 // ───────────────────────── §6.3 疊加 ─────────────────────────
 test('§6.3 中咒發生在喊價鏡頭進行中：推近取最大不相加、不低於 FOCUS_FLOOR、仍是純徑向', () => {
-  const bidPart = [['fire', 'ys:bid', { seat: 1, slot: 1, amount: 5 }], ['step', 6], ...countdown(1, 600, 600), ['step', 30]];
-  const hold = [];
-  for (let i = 0; i < 24; i++) hold.push(['fire', 'ys:bid-clock', { seat: 1, remainMs: 300 }], ['step', 6]);
+  const bidPart = [['fire', 'ys:bid', { seat: 1, slot: 1, amount: 5 }], ['step', 6], ...rebid(1, 1), ['step', 30]];
+  const hold = rebid(1, 24); // 中咒期間喊價持續（連續出價），兩層同時作用
   const both = run(NEW_SRC, [...SETTLE, ...AT_SLOT1, ['mark', 'pre'], ...bidPart, ['fire', 'ys:reveal-result', curseDetail()], ...hold]);
   const bidOnly = run(NEW_SRC, [...SETTLE, ...AT_SLOT1, ['mark', 'pre'], ...bidPart, ...hold]);
   const curseOnly = run(NEW_SRC, [...SETTLE, ...AT_SLOT1, ['mark', 'pre'], ['step', 42], ['fire', 'ys:reveal-result', curseDetail()], ...hold.filter((o) => o[0] === 'step')]);
@@ -257,10 +238,9 @@ test('§6.3 中咒發生在喊價鏡頭進行中：推近取最大不相加、�
 // ───────────────────────── §2b 旗標／§4 reduced-motion ─────────────────────────
 const FLAG_CASES = [
   ['喊價（ys:bid）', (cam) => [['fire', 'ys:bid', { seat: 2, slot: 1, amount: 5, ...cam }], ['step', 90]]],
-  ['倒數（ys:bid-clock）', (cam) => [...countdown(2, 2000, 200).map((o) => (o[0] === 'fire' ? ['fire', o[1], { ...o[2], ...cam }] : o)), ['step', 60]]],
   ['中咒（ys:reveal-result）', (cam) => [['fire', 'ys:reveal-result', curseDetail(cam)], ['step', 180]]],
 ];
-test('§2b 旗標：detail.cam=false 時全程不動（三個接收端）；省略欄位＝開；true＝開', () => {
+test('§2b 旗標：detail.cam=false 時全程不動（兩個接收端）；省略欄位＝開；true＝開', () => {
   for (const [name, mk] of FLAG_CASES) {
     const steps = mk({}).filter((o) => o[0] === 'step').reduce((s, o) => s + o[1], 0);
     const twin = run(NEW_SRC, [...SETTLE, ...AT_SLOT1, ['step', steps]]).frames;
@@ -289,7 +269,7 @@ function gameScript({ cam, closeup, fxtier }) {
   const s = [...SETTLE, ['mark', 'bid0']];
   for (const seat of [0, 1, 2, 3]) s.push(['fire', 'ys:bid', { seat, slot: seat % 3, amount: 2 + seat, ...c }], ['step', 20]);
   s.push(['fire', 'ys:bid', { seat: 0, slot: 1, amount: 0, ...c }], ['step', 5]); // amount 0 收回
-  for (let r = 4000; r >= 0; r -= 100) s.push(['fire', 'ys:bid-clock', { seat: 0, remainMs: r, ...c }], ['step', 6]);
+  s.push(...rebid(0, 41, 6, c)); // 連續出價（原為 4 秒倒數的同一段時長）
   s.push(['step', 60], ['mark', 'reveal0']);
   s.push(['fire', 'ys:reveal', { winner: 2 }], ['step', 40]);
   s.push(['fire', 'ys:reveal-slot', { slot: 0, ms: 650 }], ['step', 50]);
@@ -308,7 +288,7 @@ function gameScript({ cam, closeup, fxtier }) {
   s.push(['fire', 'ys:duel-end', {}], ['step', 90], ['mark', 'tail0']);
   // 喊價鏡頭進行中直接收場（ys:end）
   s.push(['fire', 'ys:bid', { seat: 3, slot: 2, amount: 4, ...c }], ['step', 10]);
-  for (let r = 2000; r >= 1000; r -= 100) s.push(['fire', 'ys:bid-clock', { seat: 3, remainMs: r, ...c }], ['step', 6]);
+  s.push(...rebid(3, 11, 6, c)); // 連續出價（原為倒數 2→1 秒的同一段時長），收場時喊價鏡頭仍在作用中
   s.push(['fire', 'ys:end', {}], ['step', 120]);
   return s;
 }
@@ -451,7 +431,7 @@ function rngStubs() {
   return { cnt, opts: { extra: { S }, setup } };
 }
 
-test('§1 亂數紀律（行為）：完整事件序列（喊價、倒數、中咒、對決、取消、收場）跑完，S.rng／S.rngUi／Math.random 呼叫次數＝0（M17）', () => {
+test('§1 亂數紀律（行為）：完整事件序列（喊價、中咒、對決、取消、收場）跑完，S.rng／S.rngUi／Math.random 呼叫次數＝0（M17）', () => {
   for (const closeup of [false, true]) for (const fxtier of [false, true]) {
     const tag = `closeup=${+closeup} fxtier=${+fxtier}`;
     const { cnt, opts } = rngStubs();
@@ -469,14 +449,14 @@ test('§1 亂數紀律（行為）：完整事件序列（喊價、倒數、中�
   }
 });
 
-test('§5 不逐幀配置：喊價／倒數／中咒進行中 update() 內 THREE.Vector3／Quaternion／Matrix4／Euler 新建次數＝0；camera.position／quaternion 物件不被換掉（M1）', () => {
+test('§5 不逐幀配置：喊價／中咒進行中 update() 內 THREE.Vector3／Quaternion／Matrix4／Euler 新建次數＝0；camera.position／quaternion 物件不被換掉（M1）', () => {
   const gate = { on: false };
   const made = { n: 0, kinds: {} };
   const counted = (Base, name) => class extends Base { constructor(...a) { super(...a); if (gate.on) { made.n++; made.kinds[name] = (made.kinds[name] || 0) + 1; } } };
   const T = { ...THREE, Vector3: counted(THREE.Vector3, 'Vector3'), Quaternion: counted(THREE.Quaternion, 'Quaternion'),
     Matrix4: counted(THREE.Matrix4, 'Matrix4'), Euler: counted(THREE.Euler, 'Euler'), Vector2: counted(THREE.Vector2, 'Vector2') };
   const script = (cam) => [...SETTLE, ...AT_SLOT1, ['mark', 'pre'],
-    ['fire', 'ys:bid', { seat: 2, slot: 1, amount: 5, cam }], ['step', 20], ...countdown(2, 3000, 100).map((o) => (o[0] === 'fire' ? ['fire', o[1], { ...o[2], cam }] : o)),
+    ['fire', 'ys:bid', { seat: 2, slot: 1, amount: 5, cam }], ['step', 20], ...rebid(2, 30, 6, { cam }),
     ['fire', 'ys:reveal-result', curseDetail({ cam })], ['step', 200]];
   const on = run(NEW_SRC, script(true), { three: T, gate });
   const off = run(NEW_SRC, script(false));

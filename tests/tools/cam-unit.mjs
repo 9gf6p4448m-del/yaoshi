@@ -27,7 +27,7 @@
 //      而它正是 duel-figures.js:467 camStable 的閘門，lean 不得動它。
 //   S9 reduced-motion 下 ys:fx-burn 完全不動相機（第 1 輪覆審 M-3）。
 //   S13／S14（v0.65.1 運鏡乙，docs/experiments/2026-10-08-camera-bid-curse/acceptance.md §3）：牌桌機位（錨點＝原點）上
-//      S13 喊價（ys:bid 微推＋ys:bid-clock 倒數 3→0 秒）、S14 中咒（ys:reveal-result 帶 transferTarget）。
+//      S13 喊價（ys:bid 微推，連續出價 3 秒後停手回位）、S14 中咒（ys:reveal-result 帶 transferTarget）。
 //      逐幀量「相對事件前那一幀」的 |Δ position.length() − Δ dist| ≤ 1e-6：推近若只縮 dist（徑向），
 //      位移長度就等於 dist 的減量（Δdist＝−|Δposition|）；yaw／tilt／平移被動到時 |Δposition| > |Δlength| 會紅。
 //      另量 fov 恆 50、回位殘差 ≤1e-9、reduced-motion 下兩場景完全不動（A10–A12）。
@@ -300,8 +300,8 @@ async function run(page, url, newUrl, baseUrl) {
     H.step(60, 'e'); H.fire('ys:table', {}); H.step(120, 'e');
     out.bidPre = H.log.length - 1;
     H.fire('ys:bid', { seat: 2, slot: 1, amount: 5 }); H.step(12, 'bid');
-    for (let r = 3000; r > 0; r -= 100) { H.fire('ys:bid-clock', { seat: 2, remainMs: r }); H.step(6, 'bid'); }
-    H.fire('ys:bid-clock', { seat: 2, remainMs: 0 }); H.step(90, 'bid');
+    for (let i = 0; i < 30; i++) { H.fire('ys:bid', { seat: 2, slot: 1, amount: 6 + i }); H.step(6, 'bid'); }
+    H.step(90, 'bid');
     out.bidEnd = H.log.length;
     out.cursePre = H.log.length - 1;
     H.fire('ys:reveal-result', { winner: 2, slot: 1, transferTarget: 3, destroy: false, grabMs: 1260, curseMs: 2000, skip: false }); H.step(200, 'curse');

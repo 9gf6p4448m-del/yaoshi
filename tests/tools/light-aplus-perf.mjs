@@ -4,9 +4,10 @@
 // 與示意不同處：示意在同一頁執行期切燈光；產品的燈光開頁就定，所以每案各開一頁（v0.64.0 樹 vs 本分支），由呼叫端交錯跑兩輪。
 // 用法：node tests/tools/light-aplus-perf.mjs <root> <query> <bid|reveal|phone> <out.json> [--vsync] [--cam-trigger]
 // --cam-trigger（v0.65.1 運鏡乙驗收 §5，只加觸發、不改量法）：量測窗一開始就派鏡頭事件，讓 2.5 秒窗落在新鏡頭作用中——
-//   bid：每 100ms 派一次 ys:bid-clock（剩餘 2600→100ms＝「最後 3 秒收緊」，seat 1；1.2 秒時換 seat 3＝喊價者切換）；
+//   bid：0 秒 seat 1、1.2 秒 seat 3 各派一次 ys:bid（出價微推＋喊價者切換；「最後 3 秒收緊」已刪，10-08 使用者同意）；
 //   reveal：派一次 ys:reveal-result（transferTarget 3、curseMs 2000、slot null）＝中咒 0.8 秒推近＋停留＋回位都在窗內。
-//   slot null 讓 renderer 的托盤結算整段早退（只有鏡頭收這個事件），基準樹（5c91bdc7）沒有這兩個監聽者＝同一份觸發下的空操作。
+//   reveal 的 slot null 讓 renderer 的托盤結算整段早退（只有鏡頭收這個事件），基準樹（5c91bdc7）沒有這個監聽者＝同一份觸發下的空操作；
+//   bid 的 ys:bid 兩棵樹的托盤錢柱／席位之手都會收（推錢演出），兩邊同一份觸發，差異只剩鏡頭。
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
@@ -115,11 +116,10 @@ try {
     // 活性紀錄（不進量測）：觸發前與窗內某一刻的相機位置——基準樹應相同、新版應不同，證明觸發真的有被鏡頭吃到
     const C = window.__yaoshi3d.camera, snap = () => C.position.toArray();
     window.__camLive = { before: snap() };
-    setTimeout(() => { window.__camLive.during = snap(); }, scene === 'reveal' ? 1200 : 2300);
+    setTimeout(() => { window.__camLive.during = snap(); }, scene === 'reveal' ? 1200 : 1600);
     if (scene === 'reveal') { fire('ys:reveal-result', { winner: 2, slot: null, transferTarget: 3, destroy: false, grabMs: 1260, curseMs: 2000, skip: false }); return; }
-    const t0 = performance.now();
-    const tick = () => { const e = performance.now() - t0, r = Math.max(0, 2600 - Math.floor(e / 100) * 100); fire('ys:bid-clock', { seat: e < 1200 ? 1 : 3, remainMs: r }); if (r <= 0 || !window.__dcOn) clearInterval(window.__camTick); };
-    tick(); window.__camTick = setInterval(tick, 100);
+    fire('ys:bid', { seat: 1, slot: 0, amount: 3 });
+    setTimeout(() => { if (window.__dcOn) fire('ys:bid', { seat: 3, slot: 0, amount: 4 }); }, 1200);
   }, SCENE);
   await page.waitForTimeout(2500);
   if (CAM_TRIGGER) out.camLive = await page.evaluate(() => window.__camLive);
