@@ -31,7 +31,8 @@ export const LIGHT_FX = {
     mapSize: 1024, bias: -0.0006, normalBias: 0.02, near: 0.5, far: 10,
   },
   ENV_INTENSITY: 0.12, // 室內環境反射的強度（直接烘進環境圖，等同所有標準材質 envMapIntensity=0.12）
-  SHADOW_EPS: 2e-3, // 拍品世界矩陣任一元素變動超過這個值才重畫陰影圖（idle 呼吸的細微擺動不必每幀重畫）
+  SHADOW_EPS: 2e-3, // 拍品世界矩陣任一元素變動超過這個值才算「動了」
+  POSE_REFRESH_S: 0.5, // 只有拍品內部姿態（idle 骨頭）在動時，陰影圖最多每 0.5 秒重畫一次（見 shadowPass 註解）
   /* 揭盅收光（驗收修訂 1 #8：揭盅畫面機位推近、整條紅布都在聚光裡，燭火光池讀不出來）：揭盅結果卡在場時，
      聚光收窄加亮、對準桌心前緣，燈籠與半球光壓暗，讓桌心一圈最亮、四周落暗。只動 uniform（強度／角度／目標），不增減燈。 */
   REVEAL: { spotK: 2.0, angle: 0.4, penumbra: 0.45, target: [0.0, 0, 0.3], lanK: 0.6, hemiK: 0.7, rate: 3 },
@@ -44,7 +45,9 @@ export function lightFxUrlOn() {
 /* 環境圖的建構器只在 A+ 開著時才抓（`?fx=0` 不多發任何請求）。放在模組頂層 await，
    讓 createLightFx 維持同步——renderer 的 init() 不必改成 async，`?fx=0` 的啟動時序與 v0.64.0 相同。 */
 const URL_ON = lightFxUrlOn();
-const RoomEnvironment = URL_ON ? (await import('three/addons/environments/RoomEnvironment.js')).RoomEnvironment : null;
+/* 覆審 MEDIUM-1：這支抓不到（CDN 單檔失敗）時不得拖垮整個 3D 層——退回「無環境圖」，聚光與陰影照開。 */
+let RoomEnvironment = null;
+if (URL_ON) { try { RoomEnvironment = (await import('three/addons/environments/RoomEnvironment.js')).RoomEnvironment; } catch (e) { console.warn('[light-fx] RoomEnvironment 載入失敗，退回無環境反射', e); } }
 
 const isLit = (m) => !!m && (m.isMeshStandardMaterial || m.isMeshLambertMaterial || m.isMeshPhongMaterial);
 const matsOf = (o) => (Array.isArray(o.material) ? o.material : [o.material]);
@@ -71,7 +74,7 @@ function makeEnv(renderer, k) {
  * @returns {{on:boolean, update:(stageOn:number, tray:any)=>void, stats:()=>object, spot:THREE.SpotLight|null}}
  */
 export function createLightFx(env, opts = {}) {
-  const on = (opts.on !== undefined ? !!opts.on : URL_ON) && !!RoomEnvironment;
+  const on = opts.on !== undefined ? !!opts.on : URL_ON;
   if (!on) return { on: false, spot: null, update() {}, stats: () => ({ on: false }) };
   const { scene, renderer, lanterns, hemi } = env;
   const P = LIGHT_FX;
@@ -101,7 +104,7 @@ export function createLightFx(env, opts = {}) {
   spot.shadow.camera.far = S.far;
   scene.add(spot, spot.target);
 
-  scene.environment = makeEnv(renderer, P.ENV_INTENSITY);
+  scene.environment = RoomEnvironment ? makeEnv(renderer, P.ENV_INTENSITY) : null;
 
   // 靜態受影面（木桌、桌角香灰）：開頁設一次
   for (const r of env.receivers || []) if (r) r.traverse((o) => { if (o.isMesh && matsOf(o).some(isLit)) o.receiveShadow = true; });
@@ -128,39 +131,67 @@ export function createLightFx(env, opts = {}) {
   }
   blend(1);
 
-  let sig = new Float64Array(0), sigN = 0, lastSig = null, requests = 0, casters = 0;
-  const push = (v) => { if (sigN >= sig.length) { const n = new Float64Array(Math.max(256, sig.length * 2)); n.set(sig); sig = n; } sig[sigN++] = v; };
+  /* 陰影圖何時重畫（凍結 #4 ③＋覆審 HIGH-1／LOW-3）。簽章分兩層：
+     ① 結構簽章（立刻重畫）：托盤顯隱、拍品數、聚光角度／目標、每件拍品根節點的世界矩陣，
+        以及每個網格的 visible／layers.mask／castShadow（鑑賞時藏到別的圖層、退出鑑賞要回來）。
+     ② 姿態簽章（限頻）：拍品內網格與骨頭的世界矩陣。拍品 GLB 一載完就常駐播 idle（table-tray.js:961），
+        骨頭每幀都在動；若每幀比姿態，正常牌桌約 9 成幀都要多畫一趟陰影圖（覆審實測 draw 中位 73→118）。
+        所以姿態只在「變動超過 SHADOW_EPS 且距上次重畫 ≥ POSE_REFRESH_S」時才重畫：影子最多落後 idle 姿態 0.5 秒，
+        idle 擺幅實測 ≤0.023 世界單位，投在紅布上不到 1px～2px；拍品被搬動（hover 抬升、抓取、鑑賞自轉）走①、不受限頻。
+     兩層都用預先配置的緩衝比對，不在每幀配置新陣列。 */
+  const mkBuf = () => ({ a: new Float64Array(256), n: 0 });
+  const growPush = (B, v) => { if (B.n >= B.a.length) { const n = new Float64Array(B.a.length * 2); n.set(B.a); B.a = n; } B.a[B.n++] = v; };
+  const differs = (A, Bl, eps) => { if (!Bl.valid || A.n !== Bl.n) return true; for (let i = 0; i < A.n; i++) if (Math.abs(A.a[i] - Bl.a[i]) > eps) return true; return false; };
+  const keep = (A, Bl) => { if (Bl.a.length < A.n) Bl.a = new Float64Array(A.a.length); Bl.a.set(A.a.subarray(0, A.n)); Bl.n = A.n; Bl.valid = true; };
+  const st = mkBuf(), po = mkBuf(), stL = { a: new Float64Array(256), n: 0, valid: false }, poL = { a: new Float64Array(256), n: 0, valid: false };
+  let requests = 0, casters = 0, sinceRender = 0;
 
-  function shadowPass(tray) {
+  function shadowPass(tray, dt) {
     if (!tray || !tray.group) return;
+    sinceRender += dt;
     const lots = typeof tray.lotNodes === 'function' ? tray.lotNodes() : [];
     // 托盤上的受光網格都收影（錢、令牌、手、桌布）；投影一律先關，下面只對拍品打開
     tray.group.traverse((o) => { if (o.isMesh) { o.receiveShadow = matsOf(o).some(isLit); o.castShadow = false; } });
-    sigN = 0; casters = 0;
-    push(tray.group.visible ? 1 : 0);
-    push(lots.length);
-    push(spot.angle); push(spot.target.position.x); push(spot.target.position.z); // 聚光收放也會改陰影圖
+    st.n = 0; po.n = 0; casters = 0;
+    growPush(st, tray.group.visible ? 1 : 0);
+    growPush(st, lots.length);
+    growPush(st, spot.angle); growPush(st, spot.target.position.x); growPush(st, spot.target.position.z); // 聚光收放也會改陰影圖
     for (const node of lots) {
       node.updateWorldMatrix(true, true);
-      push(node.id);
+      growPush(st, node.id);
+      { const e = node.matrixWorld.elements; for (let i = 0; i < 16; i++) growPush(st, e[i]); }
       node.traverse((o) => {
-        push(o.visible ? 1 : 0);
+        if (o === node) return;
         if (o.isMesh) {
           const ms = matsOf(o);
           o.castShadow = ms.some(isLit) && ms.every((m) => m && !m.transparent);
           if (o.castShadow) casters++;
+          growPush(st, o.visible ? 1 : 0); growPush(st, o.layers.mask); growPush(st, o.castShadow ? 1 : 0);
         }
-        if (o.isMesh || o.isBone) { const e = o.matrixWorld.elements; for (let i = 0; i < 16; i++) push(e[i]); }
+        if (o.isMesh || o.isBone) { const e = o.matrixWorld.elements; for (let i = 0; i < 16; i++) growPush(po, e[i]); }
       });
     }
-    let dirty = !lastSig || lastSig.length !== sigN;
-    for (let i = 0; !dirty && i < sigN; i++) if (Math.abs(sig[i] - lastSig[i]) > P.SHADOW_EPS) dirty = true;
-    if (dirty) {
-      lastSig = sig.slice(0, sigN);
+    const structDirty = differs(st, stL, P.SHADOW_EPS);
+    const poseDirty = !structDirty && sinceRender >= P.POSE_REFRESH_S && differs(po, poL, P.SHADOW_EPS);
+    if (structDirty || poseDirty) {
+      keep(st, stL); keep(po, poL);
+      sinceRender = 0;
       renderer.shadowMap.needsUpdate = true;
       requests++;
     }
   }
+
+  /* WebGL context lost→restored（覆審 MEDIUM-2；iOS 切背景會遇到）：PMREM 烘的環境圖不會自己重建，陰影圖內容也沒了。
+     three 自己的 restored 處理先跑（它較早註冊），這裡接著重烘環境圖、清掉簽章、標陰影圖重畫。 */
+  renderer.domElement.addEventListener('webglcontextrestored', () => {
+    try {
+      const old = scene.environment;
+      scene.environment = RoomEnvironment ? makeEnv(renderer, P.ENV_INTENSITY) : null;
+      if (old && old.dispose) old.dispose();
+    } catch (e) { scene.environment = null; }
+    stL.valid = false; poL.valid = false;
+    renderer.shadowMap.needsUpdate = true;
+  });
 
   return {
     on: true,
@@ -170,9 +201,9 @@ export function createLightFx(env, opts = {}) {
       revealK += ((reveal ? 1 : 0) - revealK) * Math.min(1, dt * RV.rate);
       if (Math.abs(revealK - (reveal ? 1 : 0)) < 1e-3) revealK = reveal ? 1 : 0;
       blend(Math.round((1 - Math.min(1, Math.max(0, stageOn))) * 1000) / 1000, Math.round(revealK * 1000) / 1000);
-      shadowPass(tray);
+      shadowPass(tray, dt);
     },
     /** 治具出口（只讀）：陰影圖重畫請求次數、目前投影者數量 */
-    stats: () => ({ on: true, shadowRequests: requests, casters, exposure: renderer.toneMappingExposure, revealK }),
+    stats: () => ({ on: true, shadowRequests: requests, casters, exposure: renderer.toneMappingExposure, revealK, env: !!scene.environment }),
   };
 }

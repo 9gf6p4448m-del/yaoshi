@@ -133,3 +133,40 @@ Q2「背景是否看得出層次」：A+ 三張皆「看得出」✔。揭盅那
 | 9 | 過 | diff 只含渲染／燈光／測試／版本／docs |
 
 鑰匙：scratchpad `blind2-key.json`（set1＝開標前 img1 A+、set2＝揭盅 img2 A+、set3＝手機 img1 A+）。
+
+---
+
+# 覆審修補（冷讀對抗審查 HIGH-1／MEDIUM-1／MEDIUM-2／LOW-3／LOW-1）
+
+## HIGH-1 拍品 idle 讓陰影圖幾乎每幀重畫——修法與取捨
+- 選法：**簽章分兩層＋姿態限頻**（`js/light-fx.js` shadowPass）。
+  - 結構簽章（立刻重畫）：托盤顯隱、拍品數、聚光角度／目標、每件拍品**根節點**世界矩陣、每個網格的 visible／layers.mask／castShadow（一併修 LOW-3）。
+  - 姿態簽章（網格＋骨頭世界矩陣）：只在變動 >2e-3 且距上次重畫 ≥0.5 秒（`POSE_REFRESH_S`）才重畫。
+- 為什麼不選其他：「簽章不放骨頭」會讓影子永遠停在第一幀姿態（骨頭驅動的網格也不會更新）；「全域限 10–15Hz」搬動拍品時影子會明顯跟不上；「停播 idle」改了既有動畫外觀。
+- 代價：idle 擺動時影子最多落後姿態 0.5 秒；idle 擺幅實測 ≤0.023 世界單位。修前後同幀像素比（A+ 修前 vs 修後）：開標前 699 px（>8 的 67 px，max 21）、手機 205 px（>8 的 16 px）、揭盅 6043 px（>8 的 1137 px，max 148，影子輪廓局部位移；肉眼並排看不出差別，圖 scratchpad `shots/fixdiff-reveal.png`）。拍品被搬動（hover、抓取、鑑賞自轉、根節點位移）仍 1～2 幀內重畫。
+- 每幀不再配置新陣列（預配置緩衝＋set）。
+- 量測缺口一併補：新測試 ⑤ 不凍時間軸、60Hz；效能治具加 `--vsync`。
+
+## MEDIUM-1 RoomEnvironment 抓不到：try/catch，退回無環境圖、聚光與陰影照開（`console.warn`，非 error）。
+## MEDIUM-2 context restored：重烘環境圖、清兩層簽章、標陰影圖重畫。
+## LOW-1 `?fx=0` 不再 import／預載 light-fx.js（renderer 換成什麼都不做的替身）。
+
+## 新測試與鑑別力
+- `tests/light-aplus.test.mjs` ⑤（不凍時間軸、≥119 幀、間隔中位 ≥12ms）：重畫 <0.2 次／幀、draw 中位與 ?fx=0 差 ≤5%、最壞幀 ≤+75%、剛重畫後 15 幀內 0 次、根節點挪 0.05 後 2 幀內重畫（挪回亦然）。
+  - 對 6a8a8d82：紅「一般牌桌陰影圖重畫要 <0.2 次／幀 {aplus: frames 130, shadowRenders 129, drawMed 118; fx0: drawMed 73}」。
+  - 突變「骨頭放回結構簽章」：同句紅（129/130、drawMed 118）。
+- `tests/light-aplus-robust.test.mjs`：① 擋掉 RoomEnvironment.js ⇒ 3D 層照常、A+ 開、無環境圖、0 pageerror；② loseContext→restoreContext（時間軸凍住）⇒ 環境圖重建、陰影圖重畫。
+  - 對 6a8a8d82：① 紅「環境圖抓不到時 3D 層仍要起來 [TypeError: Failed to fetch dynamically imported module …RoomEnvironment.js]」；② 紅「復原後環境圖要重建 {after:{env:false,shadow:false},shadowRendersAfterRestore:0}」。
+  - 突變（拿掉 try/catch＋拿掉 restored 監聽）：同兩句紅。
+- `tests/light-aplus-fx0.test.mjs` 突變（fx=0 仍建 A+／替身只開陰影圖）：皆紅「開頁時渲染器旗標＝v0.64.0」。
+
+## 修補後重量
+- #4（60Hz，`light-aplus-perf.mjs --vsync`，?fx=0 vs A+ 交錯兩輪，每案 2.5 秒）：
+  開標前 重畫 0.087 次／幀、draw 中位 84=84、最壞 147（對 fx0 中位 +75.0%、對 fx0 最壞 88 +67%）、CPU 中位 +0.35ms；
+  手機 0.081、84=84、147（+75.0%／+67%）、+0.3ms；
+  揭盅 **0.22**、83=83、142（+71%）、+0.3ms——揭盅期間拍品被抓回、聚光收放在動（根節點／聚光角度變動屬結構簽章，立即重畫），不是 idle 牌桌。
+  覆審重現腳本 draws.mjs（60Hz、開局後 4 秒、119 幀）：A+ 重畫 4／5 次、draw 中位 73、平均 74.5／74.9、最壞 118；?fx=0 中位 73。
+  靜止 62 幀：三場景陰影重畫 0、draw＝fx0。燈數恆 10、投影燈 1；program 36/38/45/48/48（同修前）。
+- #2 揭盅雜訊底線：v0.64.0 樹揭盅共跑 4 次，兩兩差 4214～8102 px（max 6～14）；`?fx=0` 對 4 份 v0.64.0 為 7572／1793／8153／5836 px（max 14／5／14／14）。
+  對修訂 1 指定的那一對（base vs base2：7547 px／max 14），`?fx=0` vs base 是 7572 px／max 14，**像素數超出 25 px**；落在 4 次 v0.64.0 自身兩兩差的範圍內。開標前、手機 0 px。
+- #3：3a 0.843／0.830／0.877；3b 差同幀示意 A+ 0.14／2.45／0.12；3c 開標前 7/8、手機 8/8、揭盅 3/8 塊合格。#5 WCAG 變化 0～+4.3%。

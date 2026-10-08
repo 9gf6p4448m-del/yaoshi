@@ -2,7 +2,7 @@
 // 到達場景後解凍等 0.8 秒，再量 2.5 秒：draw call＝在 WebGL context 上數 drawElements／drawArrays（含 Instanced）每次 renderer.render
 // 實際送出的數量（含陰影圖那幾趟）；CPU 幀時間＝同一個 rAF 時間戳底下所有回呼的 JS 執行時間合計；幀間隔＝rAF 時間戳差。
 // 與示意不同處：示意在同一頁執行期切燈光；產品的燈光開頁就定，所以每案各開一頁（v0.64.0 樹 vs 本分支），由呼叫端交錯跑兩輪。
-// 用法：node tests/tools/light-aplus-perf.mjs <root> <query> <bid|reveal|phone> <out.json>
+// 用法：node tests/tools/light-aplus-perf.mjs <root> <query> <bid|reveal|phone> <out.json> [--vsync]
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
@@ -12,6 +12,8 @@ import { fileURLToPath } from 'node:url';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const { chromium } = createRequire(path.join(HERE, '../../tools/anyCreature/package.json'))('playwright');
 const [ROOT, QUERY = '', SCENE = 'bid', OUTF] = process.argv.slice(2);
+// --vsync：不關 vsync、不解鎖幀率（rAF 約 60Hz）。覆審 HIGH-1：不鎖幀時重畫比會被高幀率稀釋，所以「每幀陰影重畫比」與 draw 中位數以 60Hz 這組為準。
+const VSYNC = process.argv.includes('--vsync');
 const PORT = 9960 + Math.floor(Math.random() * 30);
 const SEED = 3;
 const VP = SCENE === 'phone' ? { width: 844, height: 390 } : { width: 1280, height: 720 };
@@ -54,7 +56,7 @@ const DRIVE_STEP = `(() => {
 
 const srv = spawn('python', ['-m', 'http.server', String(PORT), '--bind', '127.0.0.1'], { cwd: ROOT, stdio: 'ignore' });
 await new Promise((r) => setTimeout(r, 900));
-const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=d3d11', '--ignore-gpu-blocklist', '--disable-gpu-vsync', '--disable-frame-rate-limit'] });
+const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=d3d11', '--ignore-gpu-blocklist', ...(VSYNC ? [] : ['--disable-gpu-vsync', '--disable-frame-rate-limit'])] });
 const out = { root: ROOT, query: QUERY, scene: SCENE, errors: [] };
 try {
   const ctx = await browser.newContext({ viewport: VP, deviceScaleFactor: 1 });

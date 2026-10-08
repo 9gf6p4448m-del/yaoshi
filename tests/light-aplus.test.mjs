@@ -4,6 +4,7 @@
 //   ① 預設開啟：桌後一盞投影聚光、陰影圖開且 autoUpdate 關、曝光 0.95、四盞燈籠換成燭火色、有環境圖
 //   ② `?fx=0` 退回：沒有任何投影燈、陰影圖關、曝光／燈籠色／衰減／半球光都是 v0.64.0 的值、燈數比預設少一盞（就是那盞聚光）
 //   ③ 陰影僅法寶：投影的網格 >0，而且每一個都在托盤當夜拍品底下（不是錢、令牌、手、桌布、桌子）；每件拍品至少一個網格投影
+//   ⑤ 一般牌桌（不凍時間軸、拍品照播 idle）：陰影圖重畫 <0.2 次／幀、draw 中位數與 ?fx=0 差 ≤5%、沒動不重畫、根節點一動就重畫（覆審 HIGH-1）
 //   ④ 燈數固定：開頁（還沒開局）的燈數／投影燈數＝開局後＝收桌（ys:duel）再擺回（ys:duel-end）之後；
 //      第二次收桌擺回前後 program 數相等；3D 時間軸停住（ys:hitstop）時陰影圖 0 次重畫，拍品一動（hover 抬升）就會重畫
 // 對 ae92bf2a（v0.64.0）跑：①③④ 紅在行為斷言（沒有投影燈／投影網格 0），② 紅在「燈數比預設少一盞」。
@@ -126,7 +127,7 @@ test('光影 A+：預設開啟／?fx=0 退回／陰影僅法寶／燈數固定',
         assert.equal(s.shadowLights, 1, '收桌／擺回後投影燈數不變');
       }
       assert.equal(c2.end.programs, c1.end.programs, `第二次收桌擺回不得新編 program：${c1.end.programs}→${c2.end.programs}`);
-      // 靜止：3D 時間軸停住（dt=0、照樣每幀重畫）1 秒，陰影圖 0 次重畫
+      // 靜止（3D 時間軸停住：dt=0、照樣每幀重畫）1 秒，陰影圖 0 次重畫
       const still = await page.evaluate(async () => {
         document.dispatchEvent(new CustomEvent('ys:hitstop', { detail: { ms: 1e9 } }));
         await new Promise((r) => setTimeout(r, 300));
@@ -135,20 +136,51 @@ test('光影 A+：預設開啟／?fx=0 退回／陰影僅法寶／燈數固定',
         const s0 = window.__shadowRenders;
         await new Promise((r) => setTimeout(r, 1000));
         R.render = orig;
+        document.dispatchEvent(new CustomEvent('ys:hitstop', { detail: { ms: 0 } }));
         return { frames, shadowRenders: window.__shadowRenders - s0 };
       });
       assert.ok(still.frames >= 10, '靜止期間照樣有在重畫 ' + JSON.stringify(still));
       assert.equal(still.shadowRenders, 0, '靜止幀陰影圖重畫次數必須 0 ' + JSON.stringify(still));
-      // 活性：拍品一動（hover 抬升＋自轉）陰影圖就要重畫
-      const moved = await page.evaluate(async () => {
-        document.dispatchEvent(new CustomEvent('ys:hitstop', { detail: { ms: 0 } }));
-        const s0 = window.__shadowRenders;
-        window.__yaoshi3d.tray.setHover(1);
-        await new Promise((r) => setTimeout(r, 600));
-        window.__yaoshi3d.tray.setHover(-1);
-        return window.__shadowRenders - s0;
+    });
+
+    await t.test('⑤ 一般牌桌（不凍時間軸、拍品照播 idle、60Hz）：陰影圖重畫 <0.2 次／幀，draw 中位數與 ?fx=0 差 ≤5%；沒動不重畫、根節點一動就重畫', async () => {
+      // 覆審 HIGH-1：拍品 idle 骨頭每幀在動。這裡不凍時間軸，量 rAF 自然節奏（headless 60Hz）下的 130 幀。
+      const measure = (page) => page.evaluate(async () => {
+        const R = window.__yaoshi3d.renderer, ar = R.info.autoReset; const calls = [], ts = [];
+        const s0 = window.__shadowRenders; R.info.autoReset = false; R.info.reset();
+        await new Promise((res) => { let n = 0; const f = (t) => { calls.push(R.info.render.calls); ts.push(t); R.info.reset(); if (++n < 131) requestAnimationFrame(f); else res(); }; requestAnimationFrame(f); });
+        R.info.autoReset = ar; calls.shift();
+        const med = (x) => { const y = [...x].sort((p, q) => p - q); return y[y.length >> 1]; };
+        const iv = []; for (let i = 1; i < ts.length; i++) iv.push(ts[i] - ts[i - 1]);
+        return { frames: calls.length, shadowRenders: window.__shadowRenders - s0, drawMed: med(calls), drawMax: Math.max(...calls), intervalMed: med(iv) };
       });
-      assert.ok(moved > 0, '拍品移動時陰影圖要重畫，實得 ' + moved);
+      await on.page.waitForTimeout(1500); await off.page.waitForTimeout(100);
+      const a = await measure(on.page), b = await measure(off.page);
+      const info = JSON.stringify({ aplus: a, fx0: b });
+      assert.ok(a.frames >= 119 && a.intervalMed >= 12, '要在約 60Hz 下量到 ≥119 幀 ' + info);
+      assert.ok(a.shadowRenders / a.frames < 0.2, '一般牌桌陰影圖重畫要 <0.2 次／幀 ' + info);
+      assert.ok(Math.abs(a.drawMed / b.drawMed - 1) <= 0.05, 'draw 中位數與 ?fx=0 相差要 ≤5% ' + info);
+      assert.ok(a.drawMax / b.drawMed - 1 <= 0.75, '最壞幀 draw ≤ +75% ' + info);
+      // 沒動不重畫：剛重畫完的接下來 15 幀（0.25 秒），拍品沒被搬動 ⇒ 0 次
+      const quiet = await on.page.evaluate(async () => {
+        const raf = () => new Promise((r) => requestAnimationFrame(r));
+        const s0 = window.__shadowRenders; for (let i = 0; i < 120 && window.__shadowRenders === s0; i++) await raf();
+        const s1 = window.__shadowRenders; for (let i = 0; i < 15; i++) await raf();
+        return { sawRender: s1 > s0, after15: window.__shadowRenders - s1 };
+      });
+      assert.ok(quiet.sawRender, '2 秒內至少該有一次（idle 姿態的限頻重畫）' + JSON.stringify(quiet));
+      assert.equal(quiet.after15, 0, '拍品沒被搬動時，剛重畫後 15 幀內不得再重畫 ' + JSON.stringify(quiet));
+      // 根節點一動就重畫：把一件拍品往右挪 0.05，接下來 2 幀內要有重畫；挪回去也一樣
+      const moved = await on.page.evaluate(async () => {
+        const raf = () => new Promise((r) => requestAnimationFrame(r));
+        const T = window.__yaoshi3d.tray, node = T.lotNodes()[0];
+        for (let i = 0; i < 3; i++) await raf();
+        const s0 = window.__shadowRenders; node.position.x += 0.05; await raf(); await raf();
+        const out = window.__shadowRenders - s0;
+        const s1 = window.__shadowRenders; node.position.x -= 0.05; await raf(); await raf();
+        return { out, back: window.__shadowRenders - s1 };
+      });
+      assert.ok(moved.out >= 1 && moved.back >= 1, '拍品根節點被搬動，2 幀內陰影圖要重畫 ' + JSON.stringify(moved));
     });
     await on.ctx.close(); await off.ctx.close();
   } finally { await browser.close(); srv.kill(); }

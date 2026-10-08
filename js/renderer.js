@@ -22,7 +22,11 @@ const { makeCreatureFigure, creatureGlbUrl, createFigureLightRig, attachFactionF
 const { createTraitFx } = await import('./trait-fx.js' + V);
 const { createTableTray, TRAY } = await import('./table-tray.js' + V);
 const { fitSubject } = await import('./table-framing.js' + V);
-const { createLightFx } = await import('./light-fx.js' + V);
+/* 光影 A+（v0.65.0）：`?fx=0` 時連這支模組都不載（覆審 LOW-1），換成什麼都不做的替身＝v0.64.0。 */
+const LIGHT_FX_OFF = (() => { try { return new URLSearchParams(location.search || '').get('fx') === '0'; } catch (e) { return false; } })();
+const { createLightFx } = LIGHT_FX_OFF
+  ? { createLightFx: () => ({ on: false, spot: null, update() {}, stats: () => ({ on: false }) }) }
+  : await import('./light-fx.js' + V);
 
 // 後製 bloom（v0.27）：只有對決場景開，牌桌與標題頁走原本的直接 render。
 // 理由有兩條——① 手機效能：bloom 是全畫面 fill，開在整局最久的牌桌上最不划算；

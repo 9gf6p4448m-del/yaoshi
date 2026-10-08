@@ -6326,12 +6326,12 @@ try{
     const add=href=>{ const l=document.createElement("link"); l.rel="modulepreload"; l.href=href; head.appendChild(l); };
     ["renderer","bloom","scene-env","particles","characters-billboard","bridge-players","camera-director","duel-figures","creature-figures","skeleton-share",
      "trait-fx","trait-fx/vocab","trait-fx/emblems","trait-fx/zuling","trait-fx/xianghuo","trait-fx/yinqi","table-tray","table-props","relic-motion",
-     "table-hands","hand-motion","hand-realism","appraise-fx","table-framing","light-fx"].forEach(m=>add("js/"+m+".js"+q));
+     "table-hands","hand-motion","hand-realism","appraise-fx","table-framing"].forEach(m=>add("js/"+m+".js"+q));
     add("js/trait-fx/vocab.js"); /* xianghuo.js 以不帶 ?v 的相對路徑靜態 import 它（既有行為），照實預載那一份 */
     const im=JSON.parse(document.querySelector('script[type="importmap"]').textContent).imports;
     add(im["three"]);
     ["loaders/GLTFLoader.js","utils/SkeletonUtils.js","utils/BufferGeometryUtils.js"].forEach(f=>add(im["three/addons/"]+f));
-    if(new URLSearchParams(location.search||"").get("fx")!=="0") add(im["three/addons/"]+"environments/RoomEnvironment.js"); /* v0.65.0 光影 A+（js/light-fx.js）；?fx=0 不抓 */
+    if(new URLSearchParams(location.search||"").get("fx")!=="0"){ add("js/light-fx.js"+q); add(im["three/addons/"]+"environments/RoomEnvironment.js"); } /* v0.65.0 光影 A+（js/light-fx.js）；?fx=0 兩支都不抓 */
   }catch(e){}
 })();
 /* 演出計數器（驗收 C-A2／C-A8 用）：純記錄，遊戲一行都不讀它。
