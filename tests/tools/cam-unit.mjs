@@ -26,6 +26,11 @@
 //   S8 lean 期間 |Δ camera.position.length()|（第 1 輪覆審 M-2）：|position| 恆等於 dist，
 //      而它正是 duel-figures.js:467 camStable 的閘門，lean 不得動它。
 //   S9 reduced-motion 下 ys:fx-burn 完全不動相機（第 1 輪覆審 M-3）。
+//   S13／S14（v0.65.1 運鏡乙，docs/experiments/2026-10-08-camera-bid-curse/acceptance.md §3）：牌桌機位（錨點＝原點）上
+//      S13 喊價（ys:bid 微推＋ys:bid-clock 倒數 3→0 秒）、S14 中咒（ys:reveal-result 帶 transferTarget）。
+//      逐幀量「相對事件前那一幀」的 |Δ position.length() − Δ dist| ≤ 1e-6：推近若只縮 dist（徑向），
+//      位移長度就等於 dist 的減量（Δdist＝−|Δposition|）；yaw／tilt／平移被動到時 |Δposition| > |Δlength| 會紅。
+//      另量 fov 恆 50、回位殘差 ≤1e-9、reduced-motion 下兩場景完全不動（A10–A12）。
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -61,7 +66,9 @@ import { createCameraDirector as N } from '${newUrl}';
 import { msOf } from './fx-consts.mjs';
 ${newUrl === baseUrl ? 'const O = N;' : `import { createCameraDirector as O } from '${baseUrl}';`}
 window.__camunit = (async () => {
-  const mkCam = () => ({ position: new THREE.Vector3(), lookAt() {} });
+  // v0.65.1 治具修補：v0.59 起 createCameraDirector 建立時會 clone camera.quaternion（首頁機位 table0），舊替身沒有它就 TypeError；
+  // fov:50 給運鏡乙場景量「fov 恆 50」（導演從不寫 fov）
+  const mkCam = () => ({ position: new THREE.Vector3(), quaternion: new THREE.Quaternion(), fov: 50, lookAt() {} });
   const lanterns = [{}, {}, {}, {}];
   const camN = mkCam(), camO = mkCam();
   // 先建基準版再建新版也行；兩者都掛在 document 上，dispatch 一次兩邊都收得到
@@ -83,7 +90,7 @@ window.__camunit = (async () => {
       log.push({
         t: +(now).toFixed(3), tag: tag || '',
         nx: a.x, ny: a.y, nz: a.z, ox: b.x, oy: b.y, oz: b.z,
-        nl: Math.hypot(a.x, a.y, a.z), ol: Math.hypot(b.x, b.y, b.z),
+        nl: Math.hypot(a.x, a.y, a.z), ol: Math.hypot(b.x, b.y, b.z), nfov: camN.fov,
         nyaw: Math.atan2(a.x, a.z) * 180 / Math.PI,
         // yaw 差＝lean+orbit 的純偏移（基準版沒有這兩層）
         dyaw: D360((Math.atan2(a.x, a.z) - Math.atan2(b.x, b.z)) * 180 / Math.PI),
@@ -289,6 +296,17 @@ async function run(page, url, newUrl, baseUrl) {
     jump(i0, 'X5_lean_onset_midFold');
     H.fire('ys:duel-end', {}); H.step(120, 'e');
 
+    // ── S13／S14：運鏡乙（牌桌機位，錨點＝原點）。先回牌桌停穩，事件前那一幀就是基準。
+    H.step(60, 'e'); H.fire('ys:table', {}); H.step(120, 'e');
+    out.bidPre = H.log.length - 1;
+    H.fire('ys:bid', { seat: 2, slot: 1, amount: 5 }); H.step(12, 'bid');
+    for (let r = 3000; r > 0; r -= 100) { H.fire('ys:bid-clock', { seat: 2, remainMs: r }); H.step(6, 'bid'); }
+    H.fire('ys:bid-clock', { seat: 2, remainMs: 0 }); H.step(90, 'bid');
+    out.bidEnd = H.log.length;
+    out.cursePre = H.log.length - 1;
+    H.fire('ys:reveal-result', { winner: 2, slot: 1, transferTarget: 3, destroy: false, grabMs: 1260, curseMs: 2000, skip: false }); H.step(200, 'curse');
+    out.curseEnd = H.log.length;
+
     out.log = H.log;
     return out;
   }, { TRAIT_MS: TRAIT_MS });
@@ -456,6 +474,26 @@ try {
   const burnLenMax = lenStep(R.burnAt, R.refPunchAt);
   const punchLenMax = lenStep(R.refPunchAt, R.quietAt);
 
+  // A10／A11：運鏡乙兩個場景的徑向不變量（相對事件前那一幀，不依賴基準版）＋fov＋回位；A12：reduced-motion 完全不動
+  const camScene = (RR, pre, end) => {
+    const LL = RR.log, p0 = LL[pre];
+    let inv = 0, moved = 0, fovBad = 0;
+    for (let i = pre + 1; i < end; i++) {
+      const x = LL[i];
+      const dPos = Math.hypot(x.nx - p0.nx, x.ny - p0.ny, x.nz - p0.nz);
+      const dLen = x.nl - p0.nl; // Δ position.length()
+      inv = Math.max(inv, Math.abs(dLen - (-dPos))); // Δdist＝−|Δposition|（純徑向推近）
+      moved = Math.max(moved, dPos);
+      if (x.nfov !== 50) fovBad++;
+    }
+    const last = LL[end - 1];
+    const back = Math.hypot(last.nx - p0.nx, last.ny - p0.ny, last.nz - p0.nz);
+    return { inv: +inv.toExponential(3), moved: +moved.toFixed(6), back: +back.toExponential(3), fovBad };
+  };
+  const S13 = camScene(R, R.bidPre, R.bidEnd), S14 = camScene(R, R.cursePre, R.curseEnd);
+  const S13r = camScene(RR, RR.bidPre, RR.bidEnd), S14r = camScene(RR, RR.cursePre, RR.curseEnd);
+  const camOk = (x) => x.moved > 1e-3 && x.inv <= 1e-6 && x.back <= 1e-9 && x.fovBad === 0;
+
   const verdict = {
     newUrl, base: baseFile || '(same file)',
     'A1_orbit_dLenMax': +dLenMax.toExponential(3),
@@ -490,9 +528,12 @@ try {
     'A8_PASS': leanLenMax < 1e-3,
     'A9_reduced_burn_noop': +rBurnNoop.toExponential(3), 'A9_reduced_refPunch_drop': rRef,
     'A9_PASS': rBurnNoop === 0 && rRef > 0.1,
+    'A10_bid': S13, 'A10_PASS': camOk(S13),
+    'A11_curse': S14, 'A11_PASS': camOk(S14),
+    'A12_reduced_bid': S13r, 'A12_reduced_curse': S14r, 'A12_PASS': S13r.moved === 0 && S14r.moved === 0,
     errors: errs.length,
   };
-  verdict.ALL_PASS = ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9'].every((k) => verdict[k + '_PASS']) && errs.length === 0;
+  verdict.ALL_PASS = ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10', 'A11', 'A12'].every((k) => verdict[k + '_PASS']) && errs.length === 0;
   fs.writeFileSync(out, JSON.stringify({ verdict, errors: errs, results }, null, 1));
   console.log(JSON.stringify(verdict, null, 1));
   if (errs.length) console.log(errs.slice(0, 10).join('\n'));

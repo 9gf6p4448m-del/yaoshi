@@ -47,7 +47,8 @@ window.__cu2 = (async () => {
   // 治具用固定 dt 推進，兩個時鐘要是同一個，否則事件記的時戳跟推進的 now 差好幾秒、包絡一開始就算完了。
   let SIM = 1000;
   performance.now = () => SIM;
-  const cam = { position: new THREE.Vector3(), lookAt() {} };
+  // v0.65.1 治具修補：v0.59 起 createCameraDirector 建立時會 clone camera.quaternion（首頁機位 table0），舊替身沒有它就 TypeError、整支跑不起來
+  const cam = { position: new THREE.Vector3(), quaternion: new THREE.Quaternion(), fov: 50, lookAt() {} };
   const dir = createCameraDirector(cam, [{}, {}, {}, {}]);
   const DT = 1 / 60;
   const rec = [];
