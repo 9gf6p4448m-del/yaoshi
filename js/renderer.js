@@ -435,8 +435,8 @@ function init() {
     const crowded = kind === 'duel' && duelFigures.crowded;
     setOutlineCrowd(crowded);
     bloom.setEdge(EDGE_URL_ON && kind === 'duel' && !crowded);
-    // 光影 A+：對決時燈光收回現況；拍品動了才標陰影圖重畫（`?fx=0` 時是空操作）
-    lightFx.update(stageOn, tray);
+    // 光影 A+：對決時燈光收回現況、揭盅結果卡在場時聚光收窄；拍品動了才標陰影圖重畫（`?fx=0` 時是空操作）
+    lightFx.update(stageOn, tray, !!document.getElementById('revealCard'), dt);
     if (bloomOK && (!warmedUp || kind === 'duel')) {
       warmedUp = true; // 第一幀（標題頁，canvas 只有 0.38 不透明度）順手把 bloom 的 shader 編掉
       bloom.render(scene, camera);

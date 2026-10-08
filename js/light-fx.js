@@ -32,6 +32,9 @@ export const LIGHT_FX = {
   },
   ENV_INTENSITY: 0.12, // 室內環境反射的強度（直接烘進環境圖，等同所有標準材質 envMapIntensity=0.12）
   SHADOW_EPS: 2e-3, // 拍品世界矩陣任一元素變動超過這個值才重畫陰影圖（idle 呼吸的細微擺動不必每幀重畫）
+  /* 揭盅收光（驗收修訂 1 #8：揭盅畫面機位推近、整條紅布都在聚光裡，燭火光池讀不出來）：揭盅結果卡在場時，
+     聚光收窄加亮、對準桌心前緣，燈籠與半球光壓暗，讓桌心一圈最亮、四周落暗。只動 uniform（強度／角度／目標），不增減燈。 */
+  REVEAL: { spotK: 2.0, angle: 0.4, penumbra: 0.45, target: [0.0, 0, 0.3], lanK: 0.6, hemiK: 0.7, rate: 3 },
 };
 
 /** 網址 `?fx=0` 才關；其餘（含沒帶）＝A+。 */
@@ -103,20 +106,25 @@ export function createLightFx(env, opts = {}) {
   // 靜態受影面（木桌、桌角香灰）：開頁設一次
   for (const r of env.receivers || []) if (r) r.traverse((o) => { if (o.isMesh && matsOf(o).some(isLit)) o.receiveShadow = true; });
 
-  let lastK = -1;
-  function blend(k) { // k＝1 牌桌（A+）、0 對決（現況）
-    if (k === lastK) return;
-    lastK = k;
+  let lastK = -1, lastR = -1, revealK = 0;
+  const RV = P.REVEAL, tg0 = new THREE.Vector3(...S.target), tg1 = new THREE.Vector3(...RV.target);
+  function blend(k, r = 0) { // k＝1 牌桌（A+）、0 對決（現況）；r＝揭盅收光係數（0～1）
+    if (k === lastK && r === lastR) return;
+    lastK = k; lastR = r;
     renderer.toneMappingExposure = base.exposure + (P.EXPOSURE - base.exposure) * k;
     lanterns.forEach((l, i) => {
       const b = base.lan[i];
       l.color.copy(b.c).lerp(warm[i], k);
-      l.userData.baseIntensity = b.b * (1 + (P.LANTERN_GAIN - 1) * k);
+      l.userData.baseIntensity = b.b * (1 + (P.LANTERN_GAIN - 1) * k) * (1 + (RV.lanK - 1) * r * k);
       l.decay = b.d + (P.LANTERN_DECAY - b.d) * k;
       l.distance = b.dist + (P.LANTERN_DIST - b.dist) * k;
     });
-    hemi.intensity = base.hemi * (1 + (P.HEMI_GAIN - 1) * k);
-    spot.intensity = S.intensity * k;
+    hemi.intensity = base.hemi * (1 + (P.HEMI_GAIN - 1) * k) * (1 + (RV.hemiK - 1) * r * k);
+    spot.intensity = S.intensity * k * (1 + (RV.spotK - 1) * r);
+    spot.angle = S.angle + (RV.angle - S.angle) * r;
+    spot.penumbra = S.penumbra + (RV.penumbra - S.penumbra) * r;
+    spot.target.position.lerpVectors(tg0, tg1, r);
+    spot.target.updateMatrixWorld();
   }
   blend(1);
 
@@ -131,6 +139,7 @@ export function createLightFx(env, opts = {}) {
     sigN = 0; casters = 0;
     push(tray.group.visible ? 1 : 0);
     push(lots.length);
+    push(spot.angle); push(spot.target.position.x); push(spot.target.position.z); // 聚光收放也會改陰影圖
     for (const node of lots) {
       node.updateWorldMatrix(true, true);
       push(node.id);
@@ -156,12 +165,14 @@ export function createLightFx(env, opts = {}) {
   return {
     on: true,
     spot,
-    /** 每幀 render 前呼叫一次。stageOn＝renderer 的戲台燈係數（0 牌桌、1 對決）。 */
-    update(stageOn, tray) {
-      blend(Math.round((1 - Math.min(1, Math.max(0, stageOn))) * 1000) / 1000);
+    /** 每幀 render 前呼叫一次。stageOn＝renderer 的戲台燈係數（0 牌桌、1 對決）；reveal＝揭盅結果卡在場；dt＝秒。 */
+    update(stageOn, tray, reveal = false, dt = 0) {
+      revealK += ((reveal ? 1 : 0) - revealK) * Math.min(1, dt * RV.rate);
+      if (Math.abs(revealK - (reveal ? 1 : 0)) < 1e-3) revealK = reveal ? 1 : 0;
+      blend(Math.round((1 - Math.min(1, Math.max(0, stageOn))) * 1000) / 1000, Math.round(revealK * 1000) / 1000);
       shadowPass(tray);
     },
     /** 治具出口（只讀）：陰影圖重畫請求次數、目前投影者數量 */
-    stats: () => ({ on: true, shadowRequests: requests, casters, exposure: renderer.toneMappingExposure }),
+    stats: () => ({ on: true, shadowRequests: requests, casters, exposure: renderer.toneMappingExposure, revealK }),
   };
 }

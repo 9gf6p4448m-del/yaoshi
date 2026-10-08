@@ -22,6 +22,7 @@ const REPO = path.resolve(HERE, '../..');
 const { chromium } = createRequire(path.join(REPO, 'tools/anyCreature/package.json'))('playwright');
 const [ROOT, QUERY = '', SCENE = 'bid', OUT] = process.argv.slice(2);
 const PERF = process.argv.includes('--perf'), CYCLE = process.argv.includes('--cycle');
+const TUNE = (process.argv.find((x) => x.startsWith('--tune=')) || '').slice(7) || null; // 調光試驗 JSON（陣列）
 const MOCK = (process.argv.find((x) => x.startsWith('--mock=')) || '').slice(7) || null; // 示意 light-mock.js 的路徑（唯讀）
 if (!ROOT || !OUT) { console.error('usage: light-aplus-shoot.mjs <root> <query> <bid|reveal|phone> <outPrefix> [--perf] [--cycle]'); process.exit(2); }
 const PORT = 9760 + Math.floor(Math.random() * 200);
@@ -197,6 +198,15 @@ try {
       await page.evaluate((x) => window.__lightMock.apply(x), v);
       await page.clock.runFor(34);
       await shot('-mock' + v);
+    }
+  }
+  if (TUNE) {
+    // 調光試驗（只對 A+ 頁）：同一凍結幀改燈光 uniform（不增減燈、不重編）再拍；每案從 A+ 原值出發
+    const variants = JSON.parse(fs.readFileSync(TUNE, 'utf8'));
+    const orig = await page.evaluate(() => { const Y = window.__yaoshi3d, s = Y.lightFx.spot; const lan = []; let hemi = 0; Y.scene.traverse((o) => { if (o.isPointLight && o.userData.baseIntensity) lan.push(o.userData.baseIntensity); if (o.isHemisphereLight) hemi = o.intensity; }); return { si: s.intensity, ang: s.angle, pen: s.penumbra, tg: s.target.position.toArray(), pos: s.position.toArray(), lan, hemi, exp: Y.renderer.toneMappingExposure }; });
+    for (let i = 0; i < variants.length; i++) {
+      await page.evaluate(([o, v]) => { const Y = window.__yaoshi3d, s = Y.lightFx.spot; s.intensity = o.si * (v.spotK ?? 1); s.angle = v.angle ?? o.ang; s.penumbra = v.pen ?? o.pen; s.target.position.fromArray(v.target ?? o.tg); s.position.fromArray(v.pos ?? o.pos); s.target.updateMatrixWorld(); let k = 0; Y.scene.traverse((l) => { if (l.isPointLight && l.userData.baseIntensity) { l.userData.baseIntensity = o.lan[k++] * (v.lanK ?? 1); } if (l.isHemisphereLight) l.intensity = o.hemi * (v.hemiK ?? 1); }); Y.renderer.toneMappingExposure = v.exp ?? o.exp; Y.renderer.shadowMap.needsUpdate = true; }, [orig, variants[i]]);
+      await shot('-tune' + i);
     }
   }
   await page.evaluate(() => { window.__freezeT = null; });

@@ -1,0 +1,372 @@
+{
+ "atLoad": {
+  "lights": [
+   {
+    "type": "AmbientLight",
+    "name": "",
+    "color": 3810384,
+    "ground": null,
+    "intensity": 0.5,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "decay": null,
+    "distance": null,
+    "angle": null,
+    "penumbra": null,
+    "castShadow": false,
+    "visible": true
+   },
+   {
+    "type": "HemisphereLight",
+    "name": "",
+    "color": 7039638,
+    "ground": 9066022,
+    "intensity": 1.8,
+    "pos": [
+     0,
+     6,
+     0
+    ],
+    "decay": null,
+    "distance": null,
+    "angle": null,
+    "penumbra": null,
+    "castShadow": false,
+    "visible": true
+   },
+   {
+    "type": "PointLight",
+    "name": "",
+    "color": 16754773,
+    "ground": null,
+    "intensity": {
+     "base": 7
+    },
+    "pos": [
+     0,
+     1.5,
+     2.6
+    ],
+    "decay": 2,
+    "distance": 10,
+    "angle": null,
+    "penumbra": null,
+    "castShadow": false,
+    "visible": true
+   },
+   {
+    "type": "PointLight",
+    "name": "",
+    "color": 11026474,
+    "ground": null,
+    "intensity": {
+     "base": 3.6
+    },
+    "pos": [
+     0,
+     1.5,
+     -2.6
+    ],
+    "decay": 2,
+    "distance": 10,
+    "angle": null,
+    "penumbra": null,
+    "castShadow": false,
+    "visible": true
+   },
+   {
+    "type": "PointLight",
+    "name": "",
+    "color": 16760944,
+    "ground": null,
+    "intensity": {
+     "base": 5.6
+    },
+    "pos": [
+     -2.6,
+     1.5,
+     0
+    ],
+    "decay": 2,
+    "distance": 10,
+    "angle": null,
+    "penumbra": null,
+    "castShadow": false,
+    "visible": true
+   },
+   {
+    "type": "PointLight",
+    "name": "",
+    "color": 14215423,
+    "ground": null,
+    "intensity": {
+     "base": 5
+    },
+    "pos": [
+     2.6,
+     1.5,
+     0
+    ],
+    "decay": 2,
+    "distance": 10,
+    "angle": null,
+    "penumbra": null,
+    "castShadow": false,
+    "visible": true
+   },
+   {
+    "type": "SpotLight",
+    "name": "",
+    "color": 16771788,
+    "ground": null,
+    "intensity": 0,
+    "pos": [
+     -3.879185,
+     3.635,
+     2.754605
+    ],
+    "decay": 1.4,
+    "distance": 11.9,
+    "angle": 0.32,
+    "penumbra": 0.7,
+    "castShadow": false,
+    "visible": true
+   },
+   {
+    "type": "SpotLight",
+    "name": "",
+    "color": 6260448,
+    "ground": null,
+    "intensity": 0,
+    "pos": [
+     2.66499,
+     1.765,
+     -0.147239
+    ],
+    "decay": 1.4,
+    "distance": 7.6499999999999995,
+    "angle": 0.85,
+    "penumbra": 0.9,
+    "castShadow": false,
+    "visible": true
+   },
+   {
+    "type": "SpotLight",
+    "name": "",
+    "color": 15771712,
+    "ground": null,
+    "intensity": 0,
+    "pos": [
+     1.103006,
+     2.904,
+     -2.362647
+    ],
+    "decay": 1.4,
+    "distance": 7.14,
+    "angle": 0.52,
+    "penumbra": 0.65,
+    "castShadow": false,
+    "visible": true
+   }
+  ],
+  "renderer": {
+   "shadowEnabled": false,
+   "shadowType": 1,
+   "shadowAutoUpdate": true,
+   "toneMapping": 4,
+   "exposure": 1.1,
+   "outputColorSpace": "srgb",
+   "environment": null,
+   "background": 1839920
+  },
+  "shadowCasters": 0
+ },
+ "inGame": {
+  "lights": [
+   {
+    "type": "AmbientLight",
+    "name": "",
+    "color": 3810384,
+    "ground": null,
+    "intensity": 0.5,
+    "pos": [
+     0,
+     0,
+     0
+    ],
+    "decay": null,
+    "distance": null,
+    "angle": null,
+    "penumbra": null,
+    "castShadow": false,
+    "visible": true
+   },
+   {
+    "type": "HemisphereLight",
+    "name": "",
+    "color": 7039638,
+    "ground": 9066022,
+    "intensity": 1.8,
+    "pos": [
+     0,
+     6,
+     0
+    ],
+    "decay": null,
+    "distance": null,
+    "angle": null,
+    "penumbra": null,
+    "castShadow": false,
+    "visible": true
+   },
+   {
+    "type": "PointLight",
+    "name": "",
+    "color": 16754773,
+    "ground": null,
+    "intensity": {
+     "base": 7
+    },
+    "pos": [
+     0,
+     1.5,
+     2.6
+    ],
+    "decay": 2,
+    "distance": 10,
+    "angle": null,
+    "penumbra": null,
+    "castShadow": false,
+    "visible": true
+   },
+   {
+    "type": "PointLight",
+    "name": "",
+    "color": 11026474,
+    "ground": null,
+    "intensity": {
+     "base": 3.6
+    },
+    "pos": [
+     0,
+     1.5,
+     -2.6
+    ],
+    "decay": 2,
+    "distance": 10,
+    "angle": null,
+    "penumbra": null,
+    "castShadow": false,
+    "visible": true
+   },
+   {
+    "type": "PointLight",
+    "name": "",
+    "color": 16760944,
+    "ground": null,
+    "intensity": {
+     "base": 5.6
+    },
+    "pos": [
+     -2.6,
+     1.5,
+     0
+    ],
+    "decay": 2,
+    "distance": 10,
+    "angle": null,
+    "penumbra": null,
+    "castShadow": false,
+    "visible": true
+   },
+   {
+    "type": "PointLight",
+    "name": "",
+    "color": 14215423,
+    "ground": null,
+    "intensity": {
+     "base": 5
+    },
+    "pos": [
+     2.6,
+     1.5,
+     0
+    ],
+    "decay": 2,
+    "distance": 10,
+    "angle": null,
+    "penumbra": null,
+    "castShadow": false,
+    "visible": true
+   },
+   {
+    "type": "SpotLight",
+    "name": "",
+    "color": 16771788,
+    "ground": null,
+    "intensity": 0,
+    "pos": [
+     -3.57,
+     3.635,
+     3.145
+    ],
+    "decay": 1.4,
+    "distance": 11.9,
+    "angle": 0.32,
+    "penumbra": 0.7,
+    "castShadow": false,
+    "visible": true
+   },
+   {
+    "type": "SpotLight",
+    "name": "",
+    "color": 6260448,
+    "ground": null,
+    "intensity": 0,
+    "pos": [
+     2.635,
+     1.765,
+     -0.425
+    ],
+    "decay": 1.4,
+    "distance": 7.6499999999999995,
+    "angle": 0.85,
+    "penumbra": 0.9,
+    "castShadow": false,
+    "visible": true
+   },
+   {
+    "type": "SpotLight",
+    "name": "",
+    "color": 15771712,
+    "ground": null,
+    "intensity": 0,
+    "pos": [
+     0.85,
+     2.904,
+     -2.465
+    ],
+    "decay": 1.4,
+    "distance": 7.14,
+    "angle": 0.52,
+    "penumbra": 0.65,
+    "castShadow": false,
+    "visible": true
+   }
+  ],
+  "renderer": {
+   "shadowEnabled": false,
+   "shadowType": 1,
+   "shadowAutoUpdate": true,
+   "toneMapping": 4,
+   "exposure": 1.1,
+   "outputColorSpace": "srgb",
+   "environment": null,
+   "background": 1839920
+  },
+  "shadowCasters": 0
+ }
+}
