@@ -210,6 +210,9 @@ test('§6.1／§6.2 取消／結束事件收得掉新鏡頭（ys:duel-end／ys:t
       const c = main.marks.cancel;
       assert.ok(diffFrame(main.frames[c], twin.frames[c]) > 1e-3, `${name}×${ev}：取消前新鏡頭要在作用中`);
       assert.ok(diffFrame(main.frames.at(-1), twin.frames.at(-1)) <= 1e-9, `${name}×${ev}：1.5 秒後仍卡在推近（差 ${diffFrame(main.frames.at(-1), twin.frames.at(-1))}）`);
+      // 收場要當下收（喊價 K 以固定速率約 0.14 秒回 0、中咒走 outMs 0.45 秒）：0.5 秒後就與對照相同，不得等停留時間自然到期
+      const at = c + 30;
+      assert.ok(diffFrame(main.frames[at], twin.frames[at]) <= 1e-9, `${name}×${ev}：收場 0.5 秒後仍在推近（差 ${diffFrame(main.frames[at], twin.frames[at])}）——沒有當下收掉`);
     }
   }
 });
