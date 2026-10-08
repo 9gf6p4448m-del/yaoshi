@@ -26,7 +26,7 @@ const errors = [];
 let browser, result;
 try {
   browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=d3d11', '--ignore-gpu-blocklist'] });
-  const ctx = await browser.newContext({ viewport: { width: 852, height: 393 }, deviceScaleFactor: 2, hasTouch: true });
+  const ctx = await browser.newContext({ viewport: opt.portrait ? { width: 390, height: 844 } : { width: 852, height: 393 }, deviceScaleFactor: 2, hasTouch: true });
   await ctx.addInitScript(() => { try { localStorage.setItem('yaoshi_intro_v1', '1'); } catch (e) {} });
   const page = await ctx.newPage();
   page.on('pageerror', (e) => errors.push('pageerror: ' + String(e)));
@@ -49,8 +49,8 @@ try {
     const native = requestAnimationFrame.bind(window); await new Promise(native);
     const queue = []; let id = 0; window.requestAnimationFrame = (cb) => { queue.push(cb); return ++id; };
     await new Promise(native);
-    const clock = { now: performance.now(), step() { const cbs = queue.splice(0); if (!cbs.length) throw new Error('rAF queue empty'); clock.now += 1000 / 60; for (const cb of cbs) cb(clock.now); } };
-    const W = 426, H = 196, rt = new T.WebGLRenderTarget(W, H), buf = new Uint8Array(W * H * 4);
+    const clock = { now: performance.now(), n: 0, step() { clock.n++; const cbs = queue.splice(0); if (!cbs.length) throw new Error('rAF queue empty'); clock.now += 1000 / 60; for (const cb of cbs) cb(clock.now); } };
+    const PORT_ = innerWidth < innerHeight, W = PORT_ ? 196 : 426, H = PORT_ ? 426 : 196, rt = new T.WebGLRenderTarget(W, H), buf = new Uint8Array(W * H * 4);
     const COLORS = [[1, 0, 0], [0, 1, 0], [0, 0, 1], [1, 0, 1]];
     const itemMats = COLORS.map((c) => new T.MeshBasicMaterial({ color: new T.Color(c[0], c[1], c[2]), toneMapped: false, fog: false }));
     const visibleChain = (o) => { for (let p = o; p; p = p.parent) if (!p.visible) return false; return true; };
@@ -89,14 +89,19 @@ try {
       const per = without.n.map((a, i) => (a >= 40 ? (a - withHands.n[i]) / a : null));
       return { hands: hands.length, items: roots.length, itemPx: without.n, occl: per, perHand, handShare: handOnly.any / (W * H) };
     }
-    window.__ho = { clock, measure, ev: (n, d) => document.dispatchEvent(new CustomEvent(n, { detail: d })) };
+    /* 修訂1（docs/experiments/2026-10-08-hand-reach/README.md）：令牌拍下接觸窗口＝該席令牌落地（ys:mark-slam）起到手拍完（進場 ENTRY_MAX＋微顫＋停留）為止。
+       只有這一段、而且只有那一席的手，遮擋量另列、不進 ≤10% 閘門；其餘時段與情境照舊。 */
+    const HM = await import('/js/hand-motion.js'); const SLM = HM.HAND.SLAM;
+    const land = {}; document.addEventListener('ys:mark-slam', (e) => { const k = e.detail && e.detail.slot; if (k !== undefined && land[k] === undefined) land[k] = clock.n; }); // detail 只有 slot；拍場景每席一格（slot＝(席+1)%4）
+    const WIN = Math.ceil((SLM.ENTRY_MAX + SLM.TREMBLE_MS + SLM.HOLD_MS) * 60);
+    window.__ho = { clock, land, WIN, measure, ev: (n, d) => document.dispatchEvent(new CustomEvent(n, { detail: d })) };
   });
 
   /** 一段動作：派事件、走 steps 步，每 2 步量一次；shots＝要截圖的步數。 */
-  async function scenario(name, prep, fire, steps, shots = []) {
+  async function scenario(name, prep, fire, steps, shots = [], slamSlotOf = null) {
     await page.evaluate(({ prep }) => { const Y = window.__yaoshi3d; Y.tray.props.clearRound(); Y.tray.hands.clear && Y.tray.hands.clear(); for (const [n, d] of prep) window.__ho.ev(n, d); }, { prep });
     if (prep.length) await page.evaluate(() => { for (let i = 0; i < 100; i++) window.__ho.clock.step(); });
-    await page.evaluate(({ fire }) => { for (const [n, d] of fire) window.__ho.ev(n, d); }, { fire });
+    const n0 = await page.evaluate(({ fire }) => { for (const k of Object.keys(window.__ho.land)) delete window.__ho.land[k]; for (const [n, d] of fire) window.__ho.ev(n, d); return window.__ho.clock.n; }, { fire });
     const samples = [], frames = [];
     for (let s = 1; s <= steps; s++) {
       const m = await page.evaluate(({ meas }) => { window.__ho.clock.step(); return meas ? window.__ho.measure() : null; }, { meas: s % 2 === 0 });
@@ -104,19 +109,29 @@ try {
       if (shots.includes(s)) frames.push({ label: `${name} t=${(s / 60).toFixed(2)}s`, buf: await page.screenshot({ type: 'jpeg', quality: 70, scale: 'css' }) });
     }
     const live = samples.filter((x) => x.hands > 0);
-    const occ = live.flatMap((x) => x.occl.filter((v) => v !== null));
-    const perSampleMax = live.map((x) => Math.max(0, ...x.occl.filter((v) => v !== null)));
+    /* 修訂1：拍令牌接觸窗口內那一席的手另列（slamSlotOf＝席→它拍的格；只有拍場景傳）；閘門值＝窗口外的手（沒有窗口時＝原本的合併值）。 */
+    const win = slamSlotOf ? await page.evaluate(() => ({ land: { ...window.__ho.land }, WIN: window.__ho.WIN })) : null;
+    const inWin = (x, hand) => { if (!win) return false; const seat = Number(String(hand).replace(/\D/g, '')); const l = win.land[slamSlotOf(seat)]; const st = n0 + x.step; return l !== undefined && st >= l && st <= l + win.WIN; };
+    const maxOf = (a) => Math.max(0, ...a.filter((v) => v !== null));
+    let winMax = 0, winN = 0;
+    for (const x of live) {
+      const ex = win ? x.perHand.filter((h) => inWin(x, h.hand)) : [];
+      if (ex.length) { winN++; winMax = Math.max(winMax, ...ex.map((h) => maxOf(h.occl))); x.gate = maxOf(x.perHand.filter((h) => !ex.includes(h)).flatMap((h) => h.occl)); }
+      else x.gate = maxOf(x.occl);
+    }
+    const occ = live.map((x) => x.gate);
+    const perSampleMax = occ;
     return { name, samples: samples.length, samplesWithHands: live.length,
-      occlusionMax: occ.length ? Math.max(...occ) : 0, occlusionMeanOfFrameMax: perSampleMax.length ? perSampleMax.reduce((a, b) => a + b, 0) / perSampleMax.length : 0,
+      occlusionMax: occ.length ? Math.max(...occ) : 0, slamWindow: win ? { samplesInWindow: winN, occlusionMaxInWindow: winMax, winSteps: win.WIN, land: win.land } : null, occlusionMeanOfFrameMax: perSampleMax.length ? perSampleMax.reduce((a, b) => a + b, 0) / perSampleMax.length : 0,
       handShareMax: live.length ? Math.max(...live.map((x) => x.handShare)) : 0, handShareMean: live.length ? live.reduce((a, x) => a + x.handShare, 0) / live.length : 0,
-      worst: live.slice().sort((a, b) => Math.max(0, ...b.occl.filter((v) => v !== null)) - Math.max(0, ...a.occl.filter((v) => v !== null)))[0] || null, frames };
+      worst: live.slice().sort((a, b) => b.gate - a.gate)[0] || null, frames };
   }
   const six = (n) => [0, 1, 2, 3, 4, 5].map((k) => 1 + Math.round(k * (n - 1) / 5));
   const bids = (list) => list.map(([s, k, a]) => ['ys:bid', { seat: s, slot: k, amount: a }]);
   const runs = [];
   runs.push(await scenario('推', [], bids([[0, 1, 8], [1, 2, 5], [2, 0, 3], [3, 3, 6]]), 46, six(44)));
   runs.push(await scenario('推（四家同一格）', [], bids([[0, 2, 3], [1, 2, 6], [2, 2, 8], [3, 2, 12]]), 46));
-  runs.push(await scenario('拍', [], [0, 1, 2, 3].map((s) => ['ys:mark', { seat: s, slot: (s + 1) % 4 }]), 56, six(54)));
+  runs.push(await scenario('拍', [], [0, 1, 2, 3].map((s) => ['ys:mark', { seat: s, slot: (s + 1) % 4 }]), 56, six(54), (s) => (s + 1) % 4));
   runs.push(await scenario('收', bids([[0, 1, 3], [1, 1, 6], [2, 1, 8], [3, 1, 5]]), [['ys:reveal-result', { slot: 1, winner: 3 }]], 62, six(60)));
   /* 第四輪：一席推多格改排隊，整段演出最長 ≈1.56 秒——量測窗從 46 步（0.77 秒）拉到 100 步（1.67 秒），排隊後段也量到 */
   runs.push(await scenario('AI 一次推多格', [], bids([1, 2, 3].flatMap((s) => [0, 1, 2, 3].map((k) => [s, k, 2 + ((s + k) % 6)]))), 100, six(98)));
@@ -170,7 +185,7 @@ try {
   }
 } finally { await browser?.close(); server.kill(); }
 if (opt.out) fs.writeFileSync(path.resolve(HERE, opt.out), JSON.stringify(result, null, 1));
-const summary = Object.fromEntries(result.runs.map((r) => [r.name, { occlMax: +r.occlusionMax.toFixed(4), occlMeanFrameMax: +r.occlusionMeanOfFrameMax.toFixed(4), handShareMax: +r.handShareMax.toFixed(4), handShareMean: +r.handShareMean.toFixed(4), n: r.samplesWithHands }]));
+const summary = Object.fromEntries(result.runs.map((r) => [r.name, { occlMax: +r.occlusionMax.toFixed(4), ...(r.slamWindow ? { occlMaxInSlamWindow: +r.slamWindow.occlusionMaxInWindow.toFixed(4), samplesInSlamWindow: r.slamWindow.samplesInWindow } : {}), occlMeanFrameMax: +r.occlusionMeanOfFrameMax.toFixed(4), handShareMax: +r.handShareMax.toFixed(4), handShareMean: +r.handShareMean.toFixed(4), n: r.samplesWithHands }]));
 /* 第二輪加嚴的自我驗收：橫式三動作（含同格、一次多格）每一格拍品被手遮住的比例，最大值 ≤10%；每段都要真的有手上場（活性）。 */
 const gates = {
   occlusion_le_10pct: result.runs.every((r) => r.samplesWithHands > 5 && r.occlusionMax <= 0.10),

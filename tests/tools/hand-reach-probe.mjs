@@ -59,9 +59,32 @@ export async function measureSlam({ layout = 'L', seats = [0, 1, 2, 3], slots = 
   }
   r.hands.dispose(); r.props.dispose(); return out;
 }
+/** 進場首幀：手第一個可見幀，看得見的頂點（袖口邊以前）落在托盤布面矩形（平面 |x|≤hw、|z−tz|≤hd）內的個數與最大入布深度（公尺）。
+ *  0＝首幀整隻手都在布面外（從托盤外緣進場）；北席全放寬原本首幀在盤中（頂點數 >0）。 */
+export async function measureEntry({ layout = 'L', seats = [0, 1, 2, 3], slots = [0, 1, 2, 3] } = {}) {
+  const r = await rig(layout), out = [], T = M.HAND.TRAY[layout], tz = r.props.trayZ();
+  for (const seat of seats) for (const slot of slots) {
+    r.props.clearRound(); r.hands.clear(); for (let i = 0; i < 12; i++) step(r);
+    r.props.mark(seat, slot); r.hands.mark(seat, slot);
+    let row = null;
+    for (let i = 0; i < 60 * 4 && !row; i++) {
+      step(r); const pts = handVerts(r, seat); if (!pts) continue; // 手第一個可見的幀（不等令牌 t≥1：手上場的時機由手導演自己決定）
+      let inside = 0, deep = 0;
+      for (const p of pts) { const dx = T.hw - Math.abs(p[0]), dz = T.hd - Math.abs(p[2] - tz); if (dx > 0 && dz > 0) { inside++; deep = Math.max(deep, Math.min(dx, dz)); } }
+      row = { seat, slot, inside, total: pts.length, deep: +deep.toFixed(4), frame: i };
+    }
+    out.push(row || { seat, slot, inside: null });
+  }
+  r.hands.dispose(); r.props.dispose(); return out;
+}
+/** 兩隻手（看得見的蒙皮頂點，每 STRIDE 個取 1）之間的最小頂點距離（公尺）：AABB 相交是粗篩，這個才是「手真的碰到手」。 */
+const STRIDE = 6;
+const handMin = (r, a, b) => { const A = handVerts(r, a), B = handVerts(r, b); if (!A || !B) return null; let m = 1e9;
+  for (let i = 0; i < A.length; i += STRIDE) for (let j = 0; j < B.length; j += STRIDE) { const dx = A[i][0] - B[j][0], dy = A[i][1] - B[j][1], dz = A[i][2] - B[j][2], d = dx * dx + dy * dy + dz * dz; if (d < m) m = d; }
+  return Math.sqrt(m); };
 const boxHit = (a, b) => a.mn[0] < b.mx[0] && a.mx[0] > b.mn[0] && a.mn[1] < b.mx[1] && a.mx[1] > b.mn[1] && a.mn[2] < b.mx[2] && a.mx[2] > b.mn[2];
 export async function measureCollisions({ layout = 'L' } = {}) {
-  const r = await rig(layout); let hh = 0, ho = 0, live = 0, ph = 'bid', sh = 0; const where = {}, detail = {};
+  const r = await rig(layout); let hh = 0, hhMesh = 0, hhMin = 1e9, ho = 0, live = 0, ph = 'bid', sh = 0; const where = {}, detail = {};
   for (let shift = 0; shift < 4; shift++) {
     sh = shift; ph = 'bid';
     r.props.clearRound(); r.hands.clear();
@@ -70,7 +93,7 @@ export async function measureCollisions({ layout = 'L' } = {}) {
     const check = () => {
       const bx = [0, 1, 2, 3].map((s) => handBox(r, s)); live += bx.filter(Boolean).length;
       for (let a = 0; a < 4; a++) { if (!bx[a]) continue;
-        for (let b = a + 1; b < 4; b++) if (bx[b] && boxHit(bx[a], bx[b])) { hh++; where[`hh${a}${b}`] = (where[`hh${a}${b}`] || 0) + 1; const k = `s${sh}-${ph}-hh${a}${b}`; detail[k] = (detail[k] || 0) + 1; }
+        for (let b = a + 1; b < 4; b++) if (bx[b] && boxHit(bx[a], bx[b])) { hh++; { const dm = handMin(r, a, b); if (dm !== null) { hhMin = Math.min(hhMin, dm); if (dm < 0.01) hhMesh++; } } where[`hh${a}${b}`] = (where[`hh${a}${b}`] || 0) + 1; const k = `s${sh}-${ph}-hh${a}${b}`; detail[k] = (detail[k] || 0) + 1; }
         const own = (a + shift) % 4;
         for (const o of r.props.handObstacles()) {
           const isTok = o.hx !== undefined; if (isTok) { /* 令牌：別席的令牌（同槽或別槽都算別人的東西） */ }
@@ -87,14 +110,15 @@ export async function measureCollisions({ layout = 'L' } = {}) {
     for (let s = 0; s < 4; s++) { r.props.mark(s, (s + shift) % 4); r.hands.mark(s, (s + shift) % 4); }
     phase(240);
   }
-  r.hands.dispose(); r.props.dispose(); return { handHand: hh, handObstacle: ho, liveHandFrames: live, where, detail };
+  r.hands.dispose(); r.props.dispose(); return { handHand: hh, handHandMesh: hhMesh, handHandMinDist: +hhMin.toFixed(4), handObstacle: ho, liveHandFrames: live, where, detail };
 }
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
   const arg = (k) => process.argv.find((a) => a.startsWith(`--${k}=`))?.slice(k.length + 3);
   const layout = arg('layout') || 'L';
-  const slam = await measureSlam({ layout }), col = await measureCollisions({ layout });
+  const slam = await measureSlam({ layout }), entry = await measureEntry({ layout }), col = await measureCollisions({ layout });
   console.log('slam gap3(m) 席×槽'); for (const s of [0, 1, 2, 3]) console.log(NAME[s], slam.filter((x) => x.seat === s).map((x) => (x.gap3 ?? 'NA').toString().padStart(7)).join(' '));
+  console.log('進場首幀在托盤布面內的頂點數（席×槽）'); for (const s of [0, 1, 2, 3]) console.log(NAME[s], entry.filter((x) => x.seat === s).map((x) => (x.inside ?? 'NA').toString().padStart(7)).join(' '));
   console.log('collisions', JSON.stringify({ ...col, detail: undefined })); if (process.env.DETAIL) console.log(JSON.stringify(col.detail));
-  if (arg('json')) fs.writeFileSync(arg('json'), JSON.stringify({ slam, col }, null, 1));
+  if (arg('json')) fs.writeFileSync(arg('json'), JSON.stringify({ slam, entry, col }, null, 1));
   process.exit(0);
 }

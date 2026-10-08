@@ -53,7 +53,12 @@ export const HAND = {
    *  放寬（使用者試玩「手拍令牌離令牌有距離」「西家丟錢手停了錢還在飛」，裁定放寬到搆得到所有槽）：原值 NORTH_IN 0.05／MID 0.06／SOUTH_IN 0.02
    *  是第二輪 5a794080 為了「手不擋拍品」收的（北席停在托盤北緣、西／東不越中線、南／西／東不進前緣），代價是令牌落在前緣、離席位遠的槽手根本搆不到。
    *  量測（tests/tools/hand-reach-probe.mjs、throw-seat-timing.mjs all）：拍令牌最近距離 0.25–1.1 m→≤0.032 m；推錢「手掌路徑÷錢柱路徑」最低 0.42→≥0.8。 */
-  REACH: { NORTH_IN: 1.2, MID: -1.5, SOUTH_IN: 0.05, SIDE_IN: 0.5 },
+  /*  推／收／停一拍的伸入界線（10-08 乙加淡入的「遮擋閘門 ≤10% 下最放寬」搜尋值，見 22b2e1a3）：南席沿全放寬；北席不越過托盤前緣（limitOf 夾在托盤全深內）；
+   *  西／東分開（兩席拍品配置不對稱）。這組之外的情境（拍令牌）見 REACH_SLAM。 */
+  REACH: { NORTH_IN: 0.65, SOUTH_IN: 0.05, MID_W: -1.5, SIDE_IN_W: 0.06, MID_E: -0.6, SIDE_IN_E: 0.35 },
+  /*  拍令牌的伸入界線＝全放寬（使用者 10-08 看三欄對照圖選「全放寬」：「才有真的蓋在上面的感覺」）：四席×四槽令牌拍下時手到令牌 gap 0。
+   *  手蓋在拍品上是被要求的意圖；遮擋閘門只豁免令牌拍下接觸窗口（見 docs/experiments/2026-10-08-hand-reach/README.md 修訂1）。 */
+  REACH_SLAM: { NORTH_IN: 1.2, MID: -1.5, SOUTH_IN: 0.05, SIDE_IN: 0.5 },
   /** 托盤布面半寬／半深（與 table-tray 的 TRAY.CLOTH、直式 CLOTH_SX／SZ 同值）：布有皺褶起伏，手指在布上要多留 CLOTH_TOP。 */
   TRAY: { L: { hw: 1.8, hd: 0.46 }, P: { hw: 0.756, hd: 0.331 }, CLOTH_TOP: 0.012 },
   /** 正式資產（走 creature-figures.js 的 GLB 管線載入）。 */
@@ -70,7 +75,10 @@ export const HAND = {
   RETRACT_DIST: 1.0,
   RETRACT_LIFT: 0.12,
   /** 拍：令牌落地後的微顫（只往上抖，不會往下穿令牌）與停留。 */
-  SLAM: { SLAP_MS: 0.12, TREMBLE_MS: 0.16, TREMBLE_AMP: 0.010, HOLD_MS: 0.10, TRAIL: 0.13, APPROACH: 0.25 },
+  SLAM: { SLAP_MS: 0.12, TREMBLE_MS: 0.16, TREMBLE_AMP: 0.010, HOLD_MS: 0.10, TRAIL: 0.13, APPROACH: 0.25,
+    /* 乙加淡入：進場——手從托盤布面外沿進場方向滑進來（起點見 specOf slam），至少 ENTRY_MS、平均速度不超過 ENTRY_V（m/s），最長＝令牌飛行＋SLAP_MS
+       （令牌落地前就上場），掌心仍在落地後 SLAP_MS 蓋上令牌（拍的節拍、微顫、收手時間不動）。原本落地那一幀手直接出現在令牌後方 ~0.4 m＝北席在托盤正中。 */
+    ENTRY_MS: 0.20, ENTRY_MAX: 0.40, ENTRY_OUT: 0.03, ENTRY_HALF: 0.45, ENTRY_V: 4.0, SLIDE: 0.25, OVER: 0.02 },
   /** v0.61.0 拍令牌拇指收角（使用者 10-05 看示意裁定「外展角收小」）：拍令牌那一下的張開手（spread）拇指根 ThumbA 繞 y 的外展由 26° 收到 DEG。
    *  只換拍令牌（slam）用的姿勢；推錢、收錢、勝方停一拍照舊用 spread。ON＝預設開；table-hands 另有網址 ?thumb=0 退回舊姿勢（寫實關閉時一律舊姿勢）。 */
   SLAM_THUMB: { ON: true, DEG: 17 },
@@ -1033,15 +1041,25 @@ export function createHandDirector(props, rig, per) {
   }
   /** 某席的伸入界線：n·(x,z) ≤ c（null＝不限）。 */
   /** 某席的伸入界線（可多條）：每條 n·(x,z) ≤ c。 */
-  function limitOf(seat, T) {
-    const tz = props.trayZ(), front = { n: [0, -1], c: -(tz + T.hd - HAND.REACH.SOUTH_IN) };
+  function limitOf(seat, T, kind) {
+    const tz = props.trayZ(), R = HAND.REACH;
+    if (kind === 'slam') {
+      const S = HAND.REACH_SLAM, front = { n: [0, -1], c: -(tz + T.hd - S.SOUTH_IN) };
+      /* 拍令牌（全放寬）：南席不伸進托盤前緣超過 SOUTH_IN；北席可越過整個托盤；西／東可越中線、側面伸入 SIDE_IN。 */
+      if (seat === 0) return [front];
+      if (seat === 1) return [{ n: [0, 1], c: tz - T.hd + S.NORTH_IN }];
+      const side = { n: [0, -1], c: -(tz + T.hd - S.SIDE_IN) };
+      if (seat === 2) return [{ n: [1, 0], c: -S.MID }, side];
+      if (seat === 3) return [{ n: [-1, 0], c: -S.MID }, side];
+      return [];
+    }
+    const front = { n: [0, -1], c: -(tz + T.hd - R.SOUTH_IN) };
     /* 南席：指尖不伸進托盤前緣以內 SOUTH_IN 以上——手指伸過去就擋在拍品腳前（量測）。 */
     if (seat === 0) return [front];
-    if (seat === 1) return [{ n: [0, 1], c: tz - T.hd + HAND.REACH.NORTH_IN }];
+    if (seat === 1) return [{ n: [0, 1], c: tz - T.hd + Math.min(R.NORTH_IN, 2 * T.hd) }]; // 北席不越過托盤前緣（南側邊）
     /* 西／東：不越過托盤中線，也不伸進托盤前緣以內（量測：伸進去就擋在最左／最右那格拍品的腳前）。 */
-    const side = { n: [0, -1], c: -(tz + T.hd - HAND.REACH.SIDE_IN) };
-    if (seat === 2) return [{ n: [1, 0], c: -HAND.REACH.MID }, side];
-    if (seat === 3) return [{ n: [-1, 0], c: -HAND.REACH.MID }, side];
+    if (seat === 2) return [{ n: [1, 0], c: -R.MID_W }, { n: [0, -1], c: -(tz + T.hd - R.SIDE_IN_W) }];
+    if (seat === 3) return [{ n: [-1, 0], c: -R.MID_E }, { n: [0, -1], c: -(tz + T.hd - R.SIDE_IN_E) }];
     return [];
   }
   /** 障礙表的簡短指紋（記憶化用；同一幀內位置沒變＝同一組指紋）。 */
@@ -1101,8 +1119,8 @@ export function createHandDirector(props, rig, per) {
     };
   }
   /** 這一幀看得見的部分（袖口邊以前）越線最多的那一條與越線量（over≤0＝沒越）。 */
-  function reach(R, seat, fr, s, T) {
-    const Ls = limitOf(seat, T); if (!Ls.length) return { over: 0, L: null };
+  function reach(R, seat, fr, s, T, kind) {
+    const Ls = limitOf(seat, T, kind); if (!Ls.length) return { over: 0, L: null };
     const o = offsets(R, fr, s);
     let best = { over: -Infinity, L: null };
     for (const L of Ls) {
@@ -1145,7 +1163,7 @@ export function createHandDirector(props, rig, per) {
       /* 靠近伸入界線時，手的朝向逐漸轉成正對界線（界線法向）：斜著推時最前端的手指會比抵住錢的那一點先頂到界線，手就提早停、錢多滑一段。
          轉的比例只看錢柱中心離界線多遠（連續），不看上一幀。 */
       let yaw = yawToward(sh[0], sh[1], st.x, st.z);
-      { let worst = null, wm = Infinity; for (const L of limitOf(h.seat, HAND.TRAY[props.mode()] || HAND.TRAY.L)) { if (L.n[0] * st.tx + L.n[1] * st.tz - L.c - st.r <= 0.03) continue; /* 只看「錢柱落點已在手搆不到處」的那條（同驗收的界線外判定） */ const m = L.c - (L.n[0] * st.x + L.n[1] * st.z); if (m < wm) { wm = m; worst = L; } }
+      { let worst = null, wm = Infinity; for (const L of limitOf(h.seat, HAND.TRAY[props.mode()] || HAND.TRAY.L, a.kind)) { if (L.n[0] * st.tx + L.n[1] * st.tz - L.c - st.r <= 0.03) continue; /* 只看「錢柱落點已在手搆不到處」的那條（同驗收的界線外判定） */ const m = L.c - (L.n[0] * st.x + L.n[1] * st.z); if (m < wm) { wm = m; worst = L; } }
         if (worst) { const k = smooth(clamp01(1 - (wm - st.r) / HAND.PUSH_SHOULDER.LINE_BLEND)); if (k > 0) { const yn = Math.atan2(worst.n[0], worst.n[1]); let d = yn - yaw; d = Math.atan2(Math.sin(d), Math.cos(d)); yaw += d * k; } } }
       /* 標稱朝向限速（v0.62.6 覆審）：每秒最多轉 PUSH_YAW.NOM_RATE；排隊換格沿用上一格的標稱朝向接著轉，不一幀甩過去。 */
       if (a.yawNom !== undefined) { const R = HAND.PUSH_YAW.NOM_RATE * Math.max(0, a.t - a.yawNomT); let d = yaw - a.yawNom; d = Math.atan2(Math.sin(d), Math.cos(d)); yaw = a.yawNom + Math.max(-R, Math.min(R, d)); }
@@ -1156,7 +1174,7 @@ export function createHandDirector(props, rig, per) {
       const yawF = yawToward(sh[0], sh[1], st.tx, st.tz), fdx = Math.sin(yawF), fdz = Math.cos(yawF);
       /* 排隊的後格：等候間隔內從上一格的結束位置移到這一格錢柱後方（位置每幀重新抓這一格的錢柱）。 */
       if (a.from && a.t < a.rep) { const k = smooth(clamp01(a.t / a.rep)); target = [a.from[0] + (target[0] - a.from[0]) * k, a.from[1] + (target[1] - a.from[1]) * k]; }
-      let inReach = true; for (const L of limitOf(h.seat, HAND.TRAY[props.mode()] || HAND.TRAY.L)) if (L.n[0] * st.x + L.n[1] * st.z - L.c - st.r > 0.03) inReach = false;
+      let inReach = true; for (const L of limitOf(h.seat, HAND.TRAY[props.mode()] || HAND.TRAY.L, a.kind)) if (L.n[0] * st.x + L.n[1] * st.z - L.c - st.r > 0.03) inReach = false;
       return { pose: a.pose || 'curl', anchor: 'front', target, yaw, zfix: true, push: { cx: st.x, cz: st.z, off, inReach, queued: !!(a.from && a.t < a.rep) },
         fit: a.pitch === undefined ? { target: [st.tx - fdx * off, st.tz - fdz * off], obstacles: moved(obstacles, st.x, st.z, st.tx, st.tz) } : undefined };
     }
@@ -1168,16 +1186,52 @@ export function createHandDirector(props, rig, per) {
       /* 第二輪：手不再舉著令牌飛過拍品前方——令牌照舊自己舉高拍下（落地那一幀仍由令牌發 ys:mark-slam），
          手壓低、跟在令牌靠席位那側的桌面上；令牌落地後 SLAP_MS 內掌心蓋上去，再微顫、收。 */
       /* 第二輪：令牌飛行時手不上場（飛行路徑會經過拍品前方）；落地那一幀起從席位那側伸進來，SLAP_MS 內掌心蓋上去。 */
-      if (!landed) return { hidden: true };
-      const k = smooth(clamp01(after / HAND.SLAM.SLAP_MS));
-      const pose = ['push', slamSpread, k]; // v0.61.0：拍令牌的張開手（per.slamPose＝'spreadT' 拇指收角；沒給＝原 spread）
-      const Rg = rigOf(h.seat), fa = prepare(Rg, pose, 'front').anchor, pa = prepare(Rg, pose, 'palm').anchor;
+      /* 乙加淡入：進場起點＝從落點沿 −進場方向退到「這一席那側的托盤布面邊」之外（北：後緣 z＝tz−hd；南／西／東：前緣 z＝tz＋hd——
+         西／東席位在托盤前方兩角，手本來就沿前緣外側進場），指尖再多 ENTRY_OUT；不短於原本的退距（tip＋TRAIL＋APPROACH）。
+         只有北席會因此退得更遠（原本落地那一幀手出現在令牌後方 ~0.4 m＝托盤正中）。南席不走這段（見下）。西／東不從席位一路滑過來：那樣手會掃過近側拍品的腳前（遮擋量測 18–37%）。
+         進場時長見下（E）；微顫與停留改從掌心蓋上（after＝E）起算。 */
+      const SL = HAND.SLAM, T0 = HAND.TRAY[props.mode()] || HAND.TRAY.L, tz0 = props.trayZ();
       const yaw = yawOf(h.seat, seatP, a), dx = Math.sin(yaw), dz = Math.cos(yaw);
-      const back = (1 - k) * ((fa[2] - pa[2]) * scaleNow(h.seat) + HAND.SLAM.TRAIL + HAND.SLAM.APPROACH);
-      const ta = after - HAND.SLAM.SLAP_MS;
-      const trem = landed && ta > 0 && ta < HAND.SLAM.TREMBLE_MS ? Math.abs(Math.sin(ta / HAND.SLAM.TREMBLE_MS * Math.PI * 3)) * HAND.SLAM.TREMBLE_AMP * (1 - ta / HAND.SLAM.TREMBLE_MS) : 0;
-      return { pose, anchor: 'palm', target: [tk.x - dx * back, tk.z - dz * back], yaw, lift: trem,
-        fit: a.pitch === undefined ? { target: [tk.tx, tk.tz], pose: ['push', slamSpread, 1], obstacles: moved(obstacles, tk.x, tk.z, tk.tx, tk.tz, tk.landTop) } : undefined };
+      const ex = landed ? tk.x : tk.tx, ez = landed ? tk.z : tk.tz; // 飛行中以落點為準（令牌還在空中）
+      const ta = after - SL.SLAP_MS;
+      const trem = landed && ta > 0 && ta < SL.TREMBLE_MS ? Math.abs(Math.sin(ta / SL.TREMBLE_MS * Math.PI * 3)) * SL.TREMBLE_AMP * (1 - ta / SL.TREMBLE_MS) : 0;
+      const fit = a.pitch === undefined ? { target: [tk.tx, tk.tz], pose: ['push', slamSpread, 1], obstacles: moved(obstacles, tk.x, tk.z, tk.tx, tk.tz, tk.landTop) } : undefined;
+      if (h.seat === 0) {
+        /* 南席：原本的進場本來就從托盤前緣外開始（首幀掌心 z 0.72–0.95＞前緣 0.56）、落地後 SLAP_MS 滑進來——沿用全放寬（45a6b161）同一套，逐幀相同
+           （量測：南席改走下面那套時，令牌落地後手離令牌 gapPx 0→13，西家信物旁那一格）。 */
+        if (!landed) return { hidden: true };
+        const k0 = smooth(clamp01(after / SL.SLAP_MS)), pose0 = ['push', slamSpread, k0];
+        const R0g = rigOf(h.seat), fa = prepare(R0g, pose0, 'front').anchor, pa = prepare(R0g, pose0, 'palm').anchor;
+        const back0 = (1 - k0) * ((fa[2] - pa[2]) * scaleNow(h.seat) + SL.TRAIL + SL.APPROACH);
+        return { pose: pose0, anchor: 'palm', target: [tk.x - dx * back0, tk.z - dz * back0], yaw, lift: trem, fit };
+      }
+      const Rg = rigOf(h.seat), pose1 = ['push', slamSpread, 1];
+      const tip = (prepare(Rg, pose1, 'front').anchor[2] - prepare(Rg, pose1, 'palm').anchor[2]) * scaleNow(h.seat);
+      /* 進場起點＝沿 −進場方向從落點退到「整隻手都在托盤布面（平面矩形）外」：射線出矩形的距離（矩形外擴 ENTRY_OUT＋手半寬 ENTRY_HALF）＋指尖前伸 tip。
+         北席從後緣外進場；西／東手是橫著進（SIDE_YAW），從自家側的側緣外滑進來——不是從席位一路掃過去（見上），而是起點就在布面外。 */
+      const rx = HAND.TRAY[props.mode()] || HAND.TRAY.L, mg = SL.ENTRY_OUT + SL.ENTRY_HALF, bx = -dx, bz = -dz; // 後退方向
+      let tEx = Infinity;
+      if (Math.abs(bx) > 1e-6) { const t = ((bx > 0 ? rx.hw + mg : -rx.hw - mg) - ex) / bx; if (t > 0) tEx = Math.min(tEx, t); }
+      if (Math.abs(bz) > 1e-6) { const t = ((bz > 0 ? tz0 + rx.hd + mg : tz0 - rx.hd - mg) - ez) / bz; if (t > 0) tEx = Math.min(tEx, t); }
+      const sOut = Number.isFinite(tEx) ? tEx + tip : 0;
+      /* 被伸入界線夾住的手（北／西／東搆不到的槽）：bRaw＝掌心退多少才碰到界線；起點至少在那之前再退 SLIDE（看得見的滑動＝起點→界線）——
+         否則起點本身就在界線外，第一幀就被夾回界線、停著不動（看起來還是瞬現）。終點 bEnd＝bRaw−OVER（比界線多伸 OVER，剩下交給下面的伸入回退；
+         只差一點點的（南席 SOUTH_IN）終點仍是令牌本身，與全放寬同一個擺位）。 */
+      let bRaw = 0;
+      for (const L of limitOf(h.seat, T0, 'slam')) { const nd = L.n[0] * dx + L.n[1] * dz; if (nd > 0.2) { const ov = L.n[0] * ex + L.n[1] * ez - L.c; if (ov > 0) bRaw = Math.max(bRaw, ov / nd); } }
+      const bEnd = Math.max(0, bRaw - SL.OVER);
+      const D = Math.max(sOut, bRaw + SL.SLIDE, tip + SL.TRAIL + SL.APPROACH);
+      /* 令牌落地後才上場（飛行中手在場會被從上方飛過的令牌抬起、或擦過令牌：hand-jitter 多 2 次彈跳、table-hands-b3 #C1 穿令牌），
+         進場時長 E＝（起點→終點距離）÷ENTRY_V，至少 ENTRY_MS、至多 ENTRY_MAX；掌心比原本晚一點蓋上令牌（原本固定 SLAP_MS）。 */
+      if (!landed) return { hidden: true };
+      const E = Math.min(SL.ENTRY_MAX, Math.max(SL.ENTRY_MS, (D - bEnd) / SL.ENTRY_V));
+      const u = clamp01(after / E);
+      const k = smooth(u);
+      const pose = ['push', slamSpread, k]; // v0.61.0：拍令牌的張開手（per.slamPose＝'spreadT' 拇指收角；沒給＝原 spread）
+      const back = bEnd + (1 - k) * (D - bEnd);
+      a.entry = E; // done() 用：微顫＋停留從 E 起算
+      const tb = after - E, tremE = tb > 0 && tb < SL.TREMBLE_MS ? Math.abs(Math.sin(tb / SL.TREMBLE_MS * Math.PI * 3)) * SL.TREMBLE_AMP * (1 - tb / SL.TREMBLE_MS) : 0;
+      return { pose, anchor: 'palm', target: [ex - dx * back, ez - dz * back], yaw, lift: tremE, fit };
     }
     if (a.kind === 'rake') {
       const st = props.stackAt(h.seat, a.slot);
@@ -1341,7 +1395,7 @@ export function createHandDirector(props, rig, per) {
         }
         if (a.kind === 'push' && spec.push && spec.push.inReach && !spec.push.queued && req.pitch !== undefined && Array.isArray(req.pose)) {
           const P = spec.push, Y = HAND.PUSH_YAW, prev = a.yawOff || 0, R = Y.RATE * Math.max(0, a.t - (a.yawT === undefined ? 0 : a.yawT));
-          const ok = (f) => reach(R0, h.seat, f, s, T).over <= 1e-3 && !(relics.length && relicHit(R0, f, s, relics));
+          const ok = (f) => reach(R0, h.seat, f, s, T, h.act && h.act.kind).over <= 1e-3 && !(relics.length && relicHit(R0, f, s, relics));
           const tryD = (d) => { const y = req.yaw + d, t = [P.cx - Math.sin(y) * P.off, P.cz - Math.cos(y) * P.off];
             if (d === 0 && f0) return ok(f0) ? { d, y, t, f: f0 } : null; // 第一幀的掃描解就是偏角 0 的擺位（俯角掃描只用 fit，最後擺位同目標同朝向），不重解
             const f = solveHand(R0, Object.assign({}, req, { yaw: y, target: t, fit: undefined }), obs, tableY); return ok(f) ? { d, y, t, f } : null; };
@@ -1354,10 +1408,10 @@ export function createHandDirector(props, rig, per) {
              不再側移跳開（原本的信物避讓會一幀把手甩到 0.4 外）。 */
           a.scanMiss = !pick; // 效能：整窗搜尋落空後，之後各幀只試限速窗內（落空的那條件通常一直成立），等窗內再找到解才恢復整窗搜尋
           const retreatOk = () => { // 只撞伸入界線、退回界線內就可行＝交給下面的回退（手抵到界線為止）；退回後撞信物才停在上一幀
-            let q = Object.assign({}, req, { fit: undefined }), f = solveHand(R0, q, obs, tableY), Rr = reach(R0, h.seat, f, s, T);
+            let q = Object.assign({}, req, { fit: undefined }), f = solveHand(R0, q, obs, tableY), Rr = reach(R0, h.seat, f, s, T, h.act && h.act.kind);
             for (let i = 0; i < 6 && Rr.over > 1e-4; i++) { const ux = Math.sin(f.yaw), uz = Math.cos(f.yaw), nd = Rr.L.n[0] * ux + Rr.L.n[1] * uz;
               const mx = nd >= 0.2 ? ux * Rr.over / nd : Rr.L.n[0] * Rr.over, mz = nd >= 0.2 ? uz * Rr.over / nd : Rr.L.n[1] * Rr.over;
-              q = Object.assign({}, q, { target: [q.target[0] - mx, q.target[1] - mz] }); f = solveHand(R0, q, obs, tableY); Rr = reach(R0, h.seat, f, s, T); }
+              q = Object.assign({}, q, { target: [q.target[0] - mx, q.target[1] - mz] }); f = solveHand(R0, q, obs, tableY); Rr = reach(R0, h.seat, f, s, T, h.act && h.act.kind); }
             return ok(f);
           };
           if (!pick && a.holdLast === undefined) a.holdLast = !retreatOk(); // 效能：「擋住的是信物還是界線」每次落空只判一次，之後沿用到再度找到解
@@ -1381,7 +1435,7 @@ export function createHandDirector(props, rig, per) {
           if (done(h)) finishAct(h);
           return m.fr;
         }
-        const valid = (f) => reach(R0, h.seat, f, s, T).over <= 1e-3 && !(relics.length && relicHit(R0, f, s, relics));
+        const valid = (f) => reach(R0, h.seat, f, s, T, h.act && h.act.kind).over <= 1e-3 && !(relics.length && relicHit(R0, f, s, relics));
         /* 先試上一幀用過的修正量（並讓它每幀縮一點，需要的修正變小時手會平順地回到原路），可行就不必整套重算。
            v0.62.4（手來回彈跳）：① 上一幀的修正量大於 HAND.CORR_KEEP 時，就算原目標這一幀已可行也先沿用、每幀最多縮 15%（原本一可行就整段修正量一幀歸零，
            手瞬間彈回原路、下一幀又被推開＝兩個位置來回翻）；② 縮 15% 不可行、原量可行時，在兩者之間二分 2 次取最小可行縮放（原本只有 0.85／1 兩檔，修正量以 15% 為一格跳）；
@@ -1390,7 +1444,7 @@ export function createHandDirector(props, rig, per) {
         const c0 = a.corr, cn = c0 ? Math.hypot(c0[0], c0[1]) : 0, req0 = Object.assign({}, req);
         /* v0.62.5：上面①②③與下面的 leap／候選依上一幀修正量排序／沿進場方向候選（ALONG）只用在目標靜止的動作。擺錢推的錢柱每幀都在走，
            沿用上一幀修正量會把手釘在原地（伸入回退把錢柱沿進場方向的位移整段吃掉），錢柱自己滑過去＝試玩回報「手跑出來、錢自己推很長的距離」。推照 v0.62.3。 */
-        const hyst = a.kind !== 'push';
+        const hyst = a.kind !== 'push' && !(a.kind === 'slam' && h.seat !== 0); // 拍令牌：北/西/東自托盤外滑進來，上一幀修正量的黏著會把手留在途中繞開信物的位置（落地後離令牌 0.1–0.9 m）→ 不黏；南席沿用 45a6b161 原路徑
         const canRetry = cn > 1e-3 && !(a.kind === 'rake' && a.lead === undefined) && req.pitch !== undefined && Array.isArray(req.pose);
         let warm = null, fr = null;
         const at = (k) => solveHand(R0, Object.assign({}, req0, { target: [req0.target[0] + c0[0] * k, req0.target[1] + c0[1] * k], fit: undefined }), obs, tableY);
@@ -1412,24 +1466,24 @@ export function createHandDirector(props, rig, per) {
         if (warm) { req.target = warm.target; fr = warm.fr; req.fit = undefined; }
         /* 伸入深度（第二輪）：看得見的部分越線就沿進場方向退回，錢（若還在滑）自己走完剩下的路；終點不變。 */
         const desired = spec.target;
-        let R = reach(R0, h.seat, fr, s, T);
+        let R = reach(R0, h.seat, fr, s, T, h.act && h.act.kind);
         if (R.over > 0 && a.kind === 'rake' && a.lead === undefined) {
           /* 收：錢柱遠側搆不到 ⇒ 這一整個動作改「從靠席位那側領著錢回來」，不越過錢柱頂、不跳位。 */
           a.lead = true; spec = specOf(h, obstacles); Object.assign(req, { target: spec.target, pose: spec.pose });
-          fr = solveHand(R0, req, obs, tableY); R = reach(R0, h.seat, fr, s, T);
+          fr = solveHand(R0, req, obs, tableY); R = reach(R0, h.seat, fr, s, T, h.act && h.act.kind);
         }
         if (a.kind === 'rake' && a.lead === undefined) a.lead = false;
         /* v0.62.4 方案 A：下面「伸入回退＋信物避讓」包成 settle()；有暖啟動點就先從它解（多半只差一點點越線，退回一點就好、高度也接得上上一幀），
            暖啟動解不出（信物擋住且找不到側移）才照原本從未修正的目標冷啟動。兩條路用的是同一組可行判定。 */
         const settle = () => {
-        R = reach(R0, h.seat, fr, s, T);
+        R = reach(R0, h.seat, fr, s, T, h.act && h.act.kind);
         for (let i = 0; i < 6 && R.over > 1e-4; i++) {
           const dx = Math.sin(fr.yaw), dz = Math.cos(fr.yaw), nd = R.L.n[0] * dx + R.L.n[1] * dz;
           /* 沿進場方向退；若這條線跟進場方向幾乎平行（退不開），改沿線的法向直接推回線內。 */
           const mx = nd >= 0.2 ? dx * R.over / nd : R.L.n[0] * R.over, mz = nd >= 0.2 ? dz * R.over / nd : R.L.n[1] * R.over;
           req.target = [req.target[0] - mx, req.target[1] - mz];
           req.pitch = fr.pitch; req.pose = fr.pose; req.fit = undefined;
-          fr = solveHand(R0, req, obs, tableY); R = reach(R0, h.seat, fr, s, T);
+          fr = solveHand(R0, req, obs, tableY); R = reach(R0, h.seat, fr, s, T, h.act && h.act.kind);
         }
         /* 第三輪：信物避讓。看得見的部分（含漸隱前半段）若落進任一席信物的外接圓柱（低於其頂），
            沿進場方向的垂直方向把入場錨點側移；只改手的位置，錢的出發點／終點不變。找不到可行側移，這一幀手不畫。 */
@@ -1467,11 +1521,11 @@ export function createHandDirector(props, rig, per) {
             for (const i of order(lo, hi)) {
               const d = [CX[i], CZ[i]];
               if (!probe) probe = relicProbe(R0, fr, s, relics);
-              if (probe(d) || reach(R0, h.seat, shifted(d), s, T).over > 1e-3) continue;
+              if (probe(d) || reach(R0, h.seat, shifted(d), s, T, h.act && h.act.kind).over > 1e-3) continue;
               const t2 = [base[0] + d[0], base[1] + d[1]];
               /* 重解時根高度不低於平移試算的那一幀（高一點只會更離信物遠），所以平移試算可行＝重解後也可行，一次就好。 */
               const f2 = solveHand(R0, Object.assign({}, req, { target: t2, pitch: fr.pitch, pose: fr.pose, fit: undefined, minY: Math.max(req.minY === undefined ? -Infinity : req.minY, fr.root[1]) }), obs, tableY);
-              if (!relicHit(R0, f2, s, relics) && reach(R0, h.seat, f2, s, T).over <= 1e-3) { ok = f2; req.target = t2; break; }
+              if (!relicHit(R0, f2, s, relics) && reach(R0, h.seat, f2, s, T, h.act && h.act.kind).over <= 1e-3) { ok = f2; req.target = t2; break; }
             }
           }
           if (!ok && !leap) return false;
@@ -1510,7 +1564,7 @@ export function createHandDirector(props, rig, per) {
     const a = h.act;
     /* 推：這一格的錢落定才算完（第一格＝原速 0.42 秒；排隊的後格各自較短）。 */
     if (a.kind === 'push') { const st = props.stackAt(h.seat, a.slot); return !st || (st.t >= 1 && !(st.wait > 0) && a.t > 0); }
-    if (a.kind === 'slam') return a.sinceLand >= HAND.SLAM.SLAP_MS + HAND.SLAM.TREMBLE_MS + HAND.SLAM.HOLD_MS;
+    if (a.kind === 'slam') return a.sinceLand >= (a.entry || HAND.SLAM.SLAP_MS) + HAND.SLAM.TREMBLE_MS + HAND.SLAM.HOLD_MS; // 乙加淡入：北／西／東進場 E 取代 SLAP_MS
     if (a.kind === 'rake') { const st = props.stackAt(h.seat, a.slot); return !st || st.gone || a.t >= HAND.RAKE.DELAY + HAND.RAKE.BACK_MS; }
     if (a.kind === 'hold') return a.t >= HAND.HOLD.REACH_MS + HAND.HOLD.STAY_MS;
     return false;

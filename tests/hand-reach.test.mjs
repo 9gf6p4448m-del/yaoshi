@@ -8,7 +8,7 @@ import path from 'node:path';
 import test from 'node:test';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { measureSlam, measureCollisions } from './tools/hand-reach-probe.mjs';
+import { measureSlam, measureCollisions, measureEntry } from './tools/hand-reach-probe.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const NAME = ['南', '北', '西', '東'];
@@ -42,4 +42,15 @@ test('③ 無新碰撞：四席同時擺錢＋拍令牌（4 種槽位輪轉）�
   assert.ok(c.liveHandFrames > 1000, `活性：手上場幀數 ${c.liveHandFrames}`);
   assert.ok(c.handHand <= 336, `手×手 ${c.handHand} > 336`);
   assert.ok(c.handObstacle <= 814, `手×障礙 ${c.handObstacle} > 814`);
+});
+
+test('④ 進場：拍令牌時四席×四槽（橫式 L＋直式 P），手第一個可見的那一幀，看得見的蒙皮頂點沒有任何一個落在托盤布面（平面矩形）內＝從托盤外緣進場，不在盤中瞬現（全放寬原本北席 2187 個、西／東最多 1078 個頂點在布面上）', async () => {
+  for (const layout of ['L', 'P']) {
+    const rows = await measureEntry({ layout });
+    assert.equal(rows.length, 16);
+    for (const r of rows) {
+      assert.ok(r.inside !== null && r.total > 500, `${layout} ${NAME[r.seat]}席 槽${r.slot}：手沒有上場（活性）`);
+      assert.equal(r.inside, 0, `${layout} ${NAME[r.seat]}席 槽${r.slot}：首幀有 ${r.inside} 個頂點在托盤布面上（最深 ${r.deep} m）`);
+    }
+  }
 });
