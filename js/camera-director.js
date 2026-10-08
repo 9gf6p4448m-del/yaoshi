@@ -144,7 +144,7 @@ const CINEMA = {
 };
 
 // (f) 運鏡乙（v0.65.1，驗收 docs/experiments/2026-10-08-camera-bid-curse/acceptance.md）：
-//     中咒鏡頭（ys:reveal-result 帶 transferTarget：毒標詛咒品推上受害者手背）與喊價鏡頭（ys:bid 出價、ys:bid-clock 倒數）。
+//     中咒鏡頭（ys:reveal-result 帶 transferTarget：毒標詛咒品推上受害者手背）與喊價鏡頭（ys:bid 出價微推）。
 //     與 FOCUS／CINEMA 同一條紀律：**只縮 dist、把視線往那一席拉一點**——yaw／tilt／fov 一律不碰，
 //     所以 camera.position 仍是「錨點＋球座標×dist」，|position − anchor| 恆等於 dist（推近是純徑向）。
 //     兩層疊加時推近量取最大、不相加（驗收 §6.3）；推近量是當下 dist 的比例，逐槽微距（1.65）上最多推到 1.419，不破 FOCUS_FLOOR。
@@ -158,11 +158,10 @@ const CURSE_CAM = {
   outMs: 450,
 };
 const BID_CAM = {
-  push: 0.10, // K＝1（倒數最後一刻）時的推近量；平常出價只到 micro
+  push: 0.10, // 推近比例尺：實際推近量＝push×K；出價微推 K＝micro → 0.035（3.5%）
   micro: 0.35, // 出價微推的 K
   aim: 0.18,
-  holdMs: 1000, // 出價後微推停留多久（之後回位）；倒數進行中由倒數決定（不用 900：那是招式時長的字面值，fxtier F1 守門）
-  lastMs: 3000, // 最後 3 秒才收緊
+  holdMs: 1000, // 出價後微推停留多久（之後回位）（不用 900：那是招式時長的字面值，fxtier F1 守門）
   rate: 2.5, // K 的固定變化速率（每秒）：上下都走直線，喊價者切換時從當下 K 接續、不跳
   aimDegPerS: 300, // 喊價者切換時，視線的方位角以固定角速度轉過去（不瞬移）
 };
@@ -249,7 +248,7 @@ export function createCameraDirector(camera, lanterns) {
   const focusPt = new THREE.Vector3();
   // 運鏡乙（v0.65.1）：中咒包絡（形狀同 cinema：進→停→回）與喊價 K（固定速率往 bidWant 走）
   let curseOn = false, curseAt = 0, curseHold = 0, curseK = 0, curseK0 = 0, curseFall = false, curseYaw = 0;
-  let bidK = 0, bidUntil = 0, bidRemain = -1, bidSeatYaw = 0, bidAimYaw = 0;
+  let bidK = 0, bidUntil = 0, bidSeatYaw = 0, bidAimYaw = 0;
   const aimPt = new THREE.Vector3();
 
   // 燈籠強調：值 1＝原亮度，>1 打亮，<1 壓暗。每幀往目標值靠近，不會突然跳。
@@ -602,7 +601,7 @@ export function createCameraDirector(camera, lanterns) {
      三支接收端各自先看 detail.cam（?cam=0 由 index.html 解析帶入；缺欄位＝開，同 :403 d.cinema!==false），
      再各自看 prefersReduced()——判斷放在接收端，直接餵事件也不會動（驗收 §4）。
      時長：中咒停留只吃 detail.curseMs（CFG.CURSE_MS 單一來源，缺了就 throw，同 onTrait 的紀律）；
-     進／回與喊價的節奏是本檔常數表（同 CINEMA.inMs／outMs 的做法），倒數剩餘時間只吃 detail.remainMs。 */
+     進／回與喊價的節奏是本檔常數表（同 CINEMA.inMs／outMs 的做法）。 */
 
   /** 基座已停穩時，把補間的起訖釘在「上一幀真正寫進去的機位」（cur*）。
    *  v0.34 起補間在 t 剛好到 1 的那一幀不寫入，相機停在離 target 約 1e-4 的地方；運鏡乙會強制每幀寫，
@@ -652,23 +651,10 @@ export function createCameraDirector(camera, lanterns) {
     bidUntil = performance.now() + BID_CAM.holdMs;
   }
 
-  /** 【積木接收端】ys:bid-clock：喊價倒數的剩餘毫秒（detail.remainMs）。剩 >3 秒只維持微推，最後 3 秒 K 隨倒數單調收緊，
-   *  remainMs≤0＝倒數結束、回位。detail.seat 有給就換看那一席（從當下 K 接續）。 */
-  function onBidClock(e) {
-    const d = (e && e.detail) || {};
-    if (d.cam === false) return;
-    if (!Number.isFinite(d.remainMs)) throw new Error('ys:bid-clock 缺 detail.remainMs（倒數只能由演出層帶進來）');
-    if (prefersReduced()) return;
-    if (typeof d.seat === 'number' && d.seat >= 0 && d.seat <= 3) bidSeat(d.seat | 0); else pinBase();
-    if (d.remainMs > 0) bidRemain = d.remainMs;
-    else { bidRemain = -1; bidUntil = 0; }
-  }
-
   /** 收掉運鏡乙（ys:duel-end／ys:table／ys:end／ys:fx-trait-cancel／ys:duel）：喊價 K 以固定速率回 0，
    *  中咒從當下包絡值走 outMs 回位段（不硬歸零，硬歸零會單幀跳 dist，同 endCinema）。 */
   function endBidCurse() {
     bidUntil = 0;
-    bidRemain = -1;
     if (curseOn && !curseFall) {
       curseK0 = curseK;
       curseAt = performance.now();
@@ -714,7 +700,6 @@ export function createCameraDirector(camera, lanterns) {
   document.addEventListener('ys:table', onTable);
   document.addEventListener('ys:reveal-result', onCurseHit);
   document.addEventListener('ys:bid', onBidCam);
-  document.addEventListener('ys:bid-clock', onBidClock);
 
   /** 每幀呼叫。dt 秒，now 毫秒。回傳目前的燈籠強調係數供閃爍計算使用。 */
   function update(dt, now) {
@@ -735,11 +720,9 @@ export function createCameraDirector(camera, lanterns) {
     cinemaK = cinemaEnvelope(now);
     shortK = shortEnvelope(now);
     curseK = curseEnvelope(now);
-    // 喊價 K：倒數中（bidRemain>0）剩 >3 秒只到 micro、最後 3 秒線性收到 1；沒有倒數時出價後 holdMs 內維持 micro。
+    // 喊價 K：出價後 holdMs 內維持 micro，之後回 0。
     // 以固定速率 BID_CAM.rate 往目標走（上下都是直線、單調），回到 0 的那一幀補寫基座。全部確定性，不抽亂數。
-    const bidWant = bidRemain > 0
-      ? (bidRemain >= BID_CAM.lastMs ? BID_CAM.micro : BID_CAM.micro + (1 - BID_CAM.micro) * (1 - bidRemain / BID_CAM.lastMs))
-      : (now < bidUntil ? BID_CAM.micro : 0);
+    const bidWant = now < bidUntil ? BID_CAM.micro : 0;
     if (bidK !== bidWant) {
       const stepK = BID_CAM.rate * dt;
       bidK = bidK < bidWant ? Math.min(bidWant, bidK + stepK) : Math.max(bidWant, bidK - stepK);
