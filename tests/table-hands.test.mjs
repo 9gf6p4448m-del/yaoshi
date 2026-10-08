@@ -337,14 +337,21 @@ test('#C6 落地事件只由令牌發：手的模組不派任何 DOM 事件；�
 /* ═══ 第二輪：伸入深度（北席不越過自己那側托盤前緣、西／東不越過托盤中線）═══════════ */
 test('第二輪伸入深度（L）：推／拍／收全程，看得見的手（袖口邊以前的真實蒙皮頂點）——北席 z ≤ 托盤北緣＋NORTH_IN；西席 x ≤ −MID、東席 x ≥ MID；南／西／東 z ≥ 托盤前緣−SOUTH_IN', async () => {
   const r = await rig('L');
-  const tz = LAYOUTS.L[3], hd = M.HAND.TRAY.L.hd, R = M.HAND.REACH;
+  const tz = LAYOUTS.L[3], hd = M.HAND.TRAY.L.hd, R = M.HAND.REACH, S = M.HAND.REACH_SLAM;
   const front = (p) => (tz + hd - R.SOUTH_IN) - p.z;
-  const lim = { 0: front, 1: (p) => p.z - (tz - hd + R.NORTH_IN), 2: (p) => Math.max(p.x + R.MID, front(p)), 3: (p) => Math.max(-p.x + R.MID, front(p)) };
+  /* 10-08：REACH 拆席（推／收／停一拍＝REACH；拍令牌＝REACH_SLAM 全放寬）。窗口外（含推／收／停一拍、令牌拍完收手）仍是原本的界線形式，只換成各席自己的常數；
+     窗口內（該席令牌落地 ys:mark-slam 起 ENTRY_MAX＋TREMBLE_MS＋HOLD_MS 秒內，同 hands-occlusion 修訂1）改用 REACH_SLAM 的包絡——手仍不得超出全放寬的界線。 */
+  const limOut = { 0: front, 1: (p) => p.z - (tz - hd + Math.min(R.NORTH_IN, 2 * hd)), 2: (p) => Math.max(p.x + R.MID_W, (tz + hd - R.SIDE_IN_W) - p.z), 3: (p) => Math.max(-p.x + R.MID_E, (tz + hd - R.SIDE_IN_E) - p.z) };
+  const limIn = { 0: front, 1: (p) => p.z - (tz - hd + S.NORTH_IN), 2: (p) => Math.max(p.x + S.MID, (tz + hd - S.SIDE_IN) - p.z), 3: (p) => Math.max(-p.x + S.MID, (tz + hd - S.SIDE_IN) - p.z) };
+  const WIN = Math.ceil((M.HAND.SLAM.ENTRY_MAX + M.HAND.SLAM.TREMBLE_MS + M.HAND.SLAM.HOLD_MS) * 60);
+  let n = 0, land = {}, inWin = 0;
   let worst = -Infinity, where = null, live = { 0: 0, 1: 0, 2: 0, 3: 0 };
   const check = () => {
     for (const h of holders(r)) {
-      const seat = +h.name.split('-')[1]; if (!h.visible || !lim[seat]) continue;
+      const seat = +h.name.split('-')[1]; if (!h.visible || !limOut[seat]) continue;
       live[seat]++;
+      const tk = r.props.tokenAt(seat); if (tk && tk.t >= 1 && land[seat] === undefined) land[seat] = n;
+      const win = land[seat] !== undefined && n >= land[seat] && n <= land[seat] + WIN, lim = win ? limIn : limOut; if (win) inWin++;
       let mesh; h.traverse((o) => { if (o.isSkinnedMesh) mesh = o; }); mesh.skeleton.update();
       const P = mesh.geometry.attributes.position;
       for (let i = 0; i < P.count; i++) {
@@ -355,15 +362,16 @@ test('第二輪伸入深度（L）：推／拍／收全程，看得見的手（�
     }
   };
   for (let slot = 0; slot < 4; slot++) {
-    r.props.clearRound(); r.hands.clear();
+    r.props.clearRound(); r.hands.clear(); land = {};
     for (let s = 0; s < 4; s++) ev.bid(r, s, slot, 6);
-    for (let i = 0; i < 50; i++) { ev.step(r); check(); }
+    for (let i = 0; i < 50; i++) { ev.step(r); n++; check(); }
     for (let s = 0; s < 4; s++) ev.mark(r, s, slot);
-    for (let i = 0; i < 50; i++) { ev.step(r); check(); }
+    for (let i = 0; i < 50; i++) { ev.step(r); n++; check(); }
     ev.reveal(r, slot, (slot + 1) % 4);
-    for (let i = 0; i < 70; i++) { ev.step(r); check(); }
+    for (let i = 0; i < 70; i++) { ev.step(r); n++; check(); }
   }
   assert.ok(live[0] > 50 && live[1] > 50 && live[2] > 50 && live[3] > 50, `活性：四席的手都上場過 ${JSON.stringify(live)}`);
+  assert.ok(inWin > 20, `活性：令牌拍下接觸窗口內量到手（${inWin} 幀）`);
   assert.ok(worst <= 1e-3, `越線 ${worst}（席 ${where}）`);
   r.hands.dispose(); r.props.dispose();
 });

@@ -84,16 +84,19 @@ const handMin = (r, a, b) => { const A = handVerts(r, a), B = handVerts(r, b); i
   return Math.sqrt(m); };
 const boxHit = (a, b) => a.mn[0] < b.mx[0] && a.mx[0] > b.mn[0] && a.mn[1] < b.mx[1] && a.mx[1] > b.mn[1] && a.mn[2] < b.mx[2] && a.mx[2] > b.mn[2];
 export async function measureCollisions({ layout = 'L' } = {}) {
-  const r = await rig(layout); let hh = 0, hhMesh = 0, hhMin = 1e9, ho = 0, live = 0, ph = 'bid', sh = 0; const where = {}, detail = {};
+  const r = await rig(layout);
+  /* 令牌拍下接觸窗口（修訂1，同 hands-occlusion）：該席令牌落地起 ENTRY_MAX＋TREMBLE_MS＋HOLD_MS 秒。hhOut＝兩隻手都不在窗口內的手×手 AABB 相交幀數（窗口外，門檻原值）。 */
+  let land = {}, n = 0; const WIN = Math.ceil((M.HAND.SLAM.ENTRY_MAX + M.HAND.SLAM.TREMBLE_MS + M.HAND.SLAM.HOLD_MS) * 60);
+  const inWin = (s) => land[s] !== undefined && n >= land[s] && n <= land[s] + WIN; let hh = 0, hhOut = 0, hhMesh = 0, hhMin = 1e9, ho = 0, live = 0, ph = 'bid', sh = 0; const where = {}, detail = {};
   for (let shift = 0; shift < 4; shift++) {
     sh = shift; ph = 'bid';
-    r.props.clearRound(); r.hands.clear();
+    r.props.clearRound(); r.hands.clear(); land = {}; n = 0;
     for (let s = 0; s < 4; s++) { r.props.bid(s, (s + shift) % 4, 4); r.hands.bid(s, (s + shift) % 4, 4); }
-    const phase = (n) => { for (let i = 0; i < n; i++) { step(r); check(); } };
+    const phase = (k) => { for (let i = 0; i < k; i++) { step(r); n++; for (let q = 0; q < 4; q++) { const tk = r.props.tokenAt(q); if (tk && tk.t >= 1 && land[q] === undefined) land[q] = n; } check(); } };
     const check = () => {
       const bx = [0, 1, 2, 3].map((s) => handBox(r, s)); live += bx.filter(Boolean).length;
       for (let a = 0; a < 4; a++) { if (!bx[a]) continue;
-        for (let b = a + 1; b < 4; b++) if (bx[b] && boxHit(bx[a], bx[b])) { hh++; { const dm = handMin(r, a, b); if (dm !== null) { hhMin = Math.min(hhMin, dm); if (dm < 0.01) hhMesh++; } } where[`hh${a}${b}`] = (where[`hh${a}${b}`] || 0) + 1; const k = `s${sh}-${ph}-hh${a}${b}`; detail[k] = (detail[k] || 0) + 1; }
+        for (let b = a + 1; b < 4; b++) if (bx[b] && boxHit(bx[a], bx[b])) { hh++; if (!inWin(a) && !inWin(b)) hhOut++; { const dm = handMin(r, a, b); if (dm !== null) { hhMin = Math.min(hhMin, dm); if (dm < 0.01) hhMesh++; } } where[`hh${a}${b}`] = (where[`hh${a}${b}`] || 0) + 1; const k = `s${sh}-${ph}-hh${a}${b}`; detail[k] = (detail[k] || 0) + 1; }
         const own = (a + shift) % 4;
         for (const o of r.props.handObstacles()) {
           const isTok = o.hx !== undefined; if (isTok) { /* 令牌：別席的令牌（同槽或別槽都算別人的東西） */ }
@@ -110,7 +113,7 @@ export async function measureCollisions({ layout = 'L' } = {}) {
     for (let s = 0; s < 4; s++) { r.props.mark(s, (s + shift) % 4); r.hands.mark(s, (s + shift) % 4); }
     phase(240);
   }
-  r.hands.dispose(); r.props.dispose(); return { handHand: hh, handHandMesh: hhMesh, handHandMinDist: +hhMin.toFixed(4), handObstacle: ho, liveHandFrames: live, where, detail };
+  r.hands.dispose(); r.props.dispose(); return { handHand: hh, handHandOutWindow: hhOut, handHandMesh: hhMesh, handHandMinDist: +hhMin.toFixed(4), handObstacle: ho, liveHandFrames: live, where, detail };
 }
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
   const arg = (k) => process.argv.find((a) => a.startsWith(`--${k}=`))?.slice(k.length + 3);

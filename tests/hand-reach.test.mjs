@@ -40,7 +40,10 @@ test('② 擺錢：四席×四槽，推錢階段「手掌路徑長 ÷ 錢柱路�
 test('③ 無新碰撞：四席同時擺錢＋拍令牌（4 種槽位輪轉），手 AABB×別席手 AABB 與 手 AABB×別槽令牌／錢柱／木籌槽 的相交幀數不得多於 5c91bdc7 基準（336／814）', async () => {
   const c = await measureCollisions({});
   assert.ok(c.liveHandFrames > 1000, `活性：手上場幀數 ${c.liveHandFrames}`);
-  assert.ok(c.handHand <= 336, `手×手 ${c.handHand} > 336`);
+  /* 10-08（使用者同意「限定在非拍令牌情況」）：窗口外（兩隻手都不在各自「令牌拍下接觸窗口」內）的 AABB 相交幀數門檻原值 336 不動；
+     窗口內改看頂點級接觸（兩手任兩個蒙皮頂點 <1 cm 的幀數，5c91bdc7 基準 258）——AABB 是粗篩，長斜向的手從托盤外滑進來時外接盒會互相重疊但手沒碰到。 */
+  assert.ok(c.handHandOutWindow <= 336, `手×手（窗口外）${c.handHandOutWindow} > 336`);
+  assert.ok(c.handHandMesh <= 258, `手×手（頂點級 <1cm）${c.handHandMesh} > 258（基準）`);
   assert.ok(c.handObstacle <= 814, `手×障礙 ${c.handObstacle} > 814`);
 });
 

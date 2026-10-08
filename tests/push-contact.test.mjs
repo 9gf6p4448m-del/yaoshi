@@ -61,7 +61,8 @@ async function measure(slow) {
       props.setSeats(['qingmian', 'shoujing', 'hongyi', 'xiaonv'].map((role, id) => ({ id, role })));
       const hands = createTableHands(parent, props); await hands.ready(); parent.updateMatrixWorld(true);
       const T = M.HAND.TRAY.L, tz = props.trayZ(), RR = M.HAND.REACH, front = [0, -1, -(tz + T.hd - RR.SOUTH_IN)];
-      const lines = (s) => (s === 0 ? [front] : s === 1 ? [[0, 1, tz - T.hd + RR.NORTH_IN]] : s === 2 ? [[1, 0, -RR.MID], front] : [[-1, 0, -RR.MID], front]);
+      /* 推（非拍令牌）的伸入界線：REACH 拆席後（22b2e1a3）每席各有一組；北席不越過托盤前緣（limitOf 夾在 2·hd）；西／東的側緣線用各自的 SIDE_IN_W／SIDE_IN_E（拍令牌用 REACH_SLAM，不在這支測試的範圍：只量 kind==='push'）。 */
+      const lines = (s) => (s === 0 ? [front] : s === 1 ? [[0, 1, tz - T.hd + Math.min(RR.NORTH_IN, 2 * T.hd)]] : s === 2 ? [[1, 0, -RR.MID_W], [0, -1, -(tz + T.hd - RR.SIDE_IN_W)]] : [[-1, 0, -RR.MID_E], [0, -1, -(tz + T.hd - RR.SIDE_IN_E)]]);
       const open = {};
       const close = (seat) => { if (open[seat]) { rows.push(open[seat]); delete open[seat]; } };
       for (const [kind, a, b, c, n] of script) {
@@ -117,7 +118,10 @@ for (const slow of [1, 1.5]) {
   });
   test(`擺錢推（slow=${slow}）條件 2：錢柱出了手搆得到的範圍後，手停在伸入界線上（lineGap ≤0.05，不提早停、不消失）`, () => {
     const out = rows.filter((r) => r.lg > -Infinity);
-    assert.ok(out.length >= 6, `北席四段與西席跨中線一段都有界線外幀（實際 ${out.length} 段）`);
+    /* 10-08：原 ≥6 段＝北席 5 段（money:1:1、moneyN:1:3、queueN:1:0／1／2）＋西席跨中線 1 段（moneyE:2:2，MID 0.06）。西席推錢的界線放寬到 MID_W＝−1.5 後（hand-reach ② 與使用者「西家丟錢手停了錢還在飛」要求），
+       那一段不再出界，是放寬本身使它消失，不是行為壞了；改為點名北席那 5 段必須全在（北席界線沒了或失效就紅），每段的 lineGap ≤0.05 不變。 */
+    for (const k of ['money:1:1', 'moneyN:1:3', 'queueN:1:0', 'queueN:1:1', 'queueN:1:2']) assert.ok(out.some((r) => r.key === k), `北席 ${k} 要有界線外幀（實際 ${out.map((r) => r.key).join(',')}）`);
+    assert.ok(out.length >= 5, `北席五段都有界線外幀（實際 ${out.length} 段）`);
     for (const r of out) assert.ok(r.lg <= 0.05, `${r.key} lineGap ${r.lg.toFixed(3)} > 0.05`);
   });
   test(`擺錢推（slow=${slow}）條件 4：界線內「錢在動、手幾乎不動」的位移比例 pinFrac_in ≤0.20`, () => {
