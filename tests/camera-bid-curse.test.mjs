@@ -36,17 +36,20 @@ const FOCUS_FLOOR = 1.4;
 const CURSE_MS = 2000; // index.html CFG.CURSE_MS（grab-motion.test 釘住）；這裡只當事件 detail 餵進去
 
 /** 跑一支導演：回傳逐幀姿態。script＝[['fire', name, detail] | ['step', n] | ['mark', key]] */
-function run(src, script, { reduced = false } = {}) {
+function run(src, script, { reduced = false, three = THREE, extra = {}, gate = null, setup = null } = {}) {
   let now = 1000;
   const listeners = new Map();
   const env = {
-    THREE, performance: { now: () => now },
-    window: { matchMedia: () => ({ matches: reduced }) },
+    THREE: three, performance: { now: () => now },
+    window: { matchMedia: () => ({ matches: reduced }), ...extra },
     document: { addEventListener: (n, f) => { if (!listeners.has(n)) listeners.set(n, []); listeners.get(n).push(f); } },
+    ...extra,
   };
   vm.createContext(env);
+  if (setup) setup(env);
   vm.runInContext(src, env);
   const camera = new THREE.PerspectiveCamera(FOV, 16 / 9, 0.1, 100);
+  const ref0 = { p: camera.position, q: camera.quaternion }; // 相機狀態物件的原始參照（M1：導演只能就地改值）
   // scene-env.js 的牌桌初始機位（dist 3.6、tilt 35°、看 (0,0.1,0)）＝導演的 SHOTS.table
   const tilt = 35 * DEG;
   camera.position.set(0, Math.sin(tilt) * 3.6, Math.cos(tilt) * 3.6);
@@ -58,10 +61,10 @@ function run(src, script, { reduced = false } = {}) {
   rec();
   for (const op of script) {
     if (op[0] === 'fire') for (const f of listeners.get(op[1]) || []) f({ detail: op[2] });
-    else if (op[0] === 'step') for (let i = 0; i < op[1]; i++) { now += MS; director.update(DT, now); rec(); }
+    else if (op[0] === 'step') for (let i = 0; i < op[1]; i++) { now += MS; if (gate) gate.on = true; director.update(DT, now); if (gate) gate.on = false; rec(); }
     else if (op[0] === 'mark') marks[op[1]] = frames.length - 1; // 這一格＝目前最後一幀（事件前那一幀）
   }
-  return { frames, marks };
+  return { frames, marks, camera, ref0 };
 }
 
 const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
@@ -394,4 +397,97 @@ test('§1／§3 對 5c91bdc7 的差異：index.html 新增行不抽亂數；不�
     assert.doesNotMatch(l, /dist:\s*1\.65|tilt:\s*22\b/, '不得改逐槽微距常數：' + l);
   }
   assert.match(fs.readFileSync(new URL('../js/scene-env.js', import.meta.url), 'utf8'), /new THREE\.PerspectiveCamera\(50,/, 'fov 維持 50');
+});
+
+// ───────────────────────── 覆審補強（fresh 覆審突變測試 M20／M22／M17／M1 漏網）─────────────────────────
+// 每條都先驗「新鏡頭真的被行使過」（活性），再驗行為；放到 v0.65.0 樹上跑時紅在活性斷言（行為），不是例外。
+
+test('§6.1 中咒進行中（K>0）進對決：ys:duel 收掉中咒，outMs 回位段走完後與 cam=0／v0.65.0 逐幀差 ≤1e-9（M20）', () => {
+  const script = (cam) => [...SETTLE, ...AT_SLOT1, ['mark', 'pre'], ['fire', 'ys:reveal-result', curseDetail({ cam })], ['step', 30],
+    ['mark', 'duel'], ['fire', 'ys:duel', { a: 0, b: 3 }], ['step', 150]];
+  const on = run(NEW_SRC, script(true));
+  const off = run(NEW_SRC, script(false));
+  const base = run(baseSrc(), script(true));
+  const dz = on.marks.duel;
+  const d0 = len(sub(on.frames[on.marks.pre].p, ANCHOR_SLOT1));
+  const kAtDuel = pushOf(on.frames, ANCHOR_SLOT1, d0)[dz];
+  assert.ok(kAtDuel > 1e-3, `前置：進對決那一刻中咒鏡頭要在推近中（推近比例 ${kAtDuel}）`);
+  assert.ok(diffFrame(on.frames[dz], off.frames[dz]) > 1e-3, '前置：進對決那一刻與 cam=0 不同（中咒作用中）');
+  // 回位段＝CURSE_CAM.outMs 450ms（27 幀），留 3 幀餘裕；之後到 150 幀（2.5s）都要與基準相同。
+  // 沒收的話中咒會停到 curseMs（2000ms，即進對決後約 1.5s）才回位，這段會差。
+  const from = dz + Math.ceil(450 / MS) + 3;
+  const dOff = maxDiff(on.frames, off.frames, from);
+  const dBase = maxDiff(on.frames, base.frames, from);
+  assert.ok(dOff <= 1e-9, `進對決 ${((from - dz) * MS).toFixed(0)}ms 後仍與 cam=0 不同（差 ${dOff}）：ys:duel 沒收掉中咒鏡頭`);
+  assert.ok(dBase <= 1e-9, `進對決 ${((from - dz) * MS).toFixed(0)}ms 後仍與 v0.65.0 不同（差 ${dBase}）：ys:duel 沒收掉中咒鏡頭`);
+});
+
+test('§6.1 中咒停留時長跟著 detail.curseMs 走（1200／2000／3000）：峰值維持到 curseMs 才回位（M22）', () => {
+  const holds = [];
+  for (const curseMs of [1200, CURSE_MS, 3000]) {
+    const { frames, marks } = run(NEW_SRC, [...SETTLE, ...AT_SLOT1, ['mark', 'pre'], ['fire', 'ys:reveal-result', curseDetail({ curseMs })], ['step', 260]]);
+    const pre = frames[marks.pre];
+    const d0 = len(sub(pre.p, ANCHOR_SLOT1));
+    const p = pushOf(frames, ANCHOR_SLOT1, d0);
+    const pk = Math.max(...p);
+    assert.ok(pk > 1e-3, `curseMs ${curseMs}：中咒後相機要推近（最大推近比例 ${pk}）`);
+    const peakAt = p.findIndex((x, i) => i > marks.pre && x >= pk - 1e-12);
+    const holdEnd = p.findIndex((x, i) => i > peakAt && x < pk - 1e-12);
+    assert.ok(holdEnd > peakAt, `curseMs ${curseMs}：要有回位段`);
+    const lastHeldMs = frames[holdEnd - 1].t - pre.t; // 峰值維持到的最後一幀（相對命中）
+    holds.push(lastHeldMs);
+    assert.ok(lastHeldMs > curseMs - MS - 1e-6 && lastHeldMs <= curseMs + 1e-6,
+      `curseMs ${curseMs}：峰值只維持到 ${lastHeldMs.toFixed(1)}ms（應在 (${(curseMs - MS).toFixed(1)}, ${curseMs}]）——停留時長沒跟著 detail.curseMs 走`);
+    assert.ok(diffFrame(frames.at(-1), pre) <= 1e-9, `curseMs ${curseMs}：結束後回位`);
+  }
+  assert.ok(holds[0] < holds[1] && holds[1] < holds[2], `停留時長要隨 curseMs 遞增（${holds.map((x) => x.toFixed(1))}）`);
+});
+
+/** 打桩：S.rng／S.rngUi／Math.random 全部計數（直接、間接、經 window／globalThis 都抓得到） */
+function rngStubs() {
+  const cnt = { rng: 0, rngUi: 0, math: 0 };
+  const S = { rng: () => { cnt.rng++; return 0.5; }, rngUi: () => { cnt.rngUi++; return 0.5; } };
+  const setup = (env) => { env.__cnt = cnt; vm.runInContext('Math.random = function () { __cnt.math++; return 0.5; };', env); };
+  return { cnt, opts: { extra: { S }, setup } };
+}
+
+test('§1 亂數紀律（行為）：完整事件序列（喊價、倒數、中咒、對決、取消、收場）跑完，S.rng／S.rngUi／Math.random 呼叫次數＝0（M17）', () => {
+  for (const closeup of [false, true]) for (const fxtier of [false, true]) {
+    const tag = `closeup=${+closeup} fxtier=${+fxtier}`;
+    const { cnt, opts } = rngStubs();
+    const on = run(NEW_SRC, gameScript({ cam: true, closeup, fxtier }), opts);
+    // 加一段：中咒進行中被取消／進對決（M20 那條路徑也要走到）
+    run(NEW_SRC, [...SETTLE, ...AT_SLOT1, ['fire', 'ys:reveal-result', curseDetail()], ['step', 20], ['fire', 'ys:fx-trait-cancel', {}], ['step', 10],
+      ['fire', 'ys:reveal-result', curseDetail()], ['step', 20], ['fire', 'ys:duel', { a: 0, b: 3 }], ['step', 60], ['fire', 'ys:table', {}], ['step', 30]], opts);
+    const off = run(NEW_SRC, gameScript({ cam: false, closeup, fxtier }), rngStubs().opts);
+    // 活性：新鏡頭真的被行使過（不然 0 次是空洞的）
+    assert.ok(maxDiff(on.frames, off.frames, on.marks.bid0, on.marks.reveal0) > 1e-3, `${tag}：前置：喊價鏡頭要有觸發`);
+    assert.ok(maxDiff(on.frames, off.frames, on.marks.reveal0, on.marks.duel0) > 1e-3, `${tag}：前置：中咒鏡頭要有觸發`);
+    assert.equal(cnt.rng, 0, `${tag}：鏡頭程式呼叫了 S.rng ${cnt.rng} 次`);
+    assert.equal(cnt.rngUi, 0, `${tag}：鏡頭程式呼叫了 S.rngUi ${cnt.rngUi} 次`);
+    assert.equal(cnt.math, 0, `${tag}：鏡頭程式呼叫了 Math.random ${cnt.math} 次`);
+  }
+});
+
+test('§5 不逐幀配置：喊價／倒數／中咒進行中 update() 內 THREE.Vector3／Quaternion／Matrix4／Euler 新建次數＝0；camera.position／quaternion 物件不被換掉（M1）', () => {
+  const gate = { on: false };
+  const made = { n: 0, kinds: {} };
+  const counted = (Base, name) => class extends Base { constructor(...a) { super(...a); if (gate.on) { made.n++; made.kinds[name] = (made.kinds[name] || 0) + 1; } } };
+  const T = { ...THREE, Vector3: counted(THREE.Vector3, 'Vector3'), Quaternion: counted(THREE.Quaternion, 'Quaternion'),
+    Matrix4: counted(THREE.Matrix4, 'Matrix4'), Euler: counted(THREE.Euler, 'Euler'), Vector2: counted(THREE.Vector2, 'Vector2') };
+  const script = (cam) => [...SETTLE, ...AT_SLOT1, ['mark', 'pre'],
+    ['fire', 'ys:bid', { seat: 2, slot: 1, amount: 5, cam }], ['step', 20], ...countdown(2, 3000, 100).map((o) => (o[0] === 'fire' ? ['fire', o[1], { ...o[2], cam }] : o)),
+    ['fire', 'ys:reveal-result', curseDetail({ cam })], ['step', 200]];
+  const on = run(NEW_SRC, script(true), { three: T, gate });
+  const off = run(NEW_SRC, script(false));
+  const pre = on.marks.pre;
+  // 活性：新鏡頭真的在這段逐幀寫入
+  assert.ok(maxDiff(on.frames, off.frames, pre) > 1e-3, '前置：喊價／中咒鏡頭要有觸發');
+  let active = 0;
+  for (let i = pre + 1; i < on.frames.length; i++) if (diffFrame(on.frames[i], off.frames[i]) > 1e-6) active++;
+  assert.ok(active >= 200, `前置：新鏡頭作用中的幀數 ${active} 太少`);
+  assert.equal(made.n, 0, `update() 逐幀新建了 ${made.n} 個 THREE 物件（${JSON.stringify(made.kinds)}）——每幀配置會吃 CPU（驗收 §5 紅的情境）`);
+  // 相機狀態物件：導演只能就地改值，不得換掉 position／quaternion 物件
+  assert.ok(on.camera.position === on.ref0.p, 'camera.position 物件被換掉（應就地 set）');
+  assert.ok(on.camera.quaternion === on.ref0.q, 'camera.quaternion 物件被換掉（應就地改值）');
 });
