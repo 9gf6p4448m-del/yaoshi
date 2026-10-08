@@ -366,7 +366,7 @@ test('第二輪伸入深度（L）：推／拍／收全程，看得見的手（�
     for (let s = 0; s < 4; s++) ev.bid(r, s, slot, 6);
     for (let i = 0; i < 50; i++) { ev.step(r); n++; check(); }
     for (let s = 0; s < 4; s++) ev.mark(r, s, slot);
-    for (let i = 0; i < 110; i++) { ev.step(r); n++; check(); } // 110 步：令牌落地約 +17、窗口 +40、收手 +18，之後才開標（窗口不跨進收錢）
+    for (let i = 0; i < 110; i++) { ev.step(r); n++; check(); } // 110 步：令牌落地約 +17，窗口（接觸 0.66 s＋收手 0.40 s＝64 幀）走完後才開標，窗口不跨進收錢
     ev.reveal(r, slot, (slot + 1) % 4);
     for (let i = 0; i < 70; i++) { ev.step(r); n++; check(); }
   }
