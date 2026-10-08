@@ -1364,6 +1364,8 @@ export function createTableTray(scene, camera, opts = {}) {
     },
     /** 這一批 setItems 的 GLB 都到位了（治具排時序用） */
     loaded() { return pending; },
+    /** v0.65.0 光影 A+（js/light-fx.js）：當夜拍品的根節點（法寶模型／詛咒品符紙堆），只有它們投影。只讀。 */
+    lotNodes() { const out = []; for (const s of slots) { const n = s.fig ? s.fig.group : (s.pile ? s.pile.group : null); if (n) out.push(n); } return out; },
     /** 幾格已經有東西站在上面（治具／驗收用） */
     readyCount() { return slots.filter((s) => s.ready && (s.fig || s.pile)).length; },
     /** 每一格現在掛的是什麼（T2 逐槽比對用；只讀，不給改） */

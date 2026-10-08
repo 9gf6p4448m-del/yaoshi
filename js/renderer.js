@@ -22,6 +22,7 @@ const { makeCreatureFigure, creatureGlbUrl, createFigureLightRig, attachFactionF
 const { createTraitFx } = await import('./trait-fx.js' + V);
 const { createTableTray, TRAY } = await import('./table-tray.js' + V);
 const { fitSubject } = await import('./table-framing.js' + V);
+const { createLightFx } = await import('./light-fx.js' + V);
 
 // 後製 bloom（v0.27）：只有對決場景開，牌桌與標題頁走原本的直接 render。
 // 理由有兩條——① 手機效能：bloom 是全畫面 fill，開在整局最久的牌桌上最不划算；
@@ -107,7 +108,10 @@ function init() {
   renderer.outputColorSpace = THREE.SRGBColorSpace;
 
   // `?table3d=lite`：環境幾何也降一階（覆審 M-1；只關 hover 外殼的話 lite 在非 hover 下與預設逐值相同）
-  const { scene, camera, lanterns, far, sky } = createSceneEnv(window.innerWidth / window.innerHeight, { lite: TRAY_URL.lite });
+  const { scene, camera, lanterns, far, sky, hemi, table, decor } = createSceneEnv(window.innerWidth / window.innerHeight, { lite: TRAY_URL.lite });
+  /* 光影 A+（v0.65.0，js/light-fx.js）：聚光、陰影圖與環境圖必須在任何材質編譯之前建好（program cache key 含燈數／陰影燈數），
+     所以排在 createSceneEnv 之後、所有暖身（traitFx／描邊／鑑賞）之前。`?fx=0` 時什麼都不建＝v0.64.0。 */
+  const lightFx = createLightFx({ scene, renderer, lanterns, hemi, receivers: [table, decor] });
 
   const smoke = createIncenseSmoke(50);
   const embers = createEmbers(20);
@@ -324,7 +328,7 @@ function init() {
   // duelFigures 另有一層用途（v0.31 卷 C1）：index.html 的 TRAIT_FX 掛鉤要靠
   // duelFigures.figuresOf('A') / figureOf('A', unitId) 拿到 figure 物件（不只 DOM 元素），
   // 之後接真 3D 模型時，招式動畫動的就是那些物件的 parts。
-  window.__yaoshi3d = { scene, camera, renderer, bloom, smoke, embers, impact, duelFigures, traitFx, stageRig, sky, far, director, tray, TRAY, framing, trayFlags: TRAY_URL, get bloomOn() { return bloomOK; }, get glName() { return glRendererName(renderer); },
+  window.__yaoshi3d = { scene, camera, renderer, bloom, smoke, embers, impact, duelFigures, traitFx, stageRig, sky, far, director, tray, TRAY, framing, trayFlags: TRAY_URL, lightFx, get bloomOn() { return bloomOK; }, get glName() { return glRendererName(renderer); },
     // P-3 治具出口：edgeOn＝這一版真的在畫深度邊緣線（URL 沒關、拿得到 DepthTexture、bloom 有開）
     // 覆審 round2 L-3：直接回報 bloom 這一幀真的在畫線的狀態（setEdge 每幀帶完整條件：URL、kind==='duel'、!crowded），不另抄一份條件
     get edgeOn() { return bloomOK && bloom.edgeOn; }, get edgeReady() { return bloom.edgeReady; },
@@ -431,6 +435,8 @@ function init() {
     const crowded = kind === 'duel' && duelFigures.crowded;
     setOutlineCrowd(crowded);
     bloom.setEdge(EDGE_URL_ON && kind === 'duel' && !crowded);
+    // 光影 A+：對決時燈光收回現況；拍品動了才標陰影圖重畫（`?fx=0` 時是空操作）
+    lightFx.update(stageOn, tray);
     if (bloomOK && (!warmedUp || kind === 'duel')) {
       warmedUp = true; // 第一幀（標題頁，canvas 只有 0.38 不透明度）順手把 bloom 的 shader 編掉
       bloom.render(scene, camera);
