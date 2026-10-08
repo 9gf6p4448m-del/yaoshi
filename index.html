@@ -3727,7 +3727,8 @@ function trayLoadWatch(){
    3D 層只拿 slot／seat 決定「從哪推到哪」、拿 amount 決定「推幾枚」。
    3D 沒載入時 fx3d 是空操作，DOM 那半邊照樣成立（同 :4383 那條）。 */
 /* amount 0＝把那一席那一格的錢收回去（出價歸零、熱座交棒清場都走這條，不另開一個事件）。 */
-function pushBid3d(seat,slot,amount){ if(!TABLE3D) return; fx3d("ys:bid",{slot:slot|0,amount:Math.max(0,amount|0),seat:seat|0}); }
+/* v0.65.1 運鏡乙：cam＝喊價鏡頭開關（?cam=0 → false；鏡頭端 detail.cam!==false 才推，見 PW_FX.CAM_ON） */
+function pushBid3d(seat,slot,amount){ if(!TABLE3D) return; fx3d("ys:bid",{slot:slot|0,amount:Math.max(0,amount|0),seat:seat|0,cam:pwCam()}); }
 /* 熱座交棒／任何「這一刻桌上不該有任何人的錢」的時候：四席四格全部歸零。
    ★為什麼要有這一支★（自評 r1）：封籤之後桌上留著自己的銅錢是給自己看的回饋，
    但熱座下一位接過手機時那疊錢還在——那是**私有出價外洩**，與 showHandoff 既有的
@@ -6296,6 +6297,10 @@ const PW_FX={
   HIT_FLASH_MS:120,    /* 被打的那一尊閃紅多久（燒毀中的尊不閃） */
   GAUGE_GHOST_MS:300,  /* 存活量表掉的那一段，紅殘影停留多久才收 */
   HURT_EDGE_MS:150,    /* 己方受擊時 #duel 邊緣紅暈的長度（與 CSS 的 hurtEdgeFade 同一個數） */
+  /* v0.65.1 運鏡乙（中咒鏡頭＋喊價鏡頭，驗收 docs/experiments/2026-10-08-camera-bid-curse/acceptance.md）總開關：
+     ?cam=0 → false＝兩種新鏡頭整個不發生（鏡頭行為與 v0.65.0 相同）；?cam=1 顯式開。鏡頭端不讀 PW_FX，
+     由 pushBid3d／revealGlow 經事件 detail.cam 帶進去（缺欄位＝開）。與 ?closeup／?fxtier 互不牽動。 */
+  CAM_ON:true,
   UNIT_DY:44,          /* 「−1 隻」往下讓開幾個像素：要 ≥ 最大字高（擊殺 17×1.6×1.3＝35.4px），R4 才不判重疊 */
 };
 /* ?closeup=0 關掉整卷近景切鏡（試玩 A／B 與凍結檔 P0 的退路等價都靠它）；?closeup=1 顯式開。
@@ -6309,6 +6314,11 @@ try{
 try{
   const tq=new URLSearchParams(typeof location!=="undefined"&&location.search?location.search:"").get("fxtier");
   if(tq==="0") PW_FX.TIER_ON=false; else if(tq==="1") PW_FX.TIER_ON=true;
+}catch(e){}
+/* ?cam=0 關掉運鏡乙（中咒＋喊價鏡頭）；?cam=1 顯式開。寫法與上面兩條（?closeup／?fxtier）逐字同一套。 */
+try{
+  const camq=new URLSearchParams(typeof location!=="undefined"&&location.search?location.search:"").get("cam");
+  if(camq==="0") PW_FX.CAM_ON=false; else if(camq==="1") PW_FX.CAM_ON=true;
 }catch(e){}
 /* ?fxvocab=1 打開 v0.55 批 0 的徽記剪影版四支示範招；?fxvocab=0 顯式關（＝預設的 0.54 演出）。
    寫法與上面兩條（?closeup／?fxtier）逐字同一套。 */
@@ -6422,7 +6432,7 @@ function revealGlow(r){
   /* 演出資料刻意把「競標得主」「毒標受害者」「買下銷毀」拆開：三者不是同一席。
      不把它們塞回 resolveAuction 的結果，3D 層只讀這張短命的呈現收據。 */
   const revealSlot=(()=>{const i=(S&&S.market)?S.market.indexOf(r.it):-1;return i<0?null:i;})();
-  fx3d("ys:reveal-result",{winner:r.winner.p.id,slot:revealSlot,
+  fx3d("ys:reveal-result",{winner:r.winner.p.id,slot:revealSlot,cam:pwCam(), /* cam＝v0.65.1 中咒鏡頭開關（?cam=0） */
     transferTarget:r.it&&r.it.curse&&r.winner.intent==="poison"&&!r.poisonBlocked?r.winner.target:null,
     destroy:!!(r.it&&r.it.curse&&(r.winner.intent!=="poison"||r.poisonBlocked)),
     grabMs:CFG.GRAB_ON?CFG.GRAB_MS:0, curseMs:CFG.GRAB_ON?CFG.CURSE_MS:0, skip:CFG.GRAB_ON&&!!SKIP}); /* 只結算道具；逐槽鏡頭由 ys:reveal-slot 維持。v0.60.0：grabMs＝手抓回時長（0＝舊拋物線）、skip＝跳過中才開的件 3D 直接到終態 */
@@ -7993,6 +8003,7 @@ const PW_DMG_POOL=[];   /* 跳字 DOM 的重用池（不新建材質、不新建
 let PW_FLOAT_GEN=0;     /* 跳字的世代戳記：節點被池重用之後，舊那一輪的 done 就不該再動它 */
 
 function pwCloseup(){ return !!PW_FX.CLOSEUP_ON; }
+function pwCam(){ return !!PW_FX.CAM_ON; } /* v0.65.1 運鏡乙開關（?cam=0）；只經事件 detail.cam 交給鏡頭端 */
 /* 每一場對決開場時把三個容器建起來（關閉時連建都不建＝DOM 查不到，P0）。 */
 function pwCloseupMount(){
   const ov=$("duel"); if(!ov) return;
