@@ -3112,8 +3112,12 @@ let PENDING_PT=null;   /* 這一下點擊的落點與「按之前那裡能做什
   const sigOf=el=>{
     if(!el||el.nodeType!==1) return "∅";
     const a=el.closest?el.closest("[onclick]"):null;
-    const t=(el.textContent||"").replace(/\s+/g," ").trim().slice(0,80);
-    let s=(el.id||"")+"|"+(a?(a.getAttribute("onclick")||""):"")+"|"+(el.className||"")+"|"+t;
+    /* ★以「承載 onclick 的那個元素」為準，不以落點本身★：手指下若是它裡面的裝飾（標題列的 .iico 小圖等），
+       該裝飾 onerror 自行移除／被換成 SVG 後落點變成同一顆按鈕裡的別個子元素，能做的事（a 的 onclick）一格沒變，
+       卻因 className／文字不同被誤判成「相位切換」、吞掉 500ms 內的下一下。沒有 onclick 承載者才退回落點本身。 */
+    const b=a||el;
+    const t=(b.textContent||"").replace(/\s+/g," ").trim().slice(0,80);
+    let s=(b.id||"")+"|"+(a?(a.getAttribute("onclick")||""):"")+"|"+(b.className||"")+"|"+t;
     if(el.closest&&el.closest("#modal")){ const mb=document.getElementById("modalbox"); s+="|"+hashStr(mb?(mb.textContent||""):""); }
     return s;
   };
