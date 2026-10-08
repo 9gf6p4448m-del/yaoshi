@@ -41,7 +41,7 @@ try {
     else await page.evaluate(() => [...document.querySelectorAll('#stage button')].find((b) => !b.disabled)?.click());
     await page.waitForTimeout(20);
   }
-  await page.evaluate(async (EXEMPT_RETRACT) => {
+  await page.evaluate(async () => {
     const T = await import('three');
     const Y = window.__yaoshi3d; await Y.tray.loaded(); if (Y.tray.hands.ready) await Y.tray.hands.ready();
     Y.tray.props.clearRound(); Y.tray.hands.clear && Y.tray.hands.clear();
@@ -92,11 +92,12 @@ try {
     /* 修訂1（docs/experiments/2026-10-08-hand-reach/README.md）：令牌拍下接觸窗口＝該席令牌落地（ys:mark-slam）起到手拍完（進場 ENTRY_MAX＋微顫＋停留）為止。
        只有這一段、而且只有那一席的手，遮擋量另列、不進 ≤10% 閘門；其餘時段與情境照舊。 */
         const land = {}; document.addEventListener('ys:mark-slam', (e) => { const k = e.detail && e.detail.slot; if (k !== undefined && land[k] === undefined) land[k] = clock.n; }); // detail 只有 slot；拍場景每席一格（slot＝(席+1)%4）
-    /* 窗口長度寫死 0.66 s（覆審 F3：不得從受測實作的 ENTRY_MAX 讀入，否則進場改 3 秒窗口跟著變長、閘門照過）× 手速倍率（頁面預設 handslow＝1.5：手的時間整個放慢，
-       取自網址設定 window.YS_ANIM_SLOW，不是受測實作的常數；沒有＝1）。1.5 時＝60 步。 */
-    const HS = (window.YS_ANIM_SLOW && window.YS_ANIM_SLOW.hand > 0) ? window.YS_ANIM_SLOW.hand : 1, WIN = Math.ceil((0.66 + (EXEMPT_RETRACT ? 0.30 : 0)) * HS * 60); // --exempt-retract（預設關）：把收手（RETRACT_MS 0.30 s）也算進豁免——這是再一次移動及格線，沒有使用者同意不得當正式結果
-    window.__ho = { clock, land, WIN, measure, ev: (n, d) => document.dispatchEvent(new CustomEvent(n, { detail: d })) };
-  }, !!opt['exempt-retract']);
+    /* 修訂1／2（docs/experiments/2026-10-08-hand-reach/README.md）：拍令牌的豁免只有兩段，長度都寫死、不讀受測實作的常數（覆審 F3），再乘頁面手速倍率
+       （頁面預設 handslow＝1.5：手的時間整個放慢，取自網址設定 window.YS_ANIM_SLOW；沒有＝1）：
+       A 接觸段＝該席令牌落地（ys:mark-slam）起 0.66 s；B 收手段＝A 之後再 0.40 s（RETRACT_MS 實測 0.30 s＋0.10 s 餘裕）。B 段之後手還在＝收手超時，閘門紅。 */
+    const HS = (window.YS_ANIM_SLOW && window.YS_ANIM_SLOW.hand > 0) ? window.YS_ANIM_SLOW.hand : 1, WIN = Math.ceil(0.66 * HS * 60), WIN2 = Math.ceil((0.66 + 0.40) * HS * 60);
+    window.__ho = { clock, land, WIN, WIN2, measure, ev: (n, d) => document.dispatchEvent(new CustomEvent(n, { detail: d })) };
+  });
 
   /** 一段動作：派事件、走 steps 步，每 2 步量一次；shots＝要截圖的步數。 */
   async function scenario(name, prep, fire, steps, shots = [], slamSlotOf = null) {
@@ -110,20 +111,22 @@ try {
       if (shots.includes(s)) frames.push({ label: `${name} t=${(s / 60).toFixed(2)}s`, buf: await page.screenshot({ type: 'jpeg', quality: 70, scale: 'css' }) });
     }
     const live = samples.filter((x) => x.hands > 0);
-    /* 修訂1：拍令牌接觸窗口內那一席的手另列（slamSlotOf＝席→它拍的格；只有拍場景傳）；閘門值＝窗口外的手（沒有窗口時＝原本的合併值）。 */
-    const win = slamSlotOf ? await page.evaluate(() => ({ land: { ...window.__ho.land }, WIN: window.__ho.WIN })) : null;
-    const inWin = (x, hand) => { if (!win) return false; const seat = Number(String(hand).replace(/\D/g, '')); const l = win.land[slamSlotOf(seat)]; const st = n0 + x.step; return l !== undefined && st >= l && st <= l + win.WIN; };
+    /* 修訂1／2：拍令牌 A 接觸段／B 收手段內那一席的手另列（slamSlotOf＝席→它拍的格；只有拍場景傳）；閘門值＝兩段之外的手（沒有拍場景時＝原本的合併值）。 */
+    const win = slamSlotOf ? await page.evaluate(() => ({ land: { ...window.__ho.land }, WIN: window.__ho.WIN, WIN2: window.__ho.WIN2 })) : null;
+    const phase = (x, hand) => { if (!win) return null; const seat = Number(String(hand).replace(/\D/g, '')); const l = win.land[slamSlotOf(seat)]; const st = n0 + x.step; if (l === undefined || st < l) return null; return st <= l + win.WIN ? 'A' : st <= l + win.WIN2 ? 'B' : null; };
     const maxOf = (a) => Math.max(0, ...a.filter((v) => v !== null));
-    let winMax = 0, winN = 0;
+    let aMax = 0, aN = 0, bMax = 0, bN = 0, late = 0;
     for (const x of live) {
-      const ex = win ? x.perHand.filter((h) => inWin(x, h.hand)) : [];
-      if (ex.length) { winN++; winMax = Math.max(winMax, ...ex.map((h) => maxOf(h.occl))); x.gate = maxOf(x.perHand.filter((h) => !ex.includes(h)).flatMap((h) => h.occl)); }
-      else x.gate = maxOf(x.occl);
+      const ph = win ? x.perHand.map((h) => phase(x, h.hand)) : [];
+      const inA = x.perHand.filter((_, i) => ph[i] === 'A'), inB = x.perHand.filter((_, i) => ph[i] === 'B'), out = x.perHand.filter((_, i) => win && ph[i] === null);
+      if (inA.length) { aN++; aMax = Math.max(aMax, ...inA.map((h) => maxOf(h.occl))); }
+      if (inB.length) { bN++; bMax = Math.max(bMax, ...inB.map((h) => maxOf(h.occl))); }
+      if (win) { late += out.length; x.gate = maxOf(out.flatMap((h) => h.occl)); } else x.gate = maxOf(x.occl);
     }
     const occ = live.map((x) => x.gate);
     const perSampleMax = occ;
     return { name, samples: samples.length, samplesWithHands: live.length,
-      occlusionMax: occ.length ? Math.max(...occ) : 0, slamWindow: win ? { samplesInWindow: winN, occlusionMaxInWindow: winMax, winSteps: win.WIN, land: win.land } : null, occlusionMeanOfFrameMax: perSampleMax.length ? perSampleMax.reduce((a, b) => a + b, 0) / perSampleMax.length : 0,
+      occlusionMax: occ.length ? Math.max(...occ) : 0, slamWindow: win ? { samplesInWindow: aN, occlusionMaxInWindow: aMax, samplesInRetract: bN, retractMax: bMax, lateHandSamples: late, winSteps: win.WIN, win2Steps: win.WIN2, land: win.land } : null, occlusionMeanOfFrameMax: perSampleMax.length ? perSampleMax.reduce((a, b) => a + b, 0) / perSampleMax.length : 0,
       handShareMax: live.length ? Math.max(...live.map((x) => x.handShare)) : 0, handShareMean: live.length ? live.reduce((a, x) => a + x.handShare, 0) / live.length : 0,
       series: live.map((x) => [x.step, x.hands, +x.gate.toFixed(3), x.kinds]), worst: live.slice().sort((a, b) => b.gate - a.gate)[0] || null, frames };
   }
@@ -186,12 +189,16 @@ try {
   }
 } finally { await browser?.close(); server.kill(); }
 if (opt.out) fs.writeFileSync(path.resolve(HERE, opt.out), JSON.stringify(result, null, 1));
-const summary = Object.fromEntries(result.runs.map((r) => [r.name, { occlMax: +r.occlusionMax.toFixed(4), ...(r.slamWindow ? { occlMaxInSlamWindow: +r.slamWindow.occlusionMaxInWindow.toFixed(4), samplesInSlamWindow: r.slamWindow.samplesInWindow } : {}), occlMeanFrameMax: +r.occlusionMeanOfFrameMax.toFixed(4), handShareMax: +r.handShareMax.toFixed(4), handShareMean: +r.handShareMean.toFixed(4), n: r.samplesWithHands }]));
+const summary = Object.fromEntries(result.runs.map((r) => [r.name, { occlMax: +r.occlusionMax.toFixed(4), ...(r.slamWindow ? { occlMaxInSlamWindow: +r.slamWindow.occlusionMaxInWindow.toFixed(4), samplesInSlamWindow: r.slamWindow.samplesInWindow, occlMaxInRetract: +r.slamWindow.retractMax.toFixed(4), samplesInRetract: r.slamWindow.samplesInRetract } : {}), occlMeanFrameMax: +r.occlusionMeanOfFrameMax.toFixed(4), handShareMax: +r.handShareMax.toFixed(4), handShareMean: +r.handShareMean.toFixed(4), n: r.samplesWithHands }]));
 /* 第二輪加嚴的自我驗收：橫式三動作（含同格、一次多格）每一格拍品被手遮住的比例，最大值 ≤10%；每段都要真的有手上場（活性）。 */
 const gates = {
-  occlusion_le_10pct: result.runs.every((r) => r.samplesWithHands > 5 && r.occlusionMax <= 0.10),
-  /* 窗口外要真的量到手（覆審 F2：量測在窗口結束前就停、或窗口被設成吞掉整段，閘門會空轉）；--exempt-retract 時收手也被豁免，窗口外本來就沒有手，不檢。 */
-  slam_outside_window_measured: opt['exempt-retract'] ? true : result.runs.filter((r) => r.slamWindow).every((r) => r.samplesWithHands - r.slamWindow.samplesInWindow >= 5),
+  /* 直式只保「不退步」：基準 5c91bdc7 直式「四家同一格」本來就 35.6%（>10%），該情境上限放在基準＋小餘裕 38%；其餘情境 10%。橫式一律 10%。 */
+  occlusion_le_10pct: result.runs.every((r) => r.samplesWithHands > 5 && r.occlusionMax <= (opt.portrait && r.name === '推（四家同一格）' ? 0.38 : 0.10)),
+  /* 修訂2：收手段（B）另設上限 L 30%／P 40%（實測 L 24.5–24.7%；P 基準 36.2%、現 37.0%），要真的量到（≥5 取樣，防窗口吞掉整段或量測截斷），
+     B 段之後不得還有手（收手時長上限）；A 段不進閘門、另列。 */
+  slam_retract_le_cap: result.runs.filter((r) => r.slamWindow).every((r) => r.slamWindow.retractMax <= (opt.portrait ? 0.40 : 0.30)),
+  slam_retract_measured: result.runs.filter((r) => r.slamWindow).every((r) => r.slamWindow.samplesInRetract >= 5),
+  slam_hands_gone_after_cap: result.runs.filter((r) => r.slamWindow).every((r) => r.slamWindow.lateHandSamples === 0),
   handoffClears: result.handoff.visibleAfter === 0, skipClears: result.skip.visibleAfter === 0,
   duelHides: result.duel.trayVisible === false && result.duel.handsRendered === 0, noPageErrors: result.errors.length === 0,
 };

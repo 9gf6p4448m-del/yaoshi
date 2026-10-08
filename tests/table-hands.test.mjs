@@ -342,7 +342,7 @@ test('第二輪伸入深度（L）：推／拍／收全程，看得見的手（�
   /* 10-08：REACH 拆席（推／收／停一拍＝REACH；拍令牌＝REACH_SLAM 全放寬）。窗口外（含推／收／停一拍、令牌拍完收手）仍是原本的界線形式，只換成各席自己的常數；
      窗口內（該席令牌落地 ys:mark-slam 起 0.66 秒內（寫死），同 hands-occlusion 修訂1）改用 REACH_SLAM 的包絡——手仍不得超出全放寬的界線。 */
   const limOut = { 0: front, 1: (p) => p.z - (tz - hd + Math.min(R.NORTH_IN, 2 * hd)), 2: (p) => Math.max(p.x + R.MID_W, (tz + hd - R.SIDE_IN_W) - p.z), 3: (p) => Math.max(-p.x + R.MID_E, (tz + hd - R.SIDE_IN_E) - p.z) };
-  const limIn = { 0: front, 1: (p) => p.z - (tz - hd + S.NORTH_IN), 2: (p) => Math.max(p.x + S.MID, (tz + hd - S.SIDE_IN) - p.z), 3: (p) => Math.max(-p.x + S.MID, (tz + hd - S.SIDE_IN) - p.z) };
+  const limIn = { 0: front, 1: (p) => p.z - (tz - hd + S.NORTH_IN), 2: (p) => Math.max(p.x + S.MID_W, (tz + hd - S.SIDE_IN_W) - p.z), 3: (p) => Math.max(-p.x + S.MID_E, (tz + hd - S.SIDE_IN_E) - p.z) };
   const WIN = Math.ceil(0.66 * 60); // 寫死 0.66 s（覆審 F3：不從受測實作的 ENTRY_MAX 讀入，否則進場改 3 秒窗口跟著變長）
   let n = 0, land = {}, inWin = 0;
   let worst = -Infinity, where = null, live = { 0: 0, 1: 0, 2: 0, 3: 0 };

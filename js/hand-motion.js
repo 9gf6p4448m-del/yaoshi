@@ -60,7 +60,9 @@ export const HAND = {
   REACH_P: { NORTH_IN: 0.05, SOUTH_IN: 0.02, MID_W: 0.06, SIDE_IN_W: 0.02, MID_E: 0.06, SIDE_IN_E: 0.02 },
   /*  拍令牌的伸入界線＝全放寬（使用者 10-08 看三欄對照圖選「全放寬」：「才有真的蓋在上面的感覺」）：四席×四槽令牌拍下時手到令牌 gap 0。
    *  手蓋在拍品上是被要求的意圖；遮擋閘門只豁免令牌拍下接觸窗口（見 docs/experiments/2026-10-08-hand-reach/README.md 修訂1）。 */
-  REACH_SLAM: { NORTH_IN: 1.2, MID: -1.5, SOUTH_IN: 0.05, SIDE_IN: 0.5 },
+  REACH_SLAM: { NORTH_IN: 1.2, SOUTH_IN: 0.05, MID_W: -1.5, MID_E: -1.5, SIDE_IN_W: 0.5, SIDE_IN_E: 0.5 },
+  /*  直式（P）拍令牌：全放寬的遮擋太大（收手 59–62%，基準 36.2%），北席 0.65、中線 −1.5、側緣 0.35：gap ≤0.032 m，拍令牌含收手遮擋 36.9%（基準 36.2%）。 */
+  REACH_SLAM_P: { NORTH_IN: 0.65, SOUTH_IN: 0.05, MID_W: -1.5, MID_E: -1.5, SIDE_IN_W: 0.35, SIDE_IN_E: 0.35 },
   /** 托盤布面半寬／半深（與 table-tray 的 TRAY.CLOTH、直式 CLOTH_SX／SZ 同值）：布有皺褶起伏，手指在布上要多留 CLOTH_TOP。 */
   TRAY: { L: { hw: 1.8, hd: 0.46 }, P: { hw: 0.756, hd: 0.331 }, CLOTH_TOP: 0.012 },
   /** 正式資產（走 creature-figures.js 的 GLB 管線載入）。 */
@@ -1049,13 +1051,12 @@ export function createHandDirector(props, rig, per) {
   function limitOf(seat, T, kind) {
     const tz = props.trayZ(), R = props.mode() === 'P' ? HAND.REACH_P : HAND.REACH;
     if (kind === 'slam') {
-      const S = HAND.REACH_SLAM, front = { n: [0, -1], c: -(tz + T.hd - S.SOUTH_IN) };
-      /* 拍令牌（全放寬）：南席不伸進托盤前緣超過 SOUTH_IN；北席可越過整個托盤；西／東可越中線、側面伸入 SIDE_IN。 */
+      const S = props.mode() === 'P' ? HAND.REACH_SLAM_P : HAND.REACH_SLAM, front = { n: [0, -1], c: -(tz + T.hd - S.SOUTH_IN) };
+      /* 拍令牌（橫式全放寬）：南席不伸進托盤前緣超過 SOUTH_IN；北席可越過整個托盤；西／東可越中線、側面伸入 SIDE_IN。 */
       if (seat === 0) return [front];
       if (seat === 1) return [{ n: [0, 1], c: tz - T.hd + S.NORTH_IN }];
-      const side = { n: [0, -1], c: -(tz + T.hd - S.SIDE_IN) };
-      if (seat === 2) return [{ n: [1, 0], c: -S.MID }, side];
-      if (seat === 3) return [{ n: [-1, 0], c: -S.MID }, side];
+      if (seat === 2) return [{ n: [1, 0], c: -S.MID_W }, { n: [0, -1], c: -(tz + T.hd - S.SIDE_IN_W) }];
+      if (seat === 3) return [{ n: [-1, 0], c: -S.MID_E }, { n: [0, -1], c: -(tz + T.hd - S.SIDE_IN_E) }];
       return [];
     }
     const front = { n: [0, -1], c: -(tz + T.hd - R.SOUTH_IN) };
