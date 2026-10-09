@@ -369,12 +369,15 @@ test('§2 index.html：?cam 由頁面解析，與 ?closeup／?fxtier 互不牽�
     assert.equal(F.TIER_ON, !/fxtier=0/.test(q), `${q}：fxtier 不受 cam 影響`);
   }
   // 發送端：真的跑 index.html 的 pushBid3d／revealGlow（vm），看派出去的 detail
-  for (const [q, want] of [['', true], ['?cam=0', false], ['?closeup=0&fxtier=0', true]]) {
+  // 2026-10-10 中咒鏡頭預設關（使用者裁「甲」；docs/experiments/2026-10-10-curse-cam-off/acceptance.md §0 放寬原 §2「預設＝新鏡頭開」的中咒部分）：
+  // 喊價（ys:bid）期望不變；中咒（ys:reveal-result）改為預設關、?cursecam=1 開、?cam=0 一律關。wantCurse＝中咒期望。
+  for (const [q, want, wantCurse] of [['', true, false], ['?cam=0', false, false], ['?closeup=0&fxtier=0', true, false], ['?cursecam=1', true, true], ['?cam=0&cursecam=1', false, false]]) {
     const sent = [];
     const ctx = { location: { search: q }, URLSearchParams, TABLE3D: true, fx3d: (n, d) => sent.push([n, d]),
       SKIP: false, CFG: { GRAB_ON: true, GRAB_MS: 1260, CURSE_MS: CURSE_MS }, document: { getElementById: () => null }, $: () => null };
     vm.createContext(ctx);
-    const pwCamSrc = INDEX.includes('function pwCam(') ? fnSrc('function pwCam(', '\n') : '';
+    const pwCamSrc = (INDEX.includes('function pwCam(') ? fnSrc('function pwCam(', '\n') : '')
+      + '\n' + (INDEX.includes('function pwCurseCam(') ? fnSrc('function pwCurseCam(', '\n') : '');
     vm.runInContext(pwFxLiteral.replace('const PW_FX=', 'var PW_FX=') + '\n' + flagBlock + '\n' + pwCamSrc + '\n'
       + fnSrc('function pushBid3d(', '\n') + '\n' + fnSrc('function revealGlow(r){', '/* 盯上落印'), ctx);
     const it = { curse: true };
@@ -383,7 +386,7 @@ test('§2 index.html：?cam 由頁面解析，與 ?closeup／?fxtier 互不牽�
     ctx.revealGlow({ winner: { p: { id: 2 }, intent: 'poison', target: 3 }, it, entries: [], poisonBlocked: false });
     const bid = sent.find((x) => x[0] === 'ys:bid'), res = sent.find((x) => x[0] === 'ys:reveal-result');
     assert.equal(bid[1].cam, want, `${q || '(無參數)'}：ys:bid.detail.cam`);
-    assert.equal(res[1].cam, want, `${q || '(無參數)'}：ys:reveal-result.detail.cam`);
+    assert.equal(res[1].cam, wantCurse, `${q || '(無參數)'}：ys:reveal-result.detail.cam`);
     assert.equal(res[1].transferTarget, 3, '前置：毒標受害席有帶到');
   }
 });

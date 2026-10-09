@@ -57,3 +57,5 @@
 - iPhone 真機肉眼未驗，列使用者側。
 
 ## 被動到的既有測試（實作後填）
+- `tests/camera-bid-curse.test.mjs:362`「§2 index.html：?cam 由頁面解析…pushBid3d／revealGlow 經 detail.cam 帶給鏡頭」：修復後先紅於 `ReferenceError: pwCurseCam is not defined`（vm 只載入 pwCam 的原始碼）。對應被放寬條件＝§0 第 1 點（原 §2「預設＝新鏡頭開」的中咒部分）。改法：vm 一併載入 `pwCurseCam`；`ys:bid.detail.cam` 期望**不變**；`ys:reveal-result.detail.cam` 期望由 `want` 改為 `wantCurse`（預設 false、`?cursecam=1` true、`?cam=0`／`?cam=0&cursecam=1` false），並新增 `?cursecam=1`、`?cam=0&cursecam=1` 兩組。未刪斷言。改後對 c1a4d167 紅、修復後綠。
+- 其餘 camera 相關既有測試（`camera-bid-curse` 其餘 18 條）直接驅動 camera-director，接收端未改，**未被動到**。
