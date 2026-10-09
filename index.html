@@ -5295,7 +5295,7 @@ function pwPrep(beat,fac,sd,env,phase){
       for(const u of sd.units){
         if(u.alive&&u.hp<u.max){ u.hp=Math.min(u.max,u.hp+rg); hit++; }
       }
-      if(hit){ env.stats.regen++; pwFire(env,{name:"長明渡幽"},`🕯️ 長明渡幽：${sd.p.name} 全隊存活各回 ${rg} hp`,sd); }
+      if(hit){ env.stats.regen++; pwFire(env,{id:"chainRegenAll",name:"長明渡幽"},`🕯️ 長明渡幽：${sd.p.name} 全隊存活各回 ${rg} hp`,sd); }
     }else{
       const u=pwMostHurt(sd);
       if(u){ u.hp=Math.min(u.max,u.hp+rg); env.stats.regen++;
@@ -5518,7 +5518,7 @@ function pwPass(sd,foe,beat,fac,phase,env){
         if(full&&t.tr) pwFire(env,t.tr,`⚔️ ${t.tr.name}：濺射全額`,sd);
         let sp=full?a:Math.floor(a/2);
         const hasHalfSplash=(st&&st.tr&&st.tr.halfSplash)||hasFlag(foe.p,"teamHalfSplash");
-        if(hasHalfSplash){ sp=Math.floor(sp/2); pwFire(env,(st&&st.tr)||{name:"怒濤破浪"},`🛶 怒濤破浪：${foe.p.name} 濺射減半`,foe); }
+        if(hasHalfSplash){ sp=Math.floor(sp/2); pwFire(env,(st&&st.tr&&st.tr.halfSplash)?st.tr:{id:"chainHalfSplash",name:"怒濤破浪"},`🛶 怒濤破浪：${foe.p.name} 濺射減半`,foe); }
         const spAttack={splash:true,pierce:false,armorPierce:hasCleavePierce||trueEyes,trueEyes};
         pwStrike(u,sd,t2,foe,sp,env,"splash",spAttack); env.stats.splash++;
       }
@@ -7715,12 +7715,18 @@ const TRUE_DESTINY_MOVES={
   bloodSacrifice:{chain:"bloodOath",name:"血祭反噬",desc:TRUE_DESTINY_RULES.bloodOath.night},
   trueEternalShield:{chain:"eternalFlame",name:"長明護命",desc:TRUE_DESTINY_RULES.eternalFlame.night},
 };
-/* 招式字幕的「法寶：招名」與說明（純函式，對決播放與測試共用同一份組字）。 */
+/* 連鎖本身觸發、不屬於任何一件法寶的招（pwPrep／pwClash 以這兩個 id 記拍）。 */
+const CHAIN_MOVES={
+  chainRegenAll:{chain:"eternalFlame",name:"全隊回血",desc:"每拍開場，本方全隊存活紙紮各回血"},
+  chainHalfSplash:{chain:"water",name:"怒濤破浪",desc:"本方全隊受到的精英濺射減半"},
+};
+/* 招式字幕的「法寶：招名」與說明（純函式，對決播放與測試共用同一份組字）。
+   查不到的 id 退回「法寶：招式」，不把 trId 本身（可能是 undefined）印上字幕。 */
 function pwMoveCapText(trId){
-  const tr=TRUE_DESTINY_MOVES[trId];
-  const item=tr?`真・${CHAINS[tr.chain].name}`:(TRAIT_ITEM[trId]||"法寶");
-  const move=tr?.name||(TRAITS[trId]||{}).name||trId;
-  const desc=tr?.desc||(TRAITS[trId]||{}).desc||"";
+  const tr=TRUE_DESTINY_MOVES[trId], ch=CHAIN_MOVES[trId];
+  const item=tr?`真・${CHAINS[tr.chain].name}`:ch?CHAINS[ch.chain].name:(TRAIT_ITEM[trId]||"法寶");
+  const move=tr?.name||ch?.name||(TRAITS[trId]||{}).name||"招式";
+  const desc=tr?.desc||ch?.desc||(TRAITS[trId]||{}).desc||"";
   return {item,move,desc};
 }
 /* 體型的看板名。三種體型要在「一眼看得出」的層次分開：多／大／飄（草案 §2.3）。 */
