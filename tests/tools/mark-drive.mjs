@@ -27,8 +27,10 @@ export async function openBrowser(root, port) {
   return { browser, close: async () => { await browser.close(); server.kill(); } };
 }
 
-/** 開一頁、走到第 1 夜盯上畫面、凍結時間。回傳 { page, run }。 */
-export async function openMarkPage(browser, { port, vp, query = '', mm = null, palette = null, safe = true, dpr = 2 }) {
+/** 開一頁、走到第 1 夜盯上畫面、凍結時間。回傳 { page, run }。
+ *  vclock＝true（5b 足跡量法用）：開頁前就裝假時鐘，載入／走流程／等待全部用 runFor 推進，最後推到同一個絕對假時間 T_ABS——
+ *  不讓真實時間漏進燈籠火焰／拍品閒置動畫相位（原本開頁後 3 秒是真實等待）；預設 false＝5a 等既有量具行為不變。 */
+export async function openMarkPage(browser, { port, vp, query = '', mm = null, palette = null, safe = true, dpr = 2, vclock = false }) {
   const [W, H] = vp.split('x').map(Number);
   const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: dpr, hasTouch: true, isMobile: true });
   const errors = [];
@@ -38,9 +40,12 @@ export async function openMarkPage(browser, { port, vp, query = '', mm = null, p
     if (mm) window.__MM = mm;
     if (palette) window.__MMPAL = palette; // 只有示意樹讀它；產品樹忽略
   }, { mm, palette });
+  const step = (ms) => page.clock.runFor(Math.max(16, Math.round(ms / 16) * 16));
+  if (vclock) { await page.clock.install({ time: 1e6 }); await page.clock.pauseAt(1e6 + 1); }
   await page.goto(`http://127.0.0.1:${port}/${query}`);
   if (safe && W > H) await page.evaluate((s) => { for (const [k, px] of Object.entries(s)) document.documentElement.style.setProperty(`--safe-${k}`, `${px}px`); }, SAFE_L);
-  await page.waitForFunction(() => window.__yaoshi3d?.tray && window.__yaoshi);
+  if (vclock) { for (let i = 0; i < 600; i++) { if (await page.evaluate(() => !!(window.__yaoshi3d?.tray && window.__yaoshi))) break; await step(100); } }
+  else await page.waitForFunction(() => window.__yaoshi3d?.tray && window.__yaoshi);
   await page.evaluate(() => { CFG.T = 1; window.__yaoshi.newGame('solo', 1, ['qingmian']); });
   let reached = false;
   for (let i = 0; i < 150; i++) {
@@ -48,18 +53,32 @@ export async function openMarkPage(browser, { port, vp, query = '', mm = null, p
     if (st.r === 1 && !st.d && st.t.includes('不盯任何一件')) { reached = true; break; }
     // 直式有 #rotateHint 蓋在上面，一律用 DOM click（示意 _mm 用 page.click，橫式下兩者等價）
     await page.evaluate((d) => { if (!d) document.getElementById('mainbtn').click(); else [...document.querySelectorAll('#stage button')].find((b) => !b.disabled)?.click(); }, st.d);
-    await page.waitForTimeout(100);
+    if (vclock) await step(96); else await page.waitForTimeout(100);
   }
   if (!reached) throw new Error(`${vp}: 沒走到盯上畫面`);
-  await page.evaluate(() => window.__yaoshi3d.tray.loaded());
-  await page.waitForFunction(() => window.__yaoshi3d.tray.hands.loaded(), null, { timeout: 30000 });
+  if (vclock) {
+    await page.evaluate(() => { window.__trayLoaded = false; Promise.resolve(window.__yaoshi3d.tray.loaded()).then(() => { window.__trayLoaded = true; }); });
+    for (let n = 0; n < 1000; n++) { if (await page.evaluate(() => window.__trayLoaded && window.__yaoshi3d.tray.hands.loaded())) break; await step(96); }
+  } else {
+    await page.evaluate(() => window.__yaoshi3d.tray.loaded());
+    await page.waitForFunction(() => window.__yaoshi3d.tray.hands.loaded(), null, { timeout: 30000 });
+  }
   await page.addStyleTag({ content: 'body *:not(canvas){visibility:hidden !important} canvas{visibility:visible !important}' });
-  await page.waitForTimeout(3000);
-  await page.clock.install({ time: 1e6 });
-  await page.clock.pauseAt(2e6);
+  if (vclock) { // 絕對時間柵欄：不論前面載入／走流程花了幾步，一律推到同一個假時間 T_ABS；已超過代表柵欄太小，直接報錯（不是重跑）
+    const T_ABS = 9000, nowB = await page.evaluate(() => performance.now());
+    if (nowB > T_ABS - 3000) throw new Error('barrier too small: now=' + nowB);
+    await page.clock.runFor(T_ABS - nowB);
+  } else {
+    await page.waitForTimeout(3000);
+    await page.clock.install({ time: 1e6 });
+    await page.clock.pauseAt(2e6);
+  }
   await page.evaluate(() => { const Y = window.__yaoshi3d; Y.smoke.points.visible = false; Y.embers.points.visible = false; });
   const run = (ms) => page.clock.runFor(Math.max(16, Math.round(ms / 16) * 16));
   let last = '', same = 0;
+  if (vclock) { // 固定 41 次取樣＋斷言相機靜止（不是「靜止為止」的變長迴圈）
+    for (let i = 0; i < 41; i++) { await run(50); const k = await page.evaluate(() => { const c = window.__yaoshi3d.camera; return c.position.toArray().map((x) => x.toFixed(7)).join() + c.quaternion.toArray().map((x) => x.toFixed(7)).join(); }); if (i >= 1 && k !== last) throw new Error('camera not static at T_ABS (sample ' + i + ')'); last = k; }
+  } else
   for (let i = 0; i < 400 && same < 40; i++) {
     await run(50);
     const k = await page.evaluate(() => { const c = window.__yaoshi3d.camera; return c.position.toArray().map((x) => x.toFixed(7)).join() + c.quaternion.toArray().map((x) => x.toFixed(7)).join(); });
