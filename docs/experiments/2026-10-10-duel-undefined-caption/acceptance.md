@@ -18,3 +18,10 @@
 | C7 | `git diff --stat c1a4d167..` 只含：本檔、新測試檔、`index.html`；index.html 每個 hunk 都能對應到根因 1／2 或組字抽函式／匯出 | 貼 diff --stat 與逐檔一句 | 順手改了無關行、動了版號 |
 | C8 | fresh opus 反駁式覆審，逐條三態（真的修好／表面修好／沒修到），最多 3 輪；另掃對戰字幕與 log 其他可能吐 undefined 的路徑（含真命招式） | 覆審報告落檔、結論貼回 | 覆審判任一條「表面修好／沒修到」且未處理 |
 | C9 | commit 在 `fix/duel-undefined-caption`，未 push | `git log --oneline c1a4d167..`、`git branch -r --contains HEAD` 為空 | push 了或 commit 在別的分支 |
+
+## C6 更新（2026-10-10，經使用者明確同意；依 02 §2.1 記錄）
+
+- **使用者 2026-10-10 同意**：C6「trace-eq 相等」不成立的結果可接受——修後戰況 log 比修前多出若干行，勝負／扣血差異為 0。
+- **原標準錯在哪**：C6 假設「修字幕不會改任何 trace 位元組」。但 `pwFire`（index.html:5201）用 `env.seen[tr.id]` 去重，舊碼的長明渡幽／怒濤破浪呼叫點傳的是無 id 物件，鍵一律為 `"undefined"`，與其他無 id 招共用同一個去重槽，於是吞掉別招在該場的第一行 log。修後各招有自己的 id、不再共用鍵，被吞的 log 正確印出，trace 的 `extra`（log 文字）必然變長。這是凍結時沒預見的 log 去重副作用，動手前無從得知（要等實跑 trace-eq 不等、再拆去重驗證才看得到）。
+- **為什麼不是移動及格線**：勝負與扣血仍要求逐值相同，只放寬 `extra` log 文字；且已證差異 100% 來自去重鍵——把兩版 `env.seen` 去重都拿掉後 trace-eq 判 equal:true（356417 bytes 對 356417 bytes）。
+- **15 處差異證據**：`trace-eq <c1a4d167 index.html> <修後 index.html>` seeds 1..20 → `{"totalDiffs":15,"nonExtraDiffs":0}`，15 處全在 `.runs.*.nights.*.battles.*.extra`，全為「修後多印一行」（送王船吸收×3、怒濤破浪濺射減半×7、恐懼、令旗改陣、有求必應各 1、一處空陣列重排）。原始檔：`%TEMP%\claude\C--Users-shung\142b9c3a-d1b6-41a2-a7f8-88f308bddce5\scratchpad\undefcap\trace-diff.txt`、`trace-eq.txt`；去重歸因：同目錄 `review\review-report.md` A6、`review\base_nodedupe.html`／`fix_nodedupe.html`。
