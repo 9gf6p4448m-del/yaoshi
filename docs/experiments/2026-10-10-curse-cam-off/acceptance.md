@@ -1,0 +1,61 @@
+# 驗收（凍結，2026-10-10）— 中咒鏡頭預設關閉（fix/curse-cam-off）
+
+基準：origin/main c1a4d167（v0.65.1）。對照：5c91bdc7（v0.65.0，無運鏡乙）。
+狀態：**凍結**（動手改程式前 commit）。依 02 §2.1，凍結後只能細化／加嚴；放寬須寫「原標準錯在哪、為什麼現在才知道」並取得使用者針對該條的明確同意。
+範圍：只把「中咒鏡頭」（`ys:reveal-result` 帶 transferTarget 時的慢推＋視線拉向受咒者）**預設關閉**，保留 `?cursecam=1` 供日後重新設計時開啟比對。喊價鏡頭（出價微推）不動、保持開；`?cam=0` 行為不變。不動版號（主 session 統一升 0.65.2）、不動 `js/hand-motion.js`、不 push、不動 main。
+
+每條固定三欄：**條件**／**量法**／**什麼實作會讓它變紅**。
+
+## 0. 使用者同意與放寬紀錄（02 §2.1）
+- **使用者同意**：2026-10-10 使用者針對「預設關閉中咒鏡頭」明確回覆「甲」。這是針對本條的明確同意。
+- **原標準錯在哪、為什麼現在才知道**：中咒鏡頭把視線拉向受咒者（`js/camera-director.js:808`）並推近（`:788–790`），開標逐槽取景（`js/renderer.js:209–218` → `js/table-framing.js:171–200` fitSubject）沿新視軸後退，使相機更近更低（槽0 距離 4.32→3.77、仰角 13.9°→11.3°），西→東施咒時施咒者的手與符紙落到桌遠緣以上＝畫面上「在天空上給」。2026-10-08 凍結時的運鏡單元測試（`tests/tools/cam-unit.mjs`／`tests/camera-bid-curse.test.mjs`）直接驅動 camera-director，**沒有經過 fitSubject 取景回饋**，所以凍結時量不到；使用者 iPhone 試玩才發現。
+- **被放寬的原條件（`docs/camera-bid-curse-acceptance` 分支 `docs/experiments/2026-10-08-camera-bid-curse/acceptance.md`）與新狀態**：
+  - 原 §2 條件「預設（無參數）＝新鏡頭開」：**中咒鏡頭部分改為預設關**（喊價鏡頭部分不變，仍預設開）。原 §2 紅燈「預設也關（預設測試紅）」對中咒鏡頭不再適用。
+  - 原 §2c「預設在 closeup／fxtier 任一關閉時，新鏡頭仍須依 §6 觸發」：**中咒鏡頭部分改為「預設不觸發；`?cursecam=1` 時依 §6 觸發」**；喊價鏡頭部分不變。
+  - 原 §6.1 中咒鏡頭：**產品預設不發生**；接收端（camera-director `onCurseHit`）能力保留不改，單元層的 §6.1 時序／回位條件對「被要求開啟時」（detail.cam 非 false）照舊有效。
+  - 原 §2b（接收端 `detail.cam=false` 不動、省略＝開、true＝開）**不放寬、照舊**：本修改不動接收端語意，只改發送端預設。
+  - 其餘原條件（§1、§3、§4、§5、§6.2、§6.3、§6.4、§7、§8、§9、§10）不動。
+
+## 1. 中咒期間手不上天（主條件，真實鏈路）
+- 條件：西(2)→東(3) 施咒，四槽（0–3）×兩視窗（V3 844×390、V2 932×430），`ys:reveal-result` 後 216 幀（3.6 s）內「施咒者 Palm 螢幕點高於桌遠緣（圓桌 r=3.4 北緣、同 x）」的幀數：**預設 ≤ 同樹同情境 `?cam=0` 的值＋5**。
+- 量法：`tests/curse-cam-off.test.mjs` → `tests/tools/curse-cam-probe.mjs`（承襲診斷探針 sky-probe：grab-probe 的假時鐘，且 `performance.now` 對齊 `window.__now`，否則鏡頭包絡一開始就結束、量到偽陰性）。**出價走頁面真實的 `pushBid3d`，開標結果走頁面真實的 `revealGlow`**（不是治具手寫 detail），所以 `?cam`／`?cursecam` 旗標經真實發送端進到鏡頭。不得只跑 cam-unit。
+- 紅：中咒鏡頭預設仍開（c1a4d167 預設 143/171/196/216 vs `?cam=0` 25/60/189/216 → 槽0/1 紅）；只把視線拉移歸零而推近照舊（突變：c1a4d167 上 `CURSE_CAM.aim 0.35→0`，診斷值槽1 129>65 仍須紅）；旗標只擋了治具路徑、真實發送端仍帶 cam:true。
+- 鑑別力要求：本測試對 c1a4d167 須**紅在本條行為斷言**（不是例外／缺函式）；對 5c91bdc7 須綠；修復後綠。上述三者與突變皆須實跑貼輸出。
+
+## 2. 相機不因中咒而變低／變平
+- 條件：同 §1 情境，中咒期間（事件後 216 幀）每幀相機高度 `camera.position.y ≥ y事件前一幀 − 0.02 m`，俯角 `asin(−dir.y)` ≥ 事件前一幀 − 0.3°。
+- 量法：同 §1 探針，事件派出前先量一幀當基準。
+- 紅：中咒鏡頭仍作用（c1a4d167 預設俯角最多掉 2.0–4.8°、槽3 高度掉 0.086 m）。
+
+## 3. 喊價鏡頭仍作用、不受本修改影響
+- 條件：預設下，真實 `pushBid3d` 出價後的出價窗內，`1 − |pos預設| / |pos ?cam=0|` 的最大值 ∈ [0.025, 0.045]（規格 3.5%＝push 0.10×micro 0.35）；`?cam=0` 時 0。
+- 量法：同探針，出價段逐幀記相機位置，對同樹 `?cam=0` 同幀比。
+- 紅：把喊價鏡頭一起關了（預設 ≈0）；把 `?cam` 總開關誤改（`?cam=0` 仍推）。
+
+## 4. `?cursecam=1` 能重現舊的中咒鏡頭（旗標有效）
+- 條件：`?cursecam=1` 時 §1 的幀數 ≥ 同情境 `?cam=0`＋50（槽 0、1；槽 2、3 在 `?cam=0` 已近滿格，不判），且俯角最大掉幅 ≥ 1.0°（四槽）。`?cam=0&cursecam=1` 仍不推（＝`?cam=0` 總開關優先）：幀數 ≤ `?cam=0`＋5。
+- 量法：同探針，另跑 `cursecam=1` 與 `cam=0&cursecam=1`。
+- 紅：旗標沒接上（`?cursecam=1` 也不推）；`?cursecam=1` 蓋過 `?cam=0`。
+- 補充（記錄，非門檻）：修復樹 `?cursecam=1` 的中咒窗相機軌跡與 c1a4d167 預設逐幀比對，差值寫進回報。
+
+## 5. 回歸
+- 全套 `node --test tests/*.test.mjs`（排除 `sfx-wiring`）的失敗集合須與基準相同：**基準 558 過、只剩 `nightwalk #1` 紅**。worktree 須有 `tools/anyCreature` junction。
+- 既有測試中依賴「中咒鏡頭預設開」者若變紅：**不得悄悄改**，逐一列在本檔下方「被動到的既有測試」並對應 §0 被放寬條件後才改；改法只能把「預設開」的期望改成「預設關、`?cursecam=1` 開」，不得刪斷言、不得放寬其他欄位。
+- `node tests/tools/trace-eq.mjs index.html` 對 c1a4d167 相等（引擎不動）。
+- 控制台 0 error：預設、`?cam=0`、`?cursecam=1` 各一次。
+- 紅：多出任何失敗；trace 不等；任一頁有 console error。
+
+## 6. 範圍
+- `git diff --stat` 逐檔一句對應條件；只允許動 index.html 的旗標解析／中咒事件發送、相關測試與治具、本 docs。不動 `js/hand-motion.js`、版號、結算／AI。
+- 紅：diff 出現版號字串、hand-motion.js、引擎區塊。
+
+## 7. 覆審
+- fresh opus subagent（無對話史）反駁式覆審「我已修好」，逐條三態（真的修好／表面修好／沒修到），最多 3 輪；第 3 輪仍有未解 finding → 停手列清單交主 session。
+
+## 已知限制（如實）
+- 槽 3（以及 V3/V2 槽 2）在 `?cam=0`／v0.65.0 本來就有 189–216 幀手高於桌遠緣：那是逐槽取景本身的機位，不是中咒鏡頭造成，**不在本卷範圍**，本卷只要求「不比 `?cam=0` 更糟」。
+- iPhone 真機肉眼未驗，列使用者側。
+
+## 被動到的既有測試（實作後填）
+- `tests/camera-bid-curse.test.mjs:362`「§2 index.html：?cam 由頁面解析…pushBid3d／revealGlow 經 detail.cam 帶給鏡頭」：修復後先紅於 `ReferenceError: pwCurseCam is not defined`（vm 只載入 pwCam 的原始碼）。對應被放寬條件＝§0 第 1 點（原 §2「預設＝新鏡頭開」的中咒部分）。改法：vm 一併載入 `pwCurseCam`；`ys:bid.detail.cam` 期望**不變**；`ys:reveal-result.detail.cam` 期望由 `want` 改為 `wantCurse`（預設 false、`?cursecam=1` true、`?cam=0`／`?cam=0&cursecam=1` false），並新增 `?cursecam=1`、`?cam=0&cursecam=1` 兩組。未刪斷言。改後對 c1a4d167 紅、修復後綠。
+- 其餘 camera 相關既有測試（`camera-bid-curse` 其餘 18 條）直接驅動 camera-director，接收端未改，**未被動到**。

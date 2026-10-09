@@ -6301,9 +6301,13 @@ const PW_FX={
   GAUGE_GHOST_MS:300,  /* 存活量表掉的那一段，紅殘影停留多久才收 */
   HURT_EDGE_MS:150,    /* 己方受擊時 #duel 邊緣紅暈的長度（與 CSS 的 hurtEdgeFade 同一個數） */
   /* v0.65.1 運鏡乙（中咒鏡頭＋喊價鏡頭，驗收 docs/experiments/2026-10-08-camera-bid-curse/acceptance.md）總開關：
-     ?cam=0 → false＝兩種新鏡頭整個不發生（鏡頭行為與 v0.65.0 相同）；?cam=1 顯式開。鏡頭端不讀 PW_FX，
+     ?cam=0 → false＝兩種新鏡頭整個不發生（鏡頭行為與 v0.65.0 相同）；?cam=1 顯式開（中咒鏡頭另需 ?cursecam=1，見 CURSE_CAM_ON）。鏡頭端不讀 PW_FX，
      由 pushBid3d／revealGlow 經事件 detail.cam 帶進去（缺欄位＝開）。與 ?closeup／?fxtier 互不牽動。 */
   CAM_ON:true,
+  /* 中咒鏡頭預設關（使用者 2026-10-10 裁「甲」，驗收 docs/experiments/2026-10-10-curse-cam-off/acceptance.md）：
+     中咒鏡頭的視線拉移經逐槽取景（fitSubject）回饋後把機位壓低，西→東施咒時手落到桌遠緣以上（「在天空上給」）。
+     ?cursecam=1 顯式開（日後重新設計時比對用）；?cam=0 仍是總開關、優先。喊價鏡頭不受此旗標影響。 */
+  CURSE_CAM_ON:false,
   UNIT_DY:44,          /* 「−1 隻」往下讓開幾個像素：要 ≥ 最大字高（擊殺 17×1.6×1.3＝35.4px），R4 才不判重疊 */
 };
 /* ?closeup=0 關掉整卷近景切鏡（試玩 A／B 與凍結檔 P0 的退路等價都靠它）；?closeup=1 顯式開。
@@ -6322,6 +6326,11 @@ try{
 try{
   const camq=new URLSearchParams(typeof location!=="undefined"&&location.search?location.search:"").get("cam");
   if(camq==="0") PW_FX.CAM_ON=false; else if(camq==="1") PW_FX.CAM_ON=true;
+}catch(e){}
+/* ?cursecam=1 打開中咒鏡頭（預設關，見 PW_FX.CURSE_CAM_ON）；?cursecam=0 顯式關。寫法同上。 */
+try{
+  const ccq=new URLSearchParams(typeof location!=="undefined"&&location.search?location.search:"").get("cursecam");
+  if(ccq==="0") PW_FX.CURSE_CAM_ON=false; else if(ccq==="1") PW_FX.CURSE_CAM_ON=true;
 }catch(e){}
 /* ?fxvocab=1 打開 v0.55 批 0 的徽記剪影版四支示範招；?fxvocab=0 顯式關（＝預設的 0.54 演出）。
    寫法與上面兩條（?closeup／?fxtier）逐字同一套。 */
@@ -6435,7 +6444,7 @@ function revealGlow(r){
   /* 演出資料刻意把「競標得主」「毒標受害者」「買下銷毀」拆開：三者不是同一席。
      不把它們塞回 resolveAuction 的結果，3D 層只讀這張短命的呈現收據。 */
   const revealSlot=(()=>{const i=(S&&S.market)?S.market.indexOf(r.it):-1;return i<0?null:i;})();
-  fx3d("ys:reveal-result",{winner:r.winner.p.id,slot:revealSlot,cam:pwCam(), /* cam＝v0.65.1 中咒鏡頭開關（?cam=0） */
+  fx3d("ys:reveal-result",{winner:r.winner.p.id,slot:revealSlot,cam:pwCurseCam(), /* cam＝中咒鏡頭開關：預設關，?cursecam=1 開，?cam=0 一律關 */
     transferTarget:r.it&&r.it.curse&&r.winner.intent==="poison"&&!r.poisonBlocked?r.winner.target:null,
     destroy:!!(r.it&&r.it.curse&&(r.winner.intent!=="poison"||r.poisonBlocked)),
     grabMs:CFG.GRAB_ON?CFG.GRAB_MS:0, curseMs:CFG.GRAB_ON?CFG.CURSE_MS:0, skip:CFG.GRAB_ON&&!!SKIP}); /* 只結算道具；逐槽鏡頭由 ys:reveal-slot 維持。v0.60.0：grabMs＝手抓回時長（0＝舊拋物線）、skip＝跳過中才開的件 3D 直接到終態 */
@@ -8022,6 +8031,7 @@ let PW_FLOAT_GEN=0;     /* 跳字的世代戳記：節點被池重用之後，�
 
 function pwCloseup(){ return !!PW_FX.CLOSEUP_ON; }
 function pwCam(){ return !!PW_FX.CAM_ON; } /* v0.65.1 運鏡乙開關（?cam=0）；只經事件 detail.cam 交給鏡頭端 */
+function pwCurseCam(){ return !!(PW_FX.CAM_ON&&PW_FX.CURSE_CAM_ON); } /* 中咒鏡頭：?cam=0 總開關優先，其次 ?cursecam（預設關） */
 /* 每一場對決開場時把三個容器建起來（關閉時連建都不建＝DOM 查不到，P0）。 */
 function pwCloseupMount(){
   const ov=$("duel"); if(!ov) return;
