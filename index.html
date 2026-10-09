@@ -7715,6 +7715,14 @@ const TRUE_DESTINY_MOVES={
   bloodSacrifice:{chain:"bloodOath",name:"血祭反噬",desc:TRUE_DESTINY_RULES.bloodOath.night},
   trueEternalShield:{chain:"eternalFlame",name:"長明護命",desc:TRUE_DESTINY_RULES.eternalFlame.night},
 };
+/* 招式字幕的「法寶：招名」與說明（純函式，對決播放與測試共用同一份組字）。 */
+function pwMoveCapText(trId){
+  const tr=TRUE_DESTINY_MOVES[trId];
+  const item=tr?`真・${CHAINS[tr.chain].name}`:(TRAIT_ITEM[trId]||"法寶");
+  const move=tr?.name||(TRAITS[trId]||{}).name||trId;
+  const desc=tr?.desc||(TRAITS[trId]||{}).desc||"";
+  return {item,move,desc};
+}
 /* 體型的看板名。三種體型要在「一眼看得出」的層次分開：多／大／飄（草案 §2.3）。 */
 const PW_BODY={ swarm:{n:"小紙人"}, elite:{n:"大紙偶"}, ward:{n:"護法紙人"}, haunt:{n:"飄影"} };
 /* 事件種類 → 力道倍率與音色。顏色不寫在這裡——三系色由出手那一隊自己的系別決定。 */
@@ -8242,12 +8250,9 @@ async function pwPlayBeat(f,beat,list,views){
   for(const b of show){
     evIdx++;
     if(b.kind==="trait"){
-      const tr=TRUE_DESTINY_MOVES[b.trId];
-      const nm=tr?`真・${CHAINS[tr.chain].name}`:(TRAIT_ITEM[b.trId]||"法寶");
-      const mv=tr?.name||(TRAITS[b.trId]||{}).name||b.trId;
-      const desc=tr?.desc||(TRAITS[b.trId]||{}).desc||"";
+      const mc=pwMoveCapText(b.trId), nm=mc.item;
       const evFac=pwEvFac(f,b,views);
-      pwMoveCap((b.side==="B"?f.B:f.A).name,nm,mv,desc,evFac,b.side);
+      pwMoveCap((b.side==="B"?f.B:f.A).name,nm,mc.move,mc.desc,evFac,b.side);
       FXC.trait++; FXC.traits[b.trId]=(FXC.traits[b.trId]||0)+1;
       sfx("stamp",{rnd:S.rngUi()});
       const foeSide=b.side==="B"?"A":"B";
@@ -9673,7 +9678,7 @@ window.__yaoshi={ newGame, makeState, simulate, trace, mulberry32, pwCurseFeedba
   /* 《紙紮夜戰》卷 A（2026-09-03）：引擎、閘門治具、月相表、戰鬥特性表 */
   paperWar, pwSide, pwDeal, pwHaunt, pwFeed, pwClash, duelBags, phaseFor, phaseText, TRAITS, PHASES, CHAINS, buildArmy, pwArmyView, pwCompText, BEAT_FAC, PW_FX, LEGENDS, pwBeatTier, pwIsLegendUnit, pwMoveTier, pwTierMs, pwBeatMinMs, FPS_DIAG, /* 陣列卷 G1／D3 測試出口；pwCompText 是角色平衡卷覆審 M6 加的（隻數牌文字）；pwBeatTier 三支是 v0.54 三級視覺分級的出口 */
   /* 卷 C1：演出時間軸的可調參數與招式掛鉤表（試玩時直接改、慢動作自審時整體乘倍） */
-  PW_FX, TRAIT_FX, TRAIT_ITEM,
+  PW_FX, TRAIT_FX, TRAIT_ITEM, pwMoveCapText,
   pwHumanSides, /* 批 2-a 覆審 MEDIUM-4：紅暈該閃在哪一側（熱座兩位真人時兩側都算） */
   pwTrial, /* 卷 D D1：AI 估值用的小樣本實跑（閘門 D-A7b 量它與實測勝率的相關性） */
   CHAR_SVG, lifeState, /* 3D 橋接層（v0.15）：角色→SVG 檔名、氣色三態；門檻不得另訂一份 */
