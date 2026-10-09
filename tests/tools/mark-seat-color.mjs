@@ -9,7 +9,7 @@
 //      另量 visFrac：第 i 枚席位色區在疊放下可見像素 ÷ 把其他枚全部藏起來時的像素（取最小）。
 //   實例 i 與席位的對應：取 props.tokenAt(seat) 的 (x,z) 與實例平移最近者。
 // 用法：node tests/tools/mark-seat-color.mjs [--root=<樹>] [--port=8996] [--vps=…] [--mm=Cp] [--palette=#ffd23c,#ff9ab0,#5aa8ff,#4cff7a]
-//        [--scenes=s2,n3_slot0,…] [--runs=1] [--same-color] [--out=<json>]
+//        [--scenes=n1_slot0,…（預設 n{1..4}_slot{0..3}）] [--runs=1] [--same-color] [--out=<json>]
 //   --palette 只作用在示意樹（window.__MMPAL）與 --nominal；產品實作量的是產品自己的色。
 //   --same-color：突變——量測前把所有席位色區（或退回時的本體）instanceColor 改成第 0 枚的值（四席同色），截圖前重畫一幀。
 //   --nominal：只算色票標稱值（sRGB hex）兩兩 ΔE 與對玉牌本體色 PROPS.TOKEN.jade 0x1a1215 的 ΔE，不開瀏覽器。
@@ -171,7 +171,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.a
   const port = +arg('port', 8996);
   const vps = arg('vps', '844x390,932x430').split(',');
   const mm = arg('mm', null), runs = +arg('runs', 1), query = arg('query', '');
-  const names = arg('scenes', 's2,n3_slot0,n1_slot0,n1_slot1,n2_slot0,n2_slot1,n4_slot0,n4_slot1').split(',');
+  const names = arg('scenes', Object.keys(SCENES).filter((k) => /^n[1-4]_slot/.test(k)).join(',')).split(','); // 凍結檔 §2：n{1..4}_slot{0..3}
   const out = [];
   const B = await openBrowser(root, port);
   try {
