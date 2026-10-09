@@ -1,0 +1,101 @@
+diff --git a/js/creature-figures.js b/js/creature-figures.js
+index c7d79033..ebd4c1e0 100644
+--- a/js/creature-figures.js
++++ b/js/creature-figures.js
+@@ -840,6 +840,7 @@ export function makeCreatureFigure(opts = {}) {
+     bounds() { return bbox; },
+     /** mixer 累計時間（秒）。量測用：對決中兩次取樣嚴格遞增＝每幀真的有 update 到。 */
+     animTime() { return mixer ? mixer.time : 0; },
++    __mmReset() { if (mixer) mixer.setTime(0); },
+     /** 目前在播的 clip 名（play() 記錄；還沒播過是 null） */
+     current() { return current; },
+     /** 腳下環境的種類（'water'）或 null */
+diff --git a/js/renderer.js b/js/renderer.js
+index 062a39ba..3bb3322a 100644
+--- a/js/renderer.js
++++ b/js/renderer.js
+@@ -348,6 +348,7 @@ function init() {
+     let dt = Math.min((now - lastT) / 1000, 0.1); // 分頁閒置後回來避免一次跳太多
+     lastT = now;
+     if (now < hitstopUntil) dt = 0; // 停格：時間不前進，畫面就凍在受擊那一格
++    if (window.__mmZero) { elapsed = 0; window.__mmZero = false; }
+     elapsed += dt;
+ 
+     // 運鏡與燈籠強調（開標打亮得標者、對決只留交手兩人）
+diff --git a/js/table-props.js b/js/table-props.js
+index 4b0a8dd5..091957b4 100644
+--- a/js/table-props.js
++++ b/js/table-props.js
+@@ -423,7 +423,7 @@ export function createTableProps(parent, opts = {}) {
+   group.add(contactShadows);
+ 
+   // ── 令牌池：一席一枚，1 顆 InstancedMesh ─────────────────────────────
+-  const TK = PROPS.TOKEN;
++  const TK = PROPS.TOKEN; const tokTint = new THREE.Color();
+   const tokG = tokenGeometry();
+   const tokens = new THREE.InstancedMesh(tokG.geo, tokG.mat, 4);
+   tokens.name = 'prop-tokens';
+@@ -535,7 +535,7 @@ export function createTableProps(parent, opts = {}) {
+       const stack = compactShadows ? 2.05 : 1.25;
+       put(p[0], p[1], CH.R * stack, CH.R * (compactShadows ? 1.10 : 0.84));
+     }
+-    for (const r of tokRec) if (r.slot >= 0) put(r.to[0], r.to[2], TK.W * 1.18, TK.H * 0.94);
++    for (const r of tokRec) if (r.slot >= 0) { const m = (window.__MM && window.__MM !== 'cur') ? r.mmShadow : 1; put(r.to[0], r.to[2], TK.W * 1.18 * m, TK.H * 0.94 * m); if (m > 1) put(r.to[0], r.to[2], TK.W * 1.0 * m, TK.H * 0.8 * m); }
+     for (const r of relics) if (r) { const p = seatXZ(r.seat); put(p[0], p[1], 0.19, 0.12); }
+     contactShadows.count = n; contactShadows.visible = n > 0;
+     if (n) contactShadows.instanceMatrix.needsUpdate = true;
+@@ -561,6 +561,23 @@ export function createTableProps(parent, opts = {}) {
+       const anchor = Math.max(-limit, Math.min(limit, trayXS[slot]));
+       const center = anchor + edge * (rows.length - 1) * TK.GAP_X / 2;
+       const z = dropZ() - 0.055;
++      const MM = window.__MM || 'cur';
++      if (MM !== 'cur') {
++        const RB = 0.285, sx = trayXS[slot], n = rows.length;
++        rows.forEach((r, i) => {
++          const o = i - (n - 1) / 2;
++          if (MM === 'B') {
++            const dx = o * (TK.W * 2 + 0.012);
++            r.to = [sx + dx, trayY, trayZ + Math.sqrt(Math.max(0, RB * RB - dx * dx)) + TK.H * 0.92];
++            r.mmLift = -TK.STAND_LIFT - 0.004; r.mmYaw = 0; r.mmShadow = 1.55;
++          } else {
++            const dx = o * 0.075;
++            r.to = [sx + dx, trayY, trayZ + Math.sqrt(Math.max(0, RB * RB - dx * dx)) - i * 0.03 + 0.0];
++            r.mmLift = -TK.STAND_LIFT + 0.004 + i * TK.T * 0.78; r.mmYaw = (i - (n - 1) / 2) * 0.16; r.mmShadow = 1.2;
++          }
++        });
++        continue;
++      }
+       rows.forEach((r, i) => {
+         r.to = [center + (i - (rows.length - 1) / 2) * TK.GAP_X, trayY, z];
+       });
+@@ -582,15 +599,15 @@ export function createTableProps(parent, opts = {}) {
+       const to = r.to;
+       const px = from[0] + (to[0] - from[0]) * e;
+       const pz = from[1] + (to[2] - from[1]) * e;
+-      const py = trayY + TK.T / 2 + TK.STAND_LIFT + TK.RISE * Math.sin(Math.PI * t) * (1 - e * 0.4) + r.bounce;
+-      EU.set(TK.PITCH, r.yaw, 0); // 印面平放，字朝主鏡頭；保留幾何本身的厚度。
++      const py = trayY + TK.T / 2 + TK.STAND_LIFT + TK.RISE * Math.sin(Math.PI * t) * (1 - e * 0.4) + (window.__MM === 'B' ? r.bounce * 0.15 : r.bounce) + (r.mmLift || 0) * ((window.__MM || 'cur') === 'cur' ? 0 : 1);
++      EU.set(TK.PITCH, r.yaw + ((window.__MM && window.__MM !== 'cur') ? (r.mmYaw || 0) : 0), 0); // 印面平放，字朝主鏡頭；保留幾何本身的厚度。
+       Q.setFromEuler(EU);
+       Pv.set(px, py, pz);
+       r.pos = [px, py, pz]; // 席位之手的唯讀出口（tokenAt／handObstacles）
+       Sv.setScalar(1); // 共用暫存向量：不可沿用接觸陰影的非等比縮放，否則牌面會被壓成窄條。
+       M.compose(Pv, Q, Sv);
+       tokens.setMatrixAt(n, M);
+-      if (tokens.instanceColor) tokens.setColorAt(n, r.winnerGlow ? tokenWinner : tokenBase);
++      if (tokens.instanceColor) { if (window.__MM === 'C') { const hx = [0xffd23c, 0xff9ab0, 0x5aa8ff, 0x4cff7a][r.seat]; tokTint.set(hx); tokens.setColorAt(n, tokTint); } else tokens.setColorAt(n, r.winnerGlow ? tokenWinner : tokenBase); }
+       n++;
+     }
+     tokens.count = n;
+diff --git a/js/table-tray.js b/js/table-tray.js
+index d96c10db..e05b8481 100644
+--- a/js/table-tray.js
++++ b/js/table-tray.js
+@@ -1326,6 +1326,7 @@ export function createTableTray(scene, camera, opts = {}) {
+     group,
+     /** 桌上道具層（籌碼／令牌／信物）。治具與 renderer 的 listener 走這個出口。 */
+     props,
++    __mmSlots: () => slots,
+     /** 席位之手（table-hands.js）；renderer 在呼叫 props 的同一處呼叫它。 */
+     hands,
+     /** v0.60.0 跳過（renderer 的 ys:fx-trait-cancel）：進行中的抓取／詛咒演出直接到終態（法寶在終點、手收）。 */

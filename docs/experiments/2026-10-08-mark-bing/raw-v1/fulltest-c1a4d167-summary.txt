@@ -1,0 +1,41 @@
+ℹ cause kinds: {"night":20,"interval":0,"none":0} evRef types: {"dawn":20,"night":20,"win":20,"poison":18,"shrine":20,"death":19} no-poison games: 2
+ℹ events per type: {"win":342,"lose":225,"poison":56,"poisoned":36,"mark":459,"death":17,"shrine":28}
+✖ #1 常規局：S 不多欄位；座位與亂數流與 3a0d971 相同（seeds 1–50、solo／hotseat） (1147.1147ms)
+﹣ k＝1 逐位元：tremble 與 rz 擺動與 v0.62.2（d11d8e9c）逐值 ===（需 YAOSHI_OLD_GM_PATH） (17.6357ms) # 未給 YAOSHI_OLD_GM_PATH
+ℹ tests 560
+ℹ suites 0
+ℹ pass 558
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 1
+ℹ todo 0
+ℹ duration_ms 313550.0341
+✖ failing tests:
+✖ #1 常規局：S 不多欄位；座位與亂數流與 3a0d971 相同（seeds 1–50、solo／hotseat） (1147.1147ms)
+✖ failing tests:
+
+test at tests\nightwalk.test.mjs:175:1
+✖ #1 常規局：S 不多欄位；座位與亂數流與 3a0d971 相同（seeds 1–50、solo／hotseat） (1147.1147ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      '雷女之火',
+      '王爺劍',
+      '巴冷公主珠鍊',
+  +   '水鬼名冊'
+  -   '抓交替水符'
+    ]
+  
+      at TestContext.<anonymous> (file:///C:/Users/shung/wt/yaoshi/mark-v2/tests/nightwalk.test.mjs:188:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ '雷女之火', '王爺劍', '巴冷公主珠鍊', '水鬼名冊' ],
+    expected: [ '雷女之火', '王爺劍', '巴冷公主珠鍊', '抓交替水符' ],
+    operator: 'deepStrictEqual',
