@@ -1,0 +1,129 @@
+# 5b 文件引用數字（44749／44723／44751／288454／ZB5 離群）的重算紀錄
+# 來源：scratchpad/r/ZB1–ZB8（c1a4d167，1280x720 n1_slot0，--layer，--par=3 的 8 個基準 dump 的 PNG）。原始 PNG 在 session scratchpad、未入庫；下面附各檔 sha1 供對照。
+# 重算日期：2026-10-10。重算指令：PYTHONUTF8=1 python <下方腳本> <ZB 目錄的上層>（腳本全文附在最後）
+# 名詞：足跡＝同一份 dump 的 .f.png 與 .o.png 逐像素任一通道相異的像素數；整幀＝原截圖 .png 兩兩相異像素數（任一通道）；XOR＝兩份足跡遮罩逐像素不同的像素數。
+
+## 輸出
+每個基準的足跡（f.png 對 o.png 相異像素）:
+  ZB1 44751
+  ZB2 44749
+  ZB3 44749
+  ZB4 44749
+  ZB5 44723
+  ZB6 44749
+  ZB7 44749
+  ZB8 44749
+每個基準 hitstop 全開 f.png 對原截圖 .png 相異像素:
+  ZB1 0
+  ZB2 0
+  ZB3 0
+  ZB4 0
+  ZB5 0
+  ZB6 0
+  ZB7 0
+  ZB8 0
+整幀(原截圖 .png)兩兩相異像素:
+  ZB1-ZB2 22132
+  ZB1-ZB3 19912
+  ZB1-ZB4 17407
+  ZB1-ZB5 285720
+  ZB1-ZB6 17407
+  ZB1-ZB7 22132
+  ZB1-ZB8 22132
+  ZB2-ZB3 3586
+  ZB2-ZB4 6877
+  ZB2-ZB5 288454
+  ZB2-ZB6 6877
+  ZB2-ZB7 0
+  ZB2-ZB8 0
+  ZB3-ZB4 3817
+  ZB3-ZB5 288160
+  ZB3-ZB6 3817
+  ZB3-ZB7 3586
+  ZB3-ZB8 3586
+  ZB4-ZB5 287826
+  ZB4-ZB6 0
+  ZB4-ZB7 6877
+  ZB4-ZB8 6877
+  ZB5-ZB6 287826
+  ZB5-ZB7 288454
+  ZB5-ZB8 288454
+  ZB6-ZB7 6877
+  ZB6-ZB8 6877
+  ZB7-ZB8 0
+足跡遮罩兩兩 XOR px:
+  ZB1-ZB2 4
+  ZB1-ZB3 4
+  ZB1-ZB4 4
+  ZB1-ZB5 68
+  ZB1-ZB6 4
+  ZB1-ZB7 4
+  ZB1-ZB8 4
+  ZB2-ZB3 0
+  ZB2-ZB4 0
+  ZB2-ZB5 72
+  ZB2-ZB6 0
+  ZB2-ZB7 0
+  ZB2-ZB8 0
+  ZB3-ZB4 0
+  ZB3-ZB5 72
+  ZB3-ZB6 0
+  ZB3-ZB7 0
+  ZB3-ZB8 0
+  ZB4-ZB5 72
+  ZB4-ZB6 0
+  ZB4-ZB7 0
+  ZB4-ZB8 0
+  ZB5-ZB6 72
+  ZB5-ZB7 72
+  ZB5-ZB8 72
+  ZB6-ZB7 0
+  ZB6-ZB8 0
+  ZB7-ZB8 0
+min/median/max 0 0 72
+
+## 各 PNG 的 sha1
+ZB1.f.png 34581f35e42b13f257418e81123a60d7d304257f
+ZB1.o.png a82570089ead3a9ec9561ac8bbaa9dec9de3bd4e
+ZB1.png 34581f35e42b13f257418e81123a60d7d304257f
+ZB2.f.png 14c0f470cfa053e5c4444195f3a61d74b612cbeb
+ZB2.o.png 8e9ea56e55e30831ba502a331c011b7d144ef0b4
+ZB2.png 14c0f470cfa053e5c4444195f3a61d74b612cbeb
+ZB3.f.png bcdd0b6d7edba6856e3363c845c6ebaff3135bf9
+ZB3.o.png 7871972766200cc2072cf7abae44dd744196ebf9
+ZB3.png bcdd0b6d7edba6856e3363c845c6ebaff3135bf9
+ZB4.f.png f4f16a9962d0f9548cc9352044669190d57b39b0
+ZB4.o.png d8c2511d227a2e473df7f3148cf584b3fd097ebd
+ZB4.png f4f16a9962d0f9548cc9352044669190d57b39b0
+ZB5.f.png edbe8104e08d83d26d949444828362147832b050
+ZB5.o.png 1855ebfb30cbe220e9f1e23340df7cd2185189e0
+ZB5.png edbe8104e08d83d26d949444828362147832b050
+ZB6.f.png f4f16a9962d0f9548cc9352044669190d57b39b0
+ZB6.o.png d8c2511d227a2e473df7f3148cf584b3fd097ebd
+ZB6.png f4f16a9962d0f9548cc9352044669190d57b39b0
+ZB7.f.png 14c0f470cfa053e5c4444195f3a61d74b612cbeb
+ZB7.o.png 8e9ea56e55e30831ba502a331c011b7d144ef0b4
+ZB7.png 14c0f470cfa053e5c4444195f3a61d74b612cbeb
+ZB8.f.png 14c0f470cfa053e5c4444195f3a61d74b612cbeb
+ZB8.o.png 8e9ea56e55e30831ba502a331c011b7d144ef0b4
+ZB8.png 14c0f470cfa053e5c4444195f3a61d74b612cbeb
+
+## 腳本全文（zb_recalc.py）
+# 由 scratchpad/r/ZB1-8 圖以 PIL 重算 5b 文件引用的數字
+import sys, itertools, numpy as np
+from PIL import Image
+R = sys.argv[1]
+def ld(n, k): return np.asarray(Image.open(f"{R}/ZB{n}/1280x720_n1_slot0.{k}.png").convert("RGB")).astype(int)
+def nd(a, b): return int((np.abs(a - b).max(axis=2) > 0).sum())
+F = {n: ld(n, 'f') for n in range(1, 9)}; O = {n: ld(n, 'o') for n in range(1, 9)}; P = {n: ld(n, '') if False else np.asarray(Image.open(f"{R}/ZB{n}/1280x720_n1_slot0.png").convert("RGB")).astype(int) for n in range(1, 9)}
+print('每個基準的足跡（f.png 對 o.png 相異像素）:')
+for n in range(1, 9): print(f"  ZB{n}", nd(F[n], O[n]))
+print("每個基準 hitstop 全開 f.png 對原截圖 .png 相異像素:")
+for n in range(1, 9): print(f"  ZB{n}", nd(F[n], P[n]))
+print("整幀(原截圖 .png)兩兩相異像素:")
+for a, b in itertools.combinations(range(1, 9), 2): print(f"  ZB{a}-ZB{b}", nd(P[a], P[b]))
+M = {n: ((np.abs(F[n] - O[n]).max(axis=2)) > 0) for n in F}
+print("足跡遮罩兩兩 XOR px:")
+v = []
+for a, b in itertools.combinations(range(1, 9), 2): x = int((M[a] ^ M[b]).sum()); v.append(x); print(f"  ZB{a}-ZB{b}", x)
+print("min/median/max", min(v), sorted(v)[len(v) // 2], max(v))
