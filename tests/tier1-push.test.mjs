@@ -56,7 +56,7 @@ const stage = {
   pwBeatTier: () => 1, pwThin: x => x, pwCloseup: () => true,
   pwEvFac: () => 'x', pwMoveTier: () => 1, pwTierMs: msOf, pwBeatMinMs: msOf,
   pwTraitFx: (id, ctx) => { events.push(ctx.shortPush); return true; },
-  pwSleep: async () => {}, pwCap: noop, pwLamps: noop, sfx: noop, pwMoveCap: noop,
+  pwSleep: async () => {}, pwCap: noop, pwLamps: noop, sfx: noop, pwMoveCap: noop, pwMoveCapText: () => ({ item: '', move: '', desc: '' }),
   pwFigsOf: noop, pwFigureOf: noop, fx3d: noop, pwActorCard: noop, $: noop,
 };
 vm.createContext(stage);
