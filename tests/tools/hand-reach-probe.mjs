@@ -105,22 +105,22 @@ export async function measureJump({ layout = 'L', seats = [0, 1, 2, 3], slots = 
   }
   r.hands.dispose(); r.props.dispose(); return out;
 }
-/** 拍令牌進場／接觸／收手途中被「同席出價」打斷（覆審 N3）：打斷點掃 f＝14..70 每 8 幀，打斷後 6 幀內同一頂點相鄰兩幀的最大位移（公尺）。
- *  動作換手時本來就不接續（基準 5c91bdc7 同樣會跳 0.7–1.6 m），這個量只要求不比基準大。 */
-export async function measureInterrupt({ layout = 'L', seats = [0, 1, 2, 3], at = [14, 22, 30, 38, 46, 54, 62, 70], hopts = {}, slow = 1 } = {}) {
+/** 拍令牌進場／接觸／收手途中被「同席出價」打斷（覆審 N3／M1／L1）：每席×每個盯上的槽（0..3，打斷的出價落在 (槽+2)%4）× 打斷點 f（4..92 每 8 幀）；
+ *  打斷後 8 幀內同一頂點相鄰兩幀的最大位移（公尺；中間手不可見的幀不比）。動作換手本來就不接續（基準 5c91bdc7 同樣會跳 0.7–1.6 m），這個量只要求不比基準大。 */
+export async function measureInterrupt({ layout = 'L', seats = [0, 1, 2, 3], slots = [0, 1, 2, 3], at = [4, 12, 20, 28, 36, 44, 52, 60, 68, 76, 84, 92], hopts = {}, slow = 1 } = {}) {
   globalThis.YS_ANIM_SLOW = slow === 1 ? undefined : { hand: slow, grab: 1 };
   const r = await rig(layout, hopts), out = [];
   for (const seat of seats) {
-    let worst = 0, worstAt = -1;
-    for (const f0 of at) {
+    let worst = 0, worstAt = -1, worstSlot = -1;
+    for (const k of slots) for (const f0 of at) {
       r.props.clearRound(); r.hands.clear(); for (let i = 0; i < 12; i++) step(r);
-      r.props.mark(seat, 1); r.hands.mark(seat, 1);
+      r.props.mark(seat, k); r.hands.mark(seat, k);
       for (let i = 0; i < f0; i++) step(r);
       let prev = handVerts(r, seat);
-      r.props.bid(seat, 2, 4); r.hands.bid(seat, 2, 4);
-      for (let i = 0; i < 6; i++) { step(r); const pts = handVerts(r, seat); if (prev && pts && prev.length === pts.length) { let m = 0; for (let k = 0; k < pts.length; k += 3) m = Math.max(m, Math.hypot(pts[k][0] - prev[k][0], pts[k][1] - prev[k][1], pts[k][2] - prev[k][2])); if (m > worst) { worst = m; worstAt = f0; } } prev = pts; }
+      r.props.bid(seat, (k + 2) % 4, 4); r.hands.bid(seat, (k + 2) % 4, 4);
+      for (let i = 0; i < 8; i++) { step(r); const pts = handVerts(r, seat); if (prev && pts && prev.length === pts.length) { let m = 0; for (let q = 0; q < pts.length; q += 3) m = Math.max(m, Math.hypot(pts[q][0] - prev[q][0], pts[q][1] - prev[q][1], pts[q][2] - prev[q][2])); if (m > worst) { worst = m; worstAt = f0; worstSlot = k; } } prev = pts; }
     }
-    out.push({ seat, worst: +worst.toFixed(3), worstAt });
+    out.push({ seat, worst: +worst.toFixed(3), worstAt, worstSlot });
   }
   r.hands.dispose(); r.props.dispose(); return out;
 }

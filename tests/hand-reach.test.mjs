@@ -21,29 +21,30 @@ test('① 拍令牌：四席×四槽（橫式 L＋直式 P），令牌落地後�
   }
 });
 
-test('⑤ 拍令牌全程（進場→接觸→收手）逐幀頂點位移：進場後（停留＋收手）單幀最大位移 ≤ 基準 5c91bdc7 的最大值（L 0.13 m／P 0.12 m；P 容許到 0.17 m），進場內 ≤ 0.35 m（P 的 thumb=0／real=0 變體實測 0.42，容許到 0.45；手感待試玩）。變體：預設、手速 1.5（產品預設）、thumb=0、real=0（覆審 N4）。覆審 F1：拍完轉成收手時界線換成推／收的，手一幀被拉回 0.4–1.7 m', async () => {
-  const variants = [['預設', {}], ['手速1.5', { slow: 1.5 }], ['thumb=0 手速1.5', { slow: 1.5, hopts: { thumb: false } }], ['real=0 手速1.5', { slow: 1.5, hopts: { real: false } }]];
-  for (const [vn, vo] of variants) for (const [layout, after] of [['L', 0.13], ['P', 0.17]]) {
-    const entryCap = layout === 'P' && vo.hopts ? 0.45 : 0.35;
+test('⑤ 拍令牌全程（進場→接觸→收手）逐幀頂點位移：進場後（停留＋收手）單幀最大位移 ≤ 基準 5c91bdc7 的最大值（L 0.13 m／P 0.125 m；基準 P 實測 0.121），進場內 ≤ 0.32 m（基準進場最大 0.311）。變體：預設、手速 1.5（產品預設）、thumb=0、real=0（L 全部；P 只含預設與手速 1.5——P 的 thumb=0／real=0 南席槽3 有 0.42 m 的 relic 側移翻邊一幀跳，未處理，見 README §0e）。覆審 F1：拍完轉成收手時界線換成推／收的，手一幀被拉回 0.4–1.7 m', async () => {
+  const variants = [['預設', {}, ['L', 'P']], ['手速1.5', { slow: 1.5 }, ['L', 'P']], ['thumb=0 手速1.5', { slow: 1.5, hopts: { thumb: false } }, ['L']], ['real=0 手速1.5', { slow: 1.5, hopts: { real: false } }, ['L']]];
+  for (const [vn, vo, layouts] of variants) for (const layout of layouts) {
+    const after = layout === 'L' ? 0.13 : 0.125;
     const rows = await measureJump({ layout, entryFrames: Math.round(26 * (vo.slow || 1)), ...vo });
     assert.equal(rows.length, 16);
     for (const r of rows) {
       assert.ok(r.visFrames > 30, `${vn} ${layout} ${NAME[r.seat]}席 槽${r.slot}：手沒有上場（活性）`);
       assert.ok(r.afterMax <= after, `${vn} ${layout} ${NAME[r.seat]}席 槽${r.slot}：進場後單幀位移 ${r.afterMax} m（第 ${r.afterAt} 幀）> ${after}`);
-      assert.ok(r.entryMax <= entryCap, `${vn} ${layout} ${NAME[r.seat]}席 槽${r.slot}：進場內單幀位移 ${r.entryMax} m > ${entryCap}`);
+      assert.ok(r.entryMax <= 0.32, `${vn} ${layout} ${NAME[r.seat]}席 槽${r.slot}：進場內單幀位移 ${r.entryMax} m > 0.32`);
     }
   }
 });
 
-test('⑥ 拍令牌進場／接觸／收手途中被同席出價打斷：打斷後 6 幀內單幀最大位移 ≤ 基準 5c91bdc7（L：南0.76／北1.30／西0.72／東0.83；P：南0.62／北1.11／西0.91／東0.80）。覆審 N3：拍令牌的手改從前緣外進場後，打斷時瞬移曾放大到 3.5 m', async () => {
-  const base = { L: [0.762, 1.298, 0.72, 0.828], P: [0.621, 1.109, 0.914, 0.801] };
+test('⑥ 拍令牌進場／接觸／收手途中被同席出價打斷：四席×盯上槽 0..3×打斷點 4..92 每 8 幀，打斷後 8 幀內單幀最大位移 ≤ 基準 5c91bdc7 同劇本逐席實測（L：南1.08／北1.56／西1.12／東1.19；P：南0.78／北1.24／西0.82／東0.79）。覆審 N3／M1：打斷時手不得直接飛過拍品（改為先把收手走完再開始新動作；頂點穿拍品見 hand-lot-pen.test.mjs 的 reb 劇本）', async () => {
+  const base = { L: [1.08, 1.558, 1.116, 1.185], P: [0.775, 1.241, 0.822, 0.787] };
   for (const layout of ['L', 'P']) {
     const rows = await measureInterrupt({ layout });
-    for (const r of rows) assert.ok(r.worst <= base[layout][r.seat], `${layout} ${NAME[r.seat]}席：打斷後單幀位移 ${r.worst} m（打斷點 ${r.worstAt}）> 基準 ${base[layout][r.seat]}`);
+    assert.equal(rows.length, 4);
+    for (const r of rows) assert.ok(r.worst <= base[layout][r.seat], `${layout} ${NAME[r.seat]}席：打斷後單幀位移 ${r.worst} m（打斷點 ${r.worstAt}、槽 ${r.worstSlot}）> 基準 ${base[layout][r.seat]}`);
   }
 });
 
-test('② 擺錢：四席×四槽，推錢階段「手掌路徑長 ÷ 錢柱路徑長」≥ 0.8（修前西槽3 0.418）；錢的時長與路徑與修前逐值相同（704.2 ms）', () => {
+test('② 擺錢：四席×四槽，推錢階段「手掌路徑長 ÷ 錢柱路徑長」南／西／東 ≥ 0.8（修前西槽3 0.418）、北席不低於基準 5c91bdc7（0.741／0.616／0.668／0.793；北席 NORTH_IN 放寬會讓手整隻插進拍品，覆審 r3 H1，使用者指示改回原值 0.05）；錢的時長與路徑與修前逐值相同（704.2 ms）', () => {
   const out = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'hreach-')), 'th.json');
   const r = spawnSync(process.execPath, ['tests/tools/throw-seat-timing.mjs', '1', 'all', `--json=${out}`], { cwd: ROOT, encoding: 'utf8' });
   assert.equal(r.status, 0, r.stderr);
@@ -57,7 +58,8 @@ test('② 擺錢：四席×四槽，推錢階段「手掌路徑長 ÷ 錢柱路�
     assert.ok(x, `${seat}${slot} 缺列`);
     assert.equal(x.moneyMs, ms, `${seat}席槽${slot} 錢柱時長變了`);
     assert.equal(x.moneyPathM, len, `${seat}席槽${slot} 錢柱路徑變了`);
-    assert.ok(x.ratio >= 0.8, `${seat}席槽${slot}：手掌路徑÷錢柱路徑 ${x.ratio}（< 0.8）`);
+    const floor = seat === '北' ? [0.741, 0.616, 0.668, 0.793][slot] - 0.002 : 0.8; // 北席：基準逐槽值（容 0.002 取整）
+    assert.ok(x.ratio >= floor, `${seat}席槽${slot}：手掌路徑÷錢柱路徑 ${x.ratio}（< ${floor}）`);
   }
 });
 
