@@ -5391,7 +5391,7 @@ function pwBolt(sd,foe,env){
         if(trueBlood) sd.trueBloodUsed=true;
         foeFront.hp-=n;
         pwRec(env,env.beat,sd.tag,null,foeFront.id,"bloodSacrifice",n,false);
-        pwFire(env,{id:"bloodSacrifice",name:"血祭反噬"},`🩸 血祭反噬：${foe.p.name} 前鋒遭血咒反噬 −${n} hp`,sd);
+        pwFire(env,{id:trueBlood?"bloodSacrifice":"chainBloodSacrifice",name:"血祭反噬"},`🩸 血祭反噬：${foe.p.name} 前鋒遭血咒反噬 −${n} hp`,sd);
         if(foeFront.hp<=0) pwBurn(foeFront,foe,env);
       }
     }
@@ -5518,7 +5518,10 @@ function pwPass(sd,foe,beat,fac,phase,env){
         if(full&&t.tr) pwFire(env,t.tr,`⚔️ ${t.tr.name}：濺射全額`,sd);
         let sp=full?a:Math.floor(a/2);
         const hasHalfSplash=(st&&st.tr&&st.tr.halfSplash)||hasFlag(foe.p,"teamHalfSplash");
-        if(hasHalfSplash){ sp=Math.floor(sp/2); pwFire(env,(st&&st.tr&&st.tr.halfSplash)?st.tr:{id:"chainHalfSplash",name:"怒濤破浪"},`🛶 怒濤破浪：${foe.p.name} 濺射減半`,foe); }
+        if(hasHalfSplash){ sp=Math.floor(sp/2);
+          /* 飛魚躍與連鎖怒濤破浪各自去重、卻印同一行字：同一行已印過就只記拍不再印（F3） */
+          const hsMsg=`🛶 怒濤破浪：${foe.p.name} 濺射減半`;
+          pwFire(env,(st&&st.tr&&st.tr.halfSplash)?st.tr:{id:"chainHalfSplash",name:"怒濤破浪"},env.log.includes(hsMsg)?null:hsMsg,foe); }
         const spAttack={splash:true,pierce:false,armorPierce:hasCleavePierce||trueEyes,trueEyes};
         pwStrike(u,sd,t2,foe,sp,env,"splash",spAttack); env.stats.splash++;
       }
@@ -7719,6 +7722,7 @@ const TRUE_DESTINY_MOVES={
 const CHAIN_MOVES={
   chainRegenAll:{chain:"eternalFlame",name:"全隊回血",desc:"每拍開場，本方全隊存活紙紮各回血"},
   chainHalfSplash:{chain:"water",name:"怒濤破浪",desc:"本方全隊受到的精英濺射減半"},
+  chainBloodSacrifice:{chain:"bloodOath",name:"血祭反噬",desc:"首拍自傷反噬敵前鋒 1 血"}, /* 非真命的血祭（真命那下仍用 TRUE_DESTINY_MOVES.bloodSacrifice、2 血） */
 };
 /* 招式字幕的「法寶：招名」與說明（純函式，對決播放與測試共用同一份組字）。
    查不到的 id 退回「法寶：招式」，不把 trId 本身（可能是 undefined）印上字幕。 */

@@ -45,10 +45,11 @@ if (argv[1] === '--mutate') {
    所以它量的純粹是引擎產出的拍序列。 */
 const BEATS_ANCHOR = 'const battles=R.fights.map(f=>({';
 const BEATS_INJECT = 'const battles=R.fights.map(f=>({ beats:(f.war&&f.war.beats)?f.war.beats.map(b=>[b.beat,b.kind,b.side||"",b.trId||"",b.target==null?-1:b.target]):null,';
-function injectBeats(src) {
+/* 暫存檔名要帶 old／new 角色：兩個參數同名（都叫 index.html）時只靠 pid＋basename 會互相覆寫，變成新版比新版、永遠相等（F2）。 */
+function injectBeats(src, role) {
   const txt = fs.readFileSync(src, 'utf8');
   if (!txt.includes(BEATS_ANCHOR)) throw new Error(`${src} 找不到注入點（引擎結構變了就要更新這支治具，不得靜默跳過）`);
-  const tmp = path.join(os.tmpdir(), 'trace-eq-beats-' + process.pid + '-' + path.basename(src));
+  const tmp = path.join(os.tmpdir(), 'trace-eq-beats-' + process.pid + '-' + role + '-' + path.basename(src));
   fs.writeFileSync(tmp, txt.replace(BEATS_ANCHOR, BEATS_INJECT), 'utf8');
   return tmp;
 }
@@ -56,7 +57,7 @@ if (argv.includes('--beats')) {
   const rest = argv.filter((x) => x !== '--beats');
   const o = rest[0], n = rest[1];
   if (!o || !n) { console.error('need <old index.html> <new index.html> --beats'); process.exit(2); }
-  const to = injectBeats(o), tn = injectBeats(n);
+  const to = injectBeats(o, 'old'), tn = injectBeats(n, 'new');
   try {
     const seeds0 = Array.from({ length: 20 }, (_, i) => i + 1);
     const a2 = JSON.stringify(loadGame(to).trace(seeds0));
