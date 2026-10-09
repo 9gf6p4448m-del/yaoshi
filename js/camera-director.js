@@ -143,6 +143,30 @@ const CINEMA = {
   outMs: 320, // 回：ease-in-out
 };
 
+// (f) 運鏡乙（v0.65.1，驗收 docs/experiments/2026-10-08-camera-bid-curse/acceptance.md）：
+//     中咒鏡頭（ys:reveal-result 帶 transferTarget：毒標詛咒品推上受害者手背）與喊價鏡頭（ys:bid 出價微推）。
+//     與 FOCUS／CINEMA 同一條紀律：**只縮 dist、把視線往那一席拉一點**——yaw／tilt／fov 一律不碰，
+//     所以 camera.position 仍是「錨點＋球座標×dist」，|position − anchor| 恆等於 dist（推近是純徑向）。
+//     兩層疊加時推近量取最大、不相加（驗收 §6.3）；推近量是當下 dist 的比例，逐槽微距（1.65）上最多推到 1.419，不破 FOCUS_FLOOR。
+//     旗標（?cam=0）由 index.html 解析後經 detail.cam 帶進來，本檔不讀 PW_FX／CFG／location。數字全部【試玩必調】。
+const AIM_R = 1.3; // 視線拉向該席「手前」的桌面點：席位方向（SEAT_YAW）、離桌心 AIM_R（座位本身在 2.6，scene-env LANTERN_DIST）
+const AIM_Y = 0.15;
+const CURSE_CAM = {
+  push: 0.14, // 推近量＝dist×push×K
+  aim: 0.35, // 視線往受咒者手前拉的比例×K
+  inMs: 800, // 慢推到位（使用者語意「約 0.8 秒」）；停留到 detail.curseMs（CFG.CURSE_MS 單一來源），再回位
+  outMs: 450,
+};
+const BID_CAM = {
+  push: 0.10, // 推近比例尺：實際推近量＝push×K；出價微推 K＝micro → 0.035（3.5%）
+  micro: 0.35, // 出價微推的 K
+  aim: 0.18,
+  holdMs: 1000, // 出價後微推停留多久（之後回位）（不用 900：那是招式時長的字面值，fxtier F1 守門）
+  rate: 2.5, // K 的固定變化速率（每秒）：上下都走直線，喊價者切換時從當下 K 接續、不跳
+  aimDegPerS: 300, // 喊價者切換時，視線的方位角以固定角速度轉過去（不瞬移）
+  maxDt: 1 / 50, // K／視線步進用的 dt 上限（秒）：卡頓幀 dt 大時不讓 K 單幀跳 >0.15（以微推平台為 1）；dt≤1/50 的幀不受影響
+};
+
 /** prefers-reduced-motion（判法照抄 js/trait-fx.js:83）：(a)(b) 整段 no-op，(c) 的 punch 維持現行行為。 */
 function prefersReduced() {
   try { return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); } catch (e) { return false; }
@@ -223,6 +247,10 @@ export function createCameraDirector(camera, lanterns) {
   let focusFall = false; // true＝正在回位（endFocus 叫的），不再經過進場段
   let focusRef = null; // { side, actor, foeSide, target }：要看的那兩尊（burn 只有一尊）
   const focusPt = new THREE.Vector3();
+  // 運鏡乙（v0.65.1）：中咒包絡（形狀同 cinema：進→停→回）與喊價 K（固定速率往 bidWant 走）
+  let curseOn = false, curseAt = 0, curseHold = 0, curseK = 0, curseK0 = 0, curseFall = false, curseYaw = 0;
+  let bidK = 0, bidUntil = 0, bidSeatYaw = 0, bidAimYaw = 0;
+  const aimPt = new THREE.Vector3();
 
   // 燈籠強調：值 1＝原亮度，>1 打亮，<1 壓暗。每幀往目標值靠近，不會突然跳。
   // 壓暗刻意保守（0.75／0.5）：實測壓到 0.35 時整張桌子跟著變黑，開標反而比平常還暗，
@@ -346,6 +374,7 @@ export function createCameraDirector(camera, lanterns) {
     if (typeof d.a !== 'number' || typeof d.b !== 'number') return;
     // 先清再 goto（順序其實已不重要：兩者的起點都是 cur*，見 goto 的註解）。
     clearOrbitLean();
+    endBidCurse(); // 進對決時牌桌上的運鏡乙不得帶進對決機位
     goto({ ...DUEL_SHOT, yaw: duelYaw(d.a, d.b) });
     if (!prefersReduced()) {
       // 把補間起點往回挪一個 ORBIT.yaw：第 0 幀的「基座＋orbit 偏移」正好等於進場前的 yaw，
@@ -366,6 +395,7 @@ export function createCameraDirector(camera, lanterns) {
     endFocus(); // focus 走它自己的回位段（220ms），與回牌桌的補間疊起來仍然連續
     endShortPush();
     endCinema(); // R1 C1：對決收場時 CINEMA 一定要收，否則會壓著回牌桌的那一段
+    endBidCurse();
     goto(SHOTS.table);
     setEmphasis(null);
   }
@@ -536,6 +566,7 @@ export function createCameraDirector(camera, lanterns) {
     endFocus();
     endShortPush();
     endCinema(); // R1 C1：跳過大招時 CINEMA 也要收（不然貼地仰視會卡著延續到收場之後）
+    endBidCurse(); // 跳過開標擺錢／詛咒推按：運鏡乙一併回位
   }
 
   /** 【積木接收端】ys:fx-burn：燒毀＝一場裡最重的一擊，借 punch 那一層再加重（見 BURN_PUNCH_POWER 註解）。
@@ -552,6 +583,7 @@ export function createCameraDirector(camera, lanterns) {
     clearOrbitLean();
     endShortPush();
     endCinema(); // R1 C1
+    endBidCurse();
     goto(SHOTS.end);
     setEmphasis(null);
   }
@@ -561,8 +593,94 @@ export function createCameraDirector(camera, lanterns) {
     clearOrbitLean();
     endShortPush();
     endCinema(); // R1 C1
+    endBidCurse();
     goto(SHOTS.table);
     setEmphasis(null);
+  }
+
+  /* ── 運鏡乙（v0.65.1）接收端 ───────────────────────────────────────────────
+     三支接收端各自先看 detail.cam（?cam=0 由 index.html 解析帶入；缺欄位＝開，同 :403 d.cinema!==false），
+     再各自看 prefersReduced()——判斷放在接收端，直接餵事件也不會動（驗收 §4）。
+     時長：中咒停留只吃 detail.curseMs（CFG.CURSE_MS 單一來源，缺了就 throw，同 onTrait 的紀律）；
+     進／回與喊價的節奏是本檔常數表（同 CINEMA.inMs／outMs 的做法）。 */
+
+  /** 基座已停穩時，把補間的起訖釘在「上一幀真正寫進去的機位」（cur*）。
+   *  v0.34 起補間在 t 剛好到 1 的那一幀不寫入，相機停在離 target 約 1e-4 的地方；運鏡乙會強制每幀寫，
+   *  不釘的話第一幀就把那 1e-4 補掉、回位後也回不到事件前的姿態（驗收 §6.1 回位差 ≤1e-9）。
+   *  只在 orbit／lean 都沒在跑時釘（它們的偏移算在 cur* 裡，釘進基座會被吃掉）；釘完 k=1 時算出來的就是 cur* 本身。 */
+  function pinBase() {
+    if (t < 1 || orbitU < 1 || orbitHold || leanU < 1) return;
+    const cur = { dist: curDist, tilt: curTilt, yaw: curYaw, lookY: curLookY, lookX: curLookX, lookZ: curLookZ, anchorX: curAnchorX, anchorZ: curAnchorZ };
+    from = { ...cur };
+    target = { ...cur };
+  }
+
+  /** 【積木接收端】ys:reveal-result 帶 transferTarget（毒標詛咒品推上受害者手背）：慢推向受咒者，
+   *  CURSE_CAM.inMs 到位、停到 detail.curseMs、再 CURSE_CAM.outMs 回位。一般得標／銷毀（無 transferTarget）不動；
+   *  跳過中才開的件（skip）直接到終態，鏡頭也不演；curseMs＝0（?grab=0 舊拋物線，沒有推按那一段）不演。 */
+  function onCurseHit(e) {
+    const d = (e && e.detail) || {};
+    if (d.cam === false) return;
+    const s = d.transferTarget;
+    if (typeof s !== 'number' || !(s >= 0 && s <= 3) || d.skip) return;
+    if (!Number.isFinite(d.curseMs) || d.curseMs < 0) throw new Error('ys:reveal-result 缺 detail.curseMs（中咒時長只能由 CFG.CURSE_MS 帶進來）');
+    if (prefersReduced() || d.curseMs === 0) return;
+    pinBase();
+    curseK0 = curseK; // 前一次還沒回完就直接接續（同 cinema）
+    curseAt = performance.now();
+    curseHold = d.curseMs;
+    curseFall = false;
+    curseOn = true;
+    curseYaw = SEAT_YAW[s | 0];
+  }
+
+  function bidSeat(s) {
+    pinBase();
+    bidSeatYaw = SEAT_YAW[s];
+    if (bidK === 0) bidAimYaw = bidSeatYaw; // 從靜止起推：直接看向這一席（K=0 時視線偏移本來就是 0）
+  }
+
+  /** 【積木接收端】ys:bid（pushBid3d）：某席出價（amount>0）時微推向喊價者，BID_CAM.holdMs 後回位。
+   *  amount 0（收回、熱座清場）不動。 */
+  function onBidCam(e) {
+    const d = (e && e.detail) || {};
+    if (d.cam === false || !(Number(d.amount) > 0)) return;
+    if (prefersReduced()) return;
+    const s = d.seat | 0;
+    if (s < 0 || s > 3) return;
+    bidSeat(s);
+    bidUntil = performance.now() + BID_CAM.holdMs;
+  }
+
+  /** 收掉運鏡乙（ys:duel-end／ys:table／ys:end／ys:fx-trait-cancel／ys:duel）：喊價 K 以固定速率回 0，
+   *  中咒從當下包絡值走 outMs 回位段（不硬歸零，硬歸零會單幀跳 dist，同 endCinema）。 */
+  function endBidCurse() {
+    bidUntil = 0;
+    if (curseOn && !curseFall) {
+      curseK0 = curseK;
+      curseAt = performance.now();
+      curseFall = true;
+    }
+  }
+
+  /** 這一幀的中咒包絡：進（ease-in-out「慢推」，從 curseK0 起跳）→ 停到 curseHold → 回（ease-in-out）。回完就關掉並補寫一幀。 */
+  function curseEnvelope(now) {
+    if (!curseOn) return 0;
+    const e = Math.max(0, now - curseAt);
+    const done = () => { curseOn = false; curseFall = false; forceWrite = true; return 0; };
+    if (curseFall) {
+      const u = e / CURSE_CAM.outMs;
+      return u >= 1 ? done() : curseK0 * (1 - easeInOutCubic(u));
+    }
+    if (e < CURSE_CAM.inMs) return curseK0 + (1 - curseK0) * easeInOutCubic(e / CURSE_CAM.inMs);
+    const holdEnd = Math.max(curseHold, CURSE_CAM.inMs);
+    if (e <= holdEnd) return 1;
+    const u = (e - holdEnd) / CURSE_CAM.outMs;
+    return u >= 1 ? done() : 1 - easeInOutCubic(u);
+  }
+
+  function seatAim(yawDeg) {
+    return aimPt.set(Math.sin(yawDeg * DEG) * AIM_R, AIM_Y, Math.cos(yawDeg * DEG) * AIM_R);
   }
 
   document.addEventListener('ys:reveal', onReveal);
@@ -581,6 +699,8 @@ export function createCameraDirector(camera, lanterns) {
   document.addEventListener('ys:duel-end', onDuelEnd);
   document.addEventListener('ys:end', onEnd);
   document.addEventListener('ys:table', onTable);
+  document.addEventListener('ys:reveal-result', onCurseHit);
+  document.addEventListener('ys:bid', onBidCam);
 
   /** 每幀呼叫。dt 秒，now 毫秒。回傳目前的燈籠強調係數供閃爍計算使用。 */
   function update(dt, now) {
@@ -600,6 +720,19 @@ export function createCameraDirector(camera, lanterns) {
     focusK = focusEnvelope(now);
     cinemaK = cinemaEnvelope(now);
     shortK = shortEnvelope(now);
+    curseK = curseEnvelope(now);
+    // 喊價 K：出價後 holdMs 內維持 micro，之後回 0。
+    // 以固定速率 BID_CAM.rate 往目標走（上下都是直線、單調），回到 0 的那一幀補寫基座。全部確定性，不抽亂數。
+    const bidWant = now < bidUntil ? BID_CAM.micro : 0;
+    if (bidK !== bidWant) {
+      const stepK = BID_CAM.rate * Math.min(dt, BID_CAM.maxDt);
+      bidK = bidK < bidWant ? Math.min(bidWant, bidK + stepK) : Math.max(bidWant, bidK - stepK);
+      if (bidK === 0) forceWrite = true;
+    }
+    if (bidK > 0 && bidAimYaw !== bidSeatYaw) {
+      const dd = shortestDelta(bidAimYaw, bidSeatYaw), m = BID_CAM.aimDegPerS * Math.min(dt, BID_CAM.maxDt);
+      bidAimYaw = Math.abs(dd) <= m ? bidSeatYaw : bidAimYaw + Math.sign(dd) * m;
+    }
     if (!orbitHold && orbitU < 1 && !focusOn) orbitU = Math.min(1, orbitU + (dt * 1000) / ORBIT.ms);
     if (leanU < 1) leanU = Math.min(1, leanU + (dt * 1000) / leanMs);
     // 托盤 hover 微推：往目標收斂；差距小到看不見就直接歸位，免得永遠有個 1e-9 的殘留讓寫入區塊每幀都跑
@@ -618,7 +751,7 @@ export function createCameraDirector(camera, lanterns) {
     // ④ punch（命中／燒毀）：減 dist，再把橫向微震直接加在算好的世界座標上
     // yaw 的兩層偏移相加後才換算成弧度；dist 的兩層偏移相減後才夾在 0.6 以上。
     // ①②③ 的合成結果另外記進 cur*（不含 ④），清除偏移時要拿它當補間起點（見 clearOrbitLean）。
-    if (t < 1 || punchU < 1 || orbitU < 1 || orbitHold || leanU < 1 || forceWrite || foldWrite || focusOn || cinemaOn || shortOn || trayK > 0) {
+    if (t < 1 || punchU < 1 || orbitU < 1 || orbitHold || leanU < 1 || forceWrite || foldWrite || focusOn || cinemaOn || shortOn || trayK > 0 || bidK > 0 || curseOn) {
       forceWrite = false;
       if (t >= 1) foldWrite = false; // 折回段的最後一幀已經寫進去了，收工
       const k = easeInOutCubic(t);
@@ -649,7 +782,11 @@ export function createCameraDirector(camera, lanterns) {
       const fTilt = cinemaK > 0 ? fTilt0 + (CINEMA.tilt - fTilt0) * cinemaK : fTilt0;
       // ⑦ tray（托盤 hover 微推）：疊在 ⑥ 之後、punch 之前，只縮 dist。
       //    trayK=0 時與 fDist1 逐值相同（減 0），對決／開標／局末的畫面因此逐項不變。
-      const fDist = (trayK > 0 ? fDist1 - TRAY_PUSH.dist * trayK : fDist1) - SHORT_PUSH.dist * shortK;
+      const fDist7 = (trayK > 0 ? fDist1 - TRAY_PUSH.dist * trayK : fDist1) - SHORT_PUSH.dist * shortK;
+      // ⑧ 運鏡乙（中咒／喊價）：疊在 ⑦ 之後、punch 之前，只縮 dist（按比例、徑向）。兩層取最大、不相加（驗收 §6.3）。
+      //    兩個 K 都是 0 時與 fDist7 逐值相同（?cam=0、reduced-motion 時畫面與 v0.65.0 逐項不變）。
+      const camPush = Math.max(BID_CAM.push * bidK, CURSE_CAM.push * curseK);
+      const fDist = camPush > 0 ? fDist7 * (1 - camPush) : fDist7;
       const tilt = fTilt * DEG;
       const yaw = curYaw * DEG;
       const lookY = curLookY;
@@ -659,13 +796,16 @@ export function createCameraDirector(camera, lanterns) {
       // 近景推到 2.6，最重的一記 punch 減 PUNCH.dist 0.6×2 ＝ 1.2，所以合法最低是 2.6−1.2＝1.4；
       // FOCUS_FLOOR 就訂在那裡——夾得到的只剩「算爛了」的情形，正常演出一次都不該碰到它
       // （二版訂 1.6 是把 1.4~1.6 這段合法區間夾掉了，覆審實測差 0.063–0.28）。
-      const floor = (focusK > 0 || cinemaK > 0) ? FOCUS_FLOOR : 0.6;
+      const floor = (focusK > 0 || cinemaK > 0 || camPush > 0) ? FOCUS_FLOOR : 0.6;
       const dist = Math.max(floor, fDist - PUNCH.dist * pk);
       const horiz = Math.cos(tilt) * dist;
       const sx = Math.sin(punchU * Math.PI * PUNCH.shakeHz) * PUNCH.shake * pk;
       const sy = Math.cos(punchU * Math.PI * PUNCH.shakeHz * 1.37) * PUNCH.shake * 0.6 * pk;
       camera.position.set(curAnchorX + Math.sin(yaw) * horiz + sx, Math.sin(tilt) * dist + sy, curAnchorZ + Math.cos(yaw) * horiz);
       lookAt.set(curLookX, lookY, curLookZ);
+      // 運鏡乙：視線往喊價者／受咒者手前拉一點（只動 lookAt，不動位置——|position − anchor| 仍等於 dist）
+      if (bidK > 0) lookAt.lerp(seatAim(bidAimYaw), BID_CAM.aim * bidK);
+      if (curseK > 0) lookAt.lerp(seatAim(curseYaw), CURSE_CAM.aim * curseK);
       // focus：視線挪到交鋒中點（查不到那兩尊就維持桌心，不拋錯）
       if (focusK > 0 && aimAtFocus(focusPt)) lookAt.lerp(focusPt, focusK);
       camera.lookAt(lookAt);
