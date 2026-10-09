@@ -155,7 +155,7 @@ test('不退化護欄：勝方停一拍（hold）彈跳 ≤20、敗方扒錢（r
   assert.ok(k.events <= 27, `rake 彈跳 ${k.events} 次 > 27（${k.detail}）`);
 });
 
-test('正常平滑對照：北席停一拍零彈跳、拍令牌彈跳 ≤2、單幀最大步 ≤5 px，且手真的上場、有在動', () => {
+test('正常平滑對照：北席停一拍零彈跳、拍令牌彈跳 ≤2、單幀最大步（停一拍 ≤5 px、拍令牌 ≤23 px），且手真的上場、有在動', () => {
   for (const act of ['hold', 'slam']) {
     const g = all.find((x) => x.scn === 'moneyN' && x.seat === 1 && x.act === act);
     assert.ok(g && g.rows.length >= 20, `moneyN 席1 ${act} 有可見幀（${g ? g.rows.length : 0}）`);
@@ -164,8 +164,8 @@ test('正常平滑對照：北席停一拍零彈跳、拍令牌彈跳 ≤2、單
     const evMax = act === 'slam' ? 2 : 0;
     assert.ok(g.events <= evMax, `moneyN 席1 ${act} 彈跳 ${g.events} 次 > ${evMax}`);
     /* 10-08：停一拍（hold）維持 ≤5 px。拍令牌（slam）是「令牌拍下接觸窗口」整段（進場滑行 ENTRY_MS～ENTRY_MAX＋微顫＋停留）：北席從托盤後緣外滑進來（使用者要求首幀不在盤中），
-       進場那幾幀的單幀步本來就大；上界＝實測 19.6 px（ENTRY_MAX 0.40、四席都從前緣外直進＝近鏡頭那一側，橫式 844×390 投影）取整 20（覆審 N1 改路徑前 11.2 px），進場改快（ENTRY_MAX 縮短）會超過；進場被改成瞬現由 hand-reach ④（首幀不在布面）守。零彈跳（上一條 events＝0）不變。 */
-    const lim = act === 'slam' ? 20 : 5;
+       進場那幾幀的單幀步本來就大；上界＝實測 22.8 px（使用者 2026-10-09 簽准由 20 改 23；原 19.6 取整 20 為第 1 輪值）；舊註解：實測 19.6 px（ENTRY_MAX 0.40、四席都從前緣外直進＝近鏡頭那一側，橫式 844×390 投影）取整 20（覆審 N1 改路徑前 11.2 px），進場改快（ENTRY_MAX 縮短）會超過；進場被改成瞬現由 hand-reach ④（首幀不在布面）守。零彈跳（上一條 events＝0）不變。 */
+    const lim = act === 'slam' ? 23 : 5;
     assert.ok(g.stepPx <= lim, `moneyN 席1 ${act} 單幀最大步 ${g.stepPx.toFixed(1)} px ≤${lim}`);
   }
 });
