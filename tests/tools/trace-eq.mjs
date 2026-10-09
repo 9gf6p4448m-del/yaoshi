@@ -23,6 +23,7 @@ if (argv[1] === '--mutate') {
   const mutated = txt.replace(/ROUNDS\s*:\s*\d+/, 'ROUNDS: ' + (before - 1));
   const tmp = path.join(os.tmpdir(), 'trace-eq-mutant-' + process.pid + '.html');
   fs.writeFileSync(tmp, mutated, 'utf8');
+  let code = 1; // process.exit 寫在 try 裡會跳過 finally、暫存檔刪不掉；先記結果，刪完再 exit
   try {
     const seeds0 = Array.from({ length: 20 }, (_, i) => i + 1);
     const a = JSON.stringify(loadGame(src).trace(seeds0));
@@ -30,8 +31,9 @@ if (argv[1] === '--mutate') {
     const differs = a !== b;
     console.log(JSON.stringify({ mode: 'mutate', src, mutant: tmp, mutation: `CFG.ROUNDS ${before} -> ${before - 1}`,
       bytesSrc: a.length, bytesMutant: b.length, differs, verdict: differs ? '突變驗紅 ✅（這支腳本抓得到引擎差異）' : '突變沒驗紅 ❌（相等性斷言不可信）' }));
-    process.exit(differs ? 0 : 1);
+    code = differs ? 0 : 1;
   } finally { fs.rmSync(tmp, { force: true }); } // 原檔沒動過，「還原」＝刪掉暫存突變體
+  process.exit(code);
 }
 
 /* ★R1 覆審 H7：`--beats` 模式★
@@ -57,8 +59,10 @@ if (argv.includes('--beats')) {
   const rest = argv.filter((x) => x !== '--beats');
   const o = rest[0], n = rest[1];
   if (!o || !n) { console.error('need <old index.html> <new index.html> --beats'); process.exit(2); }
-  const to = injectBeats(o, 'old'), tn = injectBeats(n, 'new');
+  const to = injectBeats(o, 'old');
+  let tn = null, code = 1; // 同上：exit 放到 finally 之後，暫存副本才真的刪得掉
   try {
+    tn = injectBeats(n, 'new');
     const seeds0 = Array.from({ length: 20 }, (_, i) => i + 1);
     const a2 = JSON.stringify(loadGame(to).trace(seeds0));
     const b2 = JSON.stringify(loadGame(tn).trace(seeds0));
@@ -72,8 +76,9 @@ if (argv.includes('--beats')) {
         if (a2[i] !== b2[i]) { console.log('first diff @', i, JSON.stringify(a2.slice(Math.max(0, i - 80), i + 80)), JSON.stringify(b2.slice(Math.max(0, i - 80), i + 80))); break; }
       }
     }
-    process.exit(eq && live ? 0 : 1);
-  } finally { fs.rmSync(to, { force: true }); fs.rmSync(tn, { force: true }); }
+    code = eq && live ? 0 : 1;
+  } finally { fs.rmSync(to, { force: true }); if (tn) fs.rmSync(tn, { force: true }); }
+  process.exit(code);
 }
 
 const [oldPath, newPath] = argv;
