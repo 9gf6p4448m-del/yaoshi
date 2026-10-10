@@ -585,23 +585,27 @@ img.pic.state-dying{filter:brightness(.92)}
 /* 北席泡：框線／內距吃掉內容寬會多折一行、置中後頂出上緣——放寬並貼頂（與 A/B/C 同） */
 #table.t3d #north .bubble{max-width:min(220px,27vw);line-height:1.3;top:4px;transform:none}
 /* v0.65.5 對白泡固定停靠（取代 0.65.4 的「掛座位旁」：桌面中央沒有任何夜都空的位置——橫幅、揭盅文字、押寶夜面板輪流占滿 y60–275）。
-   橫式 3D 桌：西泡進左欄卡下方空白、東泡進右欄卡下方空白、北泡進底列上方中央橫帶（仍是座位卡的 absolute 子元素，偏移以座位卡位置推算：座位列 y 固定、底列高 66px）；
-   說話者靠泡上的小標「方位・角色名」（::after 取 data-who）＋D 的角色色邊辨識，尾巴移除（小標取代 ::after 的位置）。
-   窄橫式（≤760px，如 667x375）底列上方橫帶只剩 12px，北泡改疊在北席自家座位卡內（不帶小標，最多約 2 行）。只動定位，不動 say／計時。 */
+   橫式 3D 桌：renderSeats 把 #bub1／2／3 搬進 #table／#west／#east（見該函式），位置由容器推導、不用視窗高度或寫死 px：
+   西泡貼 #west 左下角（左欄底，卡片欄下方空白）、東泡貼 #east 右下角、北泡在底列 #south 正上方（底部＝#table 下內距＋底列 62px＋8px，
+   內距吃 safe-area.css 的 max(4px,var(--safe-bottom))，與 #table 同一組變數與 100dvh 高度）；窄橫式北泡改在 #table 上緣疊在北席座位卡上。
+   說話者靠泡上的小標「方位・角色名」（::after 取 data-who）＋D 的角色色邊辨識，尾巴移除。只動定位，不動 say／計時。 */
 @media (orientation:landscape){
-  #table.t3d .bubble{position:absolute;display:flex;flex-direction:column;width:max-content;white-space:normal;transform:none;line-height:1.3}
+  #table.t3d,#table.t3d #west,#table.t3d #east{position:relative}
+  #table.t3d .bubble{position:absolute;z-index:19;display:flex;flex-direction:column;width:max-content;white-space:normal;transform:none;line-height:1.3}
   #table.t3d .bubble::after{content:attr(data-who);position:static;display:block;order:-1;border:0;margin:0 0 1px;padding:0;
     font-size:10.5px;line-height:13px;font-weight:bold;letter-spacing:.5px;color:var(--rc);white-space:nowrap}
-  #table.t3d #west .bubble{left:0;right:auto;top:144px;bottom:auto;max-width:min(192px,23vw)}
-  #table.t3d #east .bubble{left:auto;right:0;top:144px;bottom:auto;max-width:min(192px,23vw)}
-  #table.t3d #north .bubble{left:50%;right:auto;top:calc(100vh - 80px);bottom:auto;transform:translate(-50%,-100%);max-width:min(430px,50vw);flex-direction:row-reverse;align-items:baseline;gap:6px}
-  #table.t3d #north .bubble::after{margin:0;order:0}
+  #table.t3d #west>.bubble{left:0;right:auto;top:auto;bottom:0;max-width:calc(100% + 8px)}
+  #table.t3d #east>.bubble{left:auto;right:0;top:auto;bottom:0;max-width:calc(100% + 8px)}
+  #table.t3d>#bub1{left:50%;right:auto;top:auto;bottom:calc(max(4px,var(--safe-bottom)) + 62px + 8px);transform:translateX(-50%);max-width:min(430px,50vw);flex-direction:row-reverse;align-items:baseline;gap:6px}
+  #table.t3d>#bub1::after{margin:0;order:0}
+}
+/* 北泡留在北席座位卡內（renderSeats 在桌高不足 378px 或 ≤760px 寬時不搬家）：置中於座位列、不帶小標、最多約 2 行 */
+@media (orientation:landscape){
+  #table.t3d #north .seat>#bub1{left:50%;right:auto;top:50%;bottom:auto;transform:translate(-50%,-50%);width:210px;max-width:none;flex-direction:row;gap:0}
+  #table.t3d #north .seat>#bub1::after{display:none}
 }
 @media (orientation:landscape) and (max-width:760px){
-  #table.t3d #north .bubble{position:absolute;left:3px;right:3px;top:3px;bottom:auto;transform:none;width:auto;max-width:none;flex-direction:row}
-  #table.t3d #north .bubble::after{display:none}
-  #table.t3d #west .bubble{top:162px;max-width:166px;left:-3px}
-  #table.t3d #east .bubble{top:162px;max-width:166px;right:-3px}  /* 窄橫式第 4 夜「天命覺醒！…」揭盅長字幕（y208–224）會延伸到右欄上緣，泡再往下讓開（y228 起，19 字 2 行仍在 y309 內） */
+  #table.t3d #west>.bubble,#table.t3d #east>.bubble{max-width:166px}
 }
 /* 對白氣泡被擋（2026-09-30 試玩回饋）：西／北座位在 DOM 裡排在 #felt 前面，同為 z-index:auto 的定位元素後者在上，
    氣泡（在座位層裡，z-index:9 只在座位自己的層內有效）整顆被 #felt／戰況面板／成交總覽蓋住（像素量測：西側可見 0.02、北側 0）。
@@ -6078,10 +6082,19 @@ function renderSeats(hlIds){
   /* 掏空卷 v0.55a：寫入目標從 #north／#west／#east 收進 #northSeat／#westSeat／#eastSeat
      ——側欄卡列（#railW／#railE）與北列兩塊（#northPrev／#northShr）是這三個容器的兄弟，
      這一支因此不會再把它們洗掉（計畫 §7 風險 4；全檔就這三行在覆寫座位卡）。 */
+  document.querySelectorAll("#table>.bubble,#west>.bubble,#east>.bubble").forEach(e=>e.remove()); /* 上一輪停靠到欄／桌容器的泡（id 不可重複；下面重建後再停靠），文字由 bubbleRestore 補回 */
   $("northSeat").innerHTML=seatHTML(1,hl(1));
   $("westSeat").innerHTML=seatHTML(2,hl(2));
   $("eastSeat").innerHTML=seatHTML(3,hl(3));
   [1,2,3].forEach(id=>{ const b=$("bub"+id), q=S.players[id]; if(b&&q){ b.dataset.role=q.roleId||""; b.dataset.who=DIRS[id]+"・"+q.name; } }); /* 小標「方位・角色名」（固定停靠後泡不在座位旁，靠它認人）；對白泡造型：只給 CSS 一個角色鉤子，不碰 say()／停留計時 */
+  /* v0.65.5 對白泡停靠：橫式 3D 桌把 #bub1／2／3 搬進 #table／#west／#east（座位卡有 backdrop-filter，泡留在卡內就只能用與視窗／安全區無連動的 px 定位）；
+     id、class、say／bubbleRestore 完全不變，直式與 ?table3d=0 維持留在座位卡內。純 DOM 搬家，不碰計時與亂數。 */
+  if(TABLE3D&&window.matchMedia&&matchMedia("(orientation:landscape)").matches){
+    /* 北泡：底列上方要有 ≥378px 的桌高（#table 實際高度扣下內距，吃 safe-area 與 100dvh）才放得下橫帶，否則（矮橫式、劉海內縮、100dvh 縮短）留在北席自家座位卡內置中 */
+    const tb=$("table"), room=tb.clientHeight-(parseFloat(getComputedStyle(tb).paddingBottom)||0);
+    const host={1:(room>=378&&!matchMedia("(max-width:760px)").matches)?tb:null,2:$("west"),3:$("east")}; /* 1:null＝北泡留在座位卡內 */
+    [1,2,3].forEach(id=>{ const b=$("bub"+id); if(b&&host[id]) host[id].appendChild(b); });
+  }
   const me=revealSeatPlayers()[0];
   $("myAv").innerHTML=avHTML(me)+markStampHTML(0);
   $("south").classList.remove("dimmed","anim-lantern-reveal"); /* #south 不重建，開標演出加上的 class 要在這裡清 */

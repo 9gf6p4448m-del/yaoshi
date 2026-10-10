@@ -26,13 +26,26 @@ const TARGET_NIGHTS = [1, 3, 4, 7];
 const TEXTS = { 8: '看我的厲害吧哈哈', 14: '各位客官這口價我跟定了啦啦啦', 19: '各位客官這口價我跟定了不放手啦啦啦啦啦啦', 40: '這是一句四十字的最壞情況長對白用來檢查泡會不會遮住牌桌上的文字區或按鈕或卡片啦啦啦啦' };
 for (const [n, t] of Object.entries(TEXTS)) { TEXTS[n] = Array.from(t).slice(0, +n).join(''); assert.equal(Array.from(TEXTS[n]).length, +n, `測試句 ${n} 字長度不對`); }
 
-// 停靠矩形（妖市3 量測：真流程第 1/3/4/7 夜聯集後的穩定空白；l,t,r,b）
+// 停靠矩形（妖市3 量測：真流程第 1/3/4/7 夜聯集後的穩定空白；l,t,r,b）。safe＝合成 safe-area 內縮（:root 自訂屬性，Chromium 的 env() 恆為 0）；
+// shrink＝把 #table 高度改成 100vh-Npx（模擬 iOS Safari 非全螢幕時 100vh 大於 100dvh）。停靠矩形隨內縮／縮高平移（d）。
+// W/E/N 為 null 的視窗沒有量測過的矩形，只驗 P2 零交集與「泡在其容器內」（P1h）。
+const NIGHTS_FULL = [1, 2, 3, 4, 5, 6, 7];
 const VIEWPORTS = [
-  { w: 844, h: 390, W: [0, 202, 205, 324], E: [639, 202, 844, 324], N: [205, 275, 639, 324] },
+  { w: 844, h: 390, W: [0, 202, 205, 324], E: [639, 202, 844, 324], N: [205, 275, 639, 324], nights: NIGHTS_FULL },
   { w: 852, h: 393, W: [0, 202, 209, 327], E: [643, 202, 852, 327], N: [209, 275, 643, 327] },
   { w: 932, h: 430, W: [0, 202, 249, 364], E: [683, 202, 932, 364], N: [249, 275, 683, 364] },
-  { w: 667, h: 375, W: [0, 202, 172, 309], E: [495, 202, 667, 309], N: null }, // 北＝自家座位卡內
+  { w: 667, h: 375, W: [0, 202, 172, 309], E: [495, 202, 667, 309], N: null, nights: NIGHTS_FULL }, // 北＝自家座位卡內
+  { w: 812, h: 375, W: null, E: null, N: null },
+  { w: 740, h: 360, W: null, E: null, N: null },
+  { w: 780, h: 360, W: null, E: null, N: null },
+  { w: 844, h: 390, W: [0, 202, 205, 324], E: [639, 202, 844, 324], N: [205, 275, 639, 324], safe: { l: 47, r: 47, b: 21 }, tag: 'safe-area 47/47/21' },
+  { w: 932, h: 430, W: [0, 202, 249, 364], E: [683, 202, 932, 364], N: [249, 275, 683, 364], safe: { l: 59, r: 59, b: 21 }, tag: 'safe-area 59/59/21' },
+  { w: 844, h: 390, W: [0, 202, 205, 324], E: [639, 202, 844, 324], N: [205, 275, 639, 324], shrink: 40, tag: '#table 高度 100vh-40px' },
 ];
+const vpName = (vp) => `${vp.w}x${vp.h}${vp.tag ? ' ' + vp.tag : ''}`;
+const vpD = (vp) => Math.max(0, (vp.safe ? vp.safe.b : 0) - 4) + (vp.shrink || 0);
+const vpDock = (vp, k) => { const r = vp[k]; if (!r) return null; const d = vpD(vp), sl = vp.safe ? vp.safe.l : 0, sr = vp.safe ? vp.safe.r : 0;
+  return k === 'W' ? [r[0] + sl, r[1], r[2] + sl, r[3] - d] : k === 'E' ? [r[0] - sr, r[1], r[2] - sr, r[3] - d] : [r[0], r[1] - d, r[2], r[3] - d]; };
 
 function loadPlaywright() {
   const cands = [path.join(ROOT, 'tools/anyCreature/package.json'), path.join(SRV_ROOT, 'tools/anyCreature/package.json'),
@@ -59,6 +72,8 @@ async function withPage(vp, fn) {
     const page = await ctx.newPage();
     const errs = []; page.on('pageerror', (e) => errs.push(String(e)));
     await page.goto(url);
+    if (vp.safe) await page.addStyleTag({ content: `:root{--safe-left:${vp.safe.l}px;--safe-right:${vp.safe.r}px;--safe-bottom:${vp.safe.b}px}` });
+    if (vp.shrink) await page.addStyleTag({ content: `#table{height:calc(100vh - ${vp.shrink}px) !important}` });
     await page.waitForFunction(() => window.__yaoshi3d?.tray && window.__yaoshi, null, { timeout: 90000 });
     await page.evaluate(() => window.__yaoshi.newGame('solo', 1, ['qingmian']));
     await page.waitForTimeout(1500);
@@ -91,9 +106,11 @@ const SAMPLE = `(async ({ txt, narrow }) => {
     const a = getComputedStyle(b, '::after'); const label = a.content.replace(/^"|"$/g, '');
     cv.font = 'bold ' + a.fontSize + ' ' + a.fontFamily; const lw = cv.measureText(label).width + parseFloat(a.letterSpacing || 0) * Array.from(label).length;
     const inner = r.width - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - parseFloat(cs.borderLeftWidth) - parseFloat(cs.borderRightWidth);
-    return { id, show: b.classList.contains('show'), fs: parseFloat(cs.fontSize), pe: cs.pointerEvents, box: R(r), txt: R(tr), who: b.dataset.who || '', label, labelDisplay: a.display, lw, inner,
+    return { id, parent: b.parentElement.id, show: b.classList.contains('show'), fs: parseFloat(cs.fontSize), pe: cs.pointerEvents, box: R(r), txt: R(tr), who: b.dataset.who || '', label, labelDisplay: a.display, lw, inner,
       expectWho: ['', '北', '西', '東'][id] + '・' + S.players[id].name, bl: cs.borderLeftColor, br: cs.borderRightColor, seat: seatRect(id), vw: innerWidth, vh: innerHeight }; });
-  return { bubbles, others };
+  const hostR = (sel) => { const e = document.querySelector(sel); return e ? R(e.getBoundingClientRect()) : null; };
+  const fh = document.getElementById('feltHead'); const banner = []; { const wk = document.createTreeWalker(fh, NodeFilter.SHOW_TEXT); let q; while ((q = wk.nextNode())) { if (!q.textContent.trim() || hidden(q.parentElement)) continue; const rg = document.createRange(); rg.selectNodeContents(q); for (const x of rg.getClientRects()) if (on(x)) banner.push(q.textContent.trim()); } }
+  return { bubbles, others, hosts: { west: hostR('#west'), east: hostR('#east'), south: hostR('#south'), table: hostR('#table') }, bannerLines: banner.length, bannerText: banner.join('') };
 })`;
 
 const area = (a, b) => Math.max(0, Math.min(a.r, b.r) - Math.max(a.l, b.l)) * Math.max(0, Math.min(a.b, b.b) - Math.max(a.t, b.t));
@@ -101,19 +118,24 @@ const fmt = (x) => `${Math.round(x.l)},${Math.round(x.t)},${Math.round(x.r)},${M
 const inside = (a, c, eps = 0.5) => a.l >= c[0] - eps && a.t >= c[1] - eps && a.r <= c[2] + eps && a.b <= c[3] + eps;
 
 function judge(vp, ctxLabel, len, m, bad) {
-  const narrow = vp.w <= 760;
-  const dock = { 1: vp.N, 2: vp.W, 3: vp.E };
+    const dock = { 1: vpDock(vp, 'N'), 2: vpDock(vp, 'W'), 3: vpDock(vp, 'E') };
   for (const b of m.bubbles) {
-    const tag = `${ctxLabel} ${len}字 泡${b.id}[${fmt(b.box)}]`;
+    const seatMode = b.id === 1 && b.parent !== 'table'; // 北泡疊在北席座位卡內（桌高不足或窄橫式）
+    const tag = `${ctxLabel} ${len}字 泡${b.id}[${fmt(b.box)}]${seatMode ? '(座位卡內)' : ''}`;
+    if (b.id === 1 && !vp.safe && !vp.shrink && vp.h >= 390 && vp.w > 760 && b.parent !== 'table') bad.push(`${tag} 北泡在寬版應停靠底列上方（#table 內），實際在座位卡內（#${b.parent}）`);
     if (len === 40 && b.id === 1) continue; // 北 40 字不列硬條件（真實台詞最長 19 字）
     if (!b.show) bad.push(`${tag} 沒顯示`);
     // P1
-    const d = dock[b.id] || [b.seat.l, b.seat.t, b.seat.r, b.seat.b];
-    if (!inside(b.box, d)) bad.push(`${tag} P1 不在停靠矩形 [${d}] 座位卡[${fmt(b.seat)}]`);
+    const d = seatMode ? [b.seat.l, b.seat.t, b.seat.r, b.seat.b] : dock[b.id];
+    if (d && !inside(b.box, d)) bad.push(`${tag} P1 不在停靠矩形 [${d}] 座位卡[${fmt(b.seat)}]`);
+    // P1h：泡貼著其所屬版面容器（西＝#west 左緣與上下界、東＝#east 右緣與上下界；泡可往桌心伸出欄寬；北＝#table 內且寬版時底緣在 #south 上緣之上）
+    { const H = m.hosts, hr = b.id === 2 ? H.west : b.id === 3 ? H.east : H.table; const e = 1.5;
+      if (hr && ((b.id !== 3 && b.box.l < hr.l - e) || (b.id !== 2 && b.box.r > hr.r + e) || b.box.t < hr.t - e || b.box.b > hr.b + e)) bad.push(`${tag} P1h 超出所屬容器 [${fmt(hr)}]`);
+      if (b.id === 1 && !seatMode && H.south && b.box.b > H.south.t + 0.5) bad.push(`${tag} P1h 北泡底緣壓到底列 south.top=${Math.round(H.south.t)}`); }
     // P2
-    for (const o of m.others) { if (narrow && b.id === 1 && o.own) continue; const a = area(b.box, o); if (a > 0) bad.push(`${tag} P2 ∩ ${o.k}「${o.s}」[${fmt(o)}] = ${a.toFixed(0)}px²`); }
+    for (const o of m.others) { if (seatMode && o.own) continue; const a = area(b.box, o); if (a > 0) bad.push(`${tag} P2 ∩ ${o.k}「${o.s}」[${fmt(o)}] = ${a.toFixed(0)}px²`); }
     // P3
-    if (!(narrow && b.id === 1)) {
+    if (!seatMode) {
       if (b.who !== b.expectWho) bad.push(`${tag} P3 小標 data-who「${b.who}」≠「${b.expectWho}」`);
       if (b.label !== b.who || b.labelDisplay === 'none') bad.push(`${tag} P3 ::after 沒顯示小標（content「${b.label}」display ${b.labelDisplay}）`);
       else if (b.lw > b.inner + 0.5) bad.push(`${tag} P3 小標被截（寬 ${b.lw.toFixed(1)} > 內容寬 ${b.inner.toFixed(1)}）`);
@@ -128,7 +150,8 @@ function judge(vp, ctxLabel, len, m, bad) {
 }
 
 for (const vp of VIEWPORTS) {
-  test(`P1–P4 ${vp.w}x${vp.h} 真流程第 1/3/4/7 夜 出價／揭盅／事件：三席同時 8／14／19 字（西／東另 40 字）固定停靠、零交集`, { timeout: 1500000 }, async () => {
+  const NIGHTS = vp.nights || TARGET_NIGHTS;
+  test(`P1–P4 ${vpName(vp)} 真流程第 ${NIGHTS.join('/')} 夜 出價／揭盅／事件：三席同時 8／14／19 字（西／東另 40 字）固定停靠、零交集`, { timeout: 1500000 }, async () => {
     await withPage(vp, async (page, errs) => {
       const bad = []; const cover = {}; const shot = {};
       let last = '', stuck = 0, lastSample = 0, skips = 0; const t0 = Date.now(); const bidHold = {};
@@ -142,27 +165,49 @@ for (const vp of VIEWPORTS) {
         if (st.r > 7) break;
         const key = JSON.stringify(st); if (key !== last) { last = key; stuck = 0; } else stuck++;
         const phase = st.duel ? '對決' : st.rev ? '揭盅' : (/蓋牌開標/.test(st.m) && !st.dis) ? '出價' : (st.sb && st.ev) ? '事件' : null;
-        const tgt = TARGET_NIGHTS.includes(st.r);
-        if (tgt && phase && phase !== '對決' && Date.now() - lastSample > (phase === '出價' ? 300 : 650)) {
-          const lens = vp.w >= 844 ? [8, 14, 19, 40] : [8, 14, 19];
+        const tgt = NIGHTS.includes(st.r);
+        if (tgt && phase && phase !== '對決' && Date.now() - lastSample > (phase === '出價' ? 300 : phase === '事件' ? 250 : 650)) {
+          const lens = (vp.w >= 844 && !vp.safe && !vp.shrink) ? [8, 14, 19, 40] : [8, 14, 19]; // 40 字只在未合成內縮／縮高的 ≥844 視窗列硬條件
           for (const len of lens) {
             const m = await page.evaluate(`(${SAMPLE})(${JSON.stringify({ txt: TEXTS[len] })})`);
             // 40 字只量西／東（北不列硬條件，但仍讓三席同時顯示以取最壞情況）
             judge(vp, `第${st.r}夜/${phase}`, len, m, bad);
-            if (len === 19 && SHOT_DIR && phase === '出價' && !shot[st.r]) { shot[st.r] = 1; fs.mkdirSync(SHOT_DIR, { recursive: true }); await page.screenshot({ path: path.join(SHOT_DIR, `dock-${vp.w}x${vp.h}-n${st.r}-bid.png`) }); }
+            if (len === 19 && phase !== '事件') { if (!(m.bannerLines > 0)) bad.push(`第${st.r}夜/${phase} 橫幅活性：沒量到橫幅文字行`); if (st.r === 1 && !m.bannerText.includes('朔月')) bad.push(`第1夜/${phase} 橫幅活性：橫幅文字沒有「朔月」：${m.bannerText}`); }
+            if (len === 19 && SHOT_DIR && phase === '出價' && !shot[st.r]) { shot[st.r] = 1; fs.mkdirSync(SHOT_DIR, { recursive: true }); await page.screenshot({ path: path.join(SHOT_DIR, `dock-${vp.w}x${vp.h}${vp.safe ? '-safe' : ''}${vp.shrink ? '-dvh' : ''}-n${st.r}-bid.png`) }); }
           }
           const ck = st.r + '/' + phase; cover[ck] = (cover[ck] || 0) + 1; lastSample = Date.now();
         }
+        if (phase === '事件' && tgt && (bidHold['ev' + st.r] = (bidHold['ev' + st.r] || 0) + 1) < 6) { await page.waitForTimeout(300); continue; }
         if (phase === '出價' && tgt && (bidHold[st.r] = (bidHold[st.r] || 0) + 1) < 4) { await page.waitForTimeout(300); continue; }
         if (!st.dis && !st.duel) await page.click('#mainbtn', { timeout: 3000 }).catch(() => {});
         else if (st.sb && stuck > 3) await page.evaluate(() => { const x = [...document.querySelectorAll('#stage button, #modal button')].find((y) => y.getClientRects().length && !y.disabled); x && x.click(); });
         else if (stuck > 120 && st.skip) { await page.click('#skipbtn').catch(() => {}); skips++; stuck = 0; }
         await page.waitForTimeout(200);
       }
-      console.log(`${vp.w}x${vp.h} 取樣覆蓋 ${JSON.stringify(cover)} 按跳過 ${skips}`);
-      for (const n of TARGET_NIGHTS) for (const ph of ['出價', '揭盅']) assert.ok(cover[n + '/' + ph] > 0, `第 ${n} 夜沒取到 ${ph} 階段樣本（覆蓋 ${JSON.stringify(cover)}）`);
+      console.log(`${vpName(vp)} 取樣覆蓋 ${JSON.stringify(cover)} 按跳過 ${skips}`);
+      for (const n of NIGHTS) for (const ph of ['出價', '揭盅']) assert.ok(cover[n + '/' + ph] > 0, `第 ${n} 夜沒取到 ${ph} 階段樣本（覆蓋 ${JSON.stringify(cover)}）`);
+      assert.ok(Object.entries(cover).filter(([k]) => /事件/.test(k)).reduce((a, [, v]) => a + v, 0) >= 3, `事件階段樣本數 <3（覆蓋 ${JSON.stringify(cover)}）`);
       assert.equal(bad.length, 0, `${bad.length} 處違反（前 15 筆）：\n` + [...new Set(bad)].slice(0, 15).join('\n'));
       assert.deepEqual(errs, []);
     });
   });
 }
+
+// P12：renderSeats 重建座位後，停靠到 #table／#west／#east 的泡 id 不重複、仍在容器內、文字與 show 由 bubbleRestore 補回；桌高不足時北泡回座位卡內
+test('P12 renderSeats 重建座位：泡 id 唯一、停靠位置不變、文字補回；桌高不足時北泡留在座位卡內', { timeout: 240000 }, async () => {
+  await withPage({ w: 844, h: 390 }, async (page, errs) => {
+    const r = await page.evaluate(async () => {
+      SKIP = false; [1, 2, 3].forEach((id) => say(id, '重畫前的話' + id));
+      const snap = () => [1, 2, 3].map((id) => { const all = document.querySelectorAll('#bub' + id); const b = all[0]; return { n: all.length, parent: b.parentElement.id, text: b.textContent, show: b.classList.contains('show'), who: b.dataset.who }; });
+      const before = snap(); renderSeats(); renderSeats(); await new Promise((q) => setTimeout(q, 100)); const after = snap();
+      document.getElementById('table').style.height = '300px'; renderSeats(); await new Promise((q) => setTimeout(q, 100)); const short = snap();
+      return { before, after, short };
+    });
+    for (const k of ['before', 'after']) r[k].forEach((x, i) => assert.equal(x.n, 1, `${k} 泡${i + 1} id 重複 ${x.n}`));
+    assert.deepEqual(r.before.map((x) => x.parent), ['table', 'west', 'east'], '寬版停靠位置');
+    assert.deepEqual(r.after.map((x) => x.parent), ['table', 'west', 'east'], '重畫後停靠位置');
+    r.after.forEach((x, i) => { assert.equal(x.text, '重畫前的話' + (i + 1), `重畫後泡${i + 1}文字補回`); assert.ok(x.show, `重畫後泡${i + 1}仍顯示`); assert.ok(x.who, `泡${i + 1}小標`); });
+    assert.equal(r.short[0].n, 1); assert.notEqual(r.short[0].parent, 'table', '桌高 300px 北泡應留在座位卡內'); assert.equal(r.short[0].text, '重畫前的話1');
+    assert.deepEqual(errs, []);
+  });
+});
