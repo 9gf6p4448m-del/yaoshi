@@ -43,7 +43,8 @@ const HOOK = `(() => {
 const wakeSignals = []; /* SKIP 確實叫醒 PW_WAKE 的夜次（診斷用） */
 async function driveUntil(page, re, opts = {}) {
   const src = re.source;
-  const timeoutMs = opts.timeoutMs ?? 5 * 60 * 1000;
+// 時間預算放寬（driveUntil 5→10 分、整體 test timeout 15→40 分）：原上限在基準 71918da5 即貼邊(seed2 313.6s)，0.65.4 起放寬；使用者 2026-10-10 明確同意。斷言不變。
+  const timeoutMs = opts.timeoutMs ?? 10 * 60 * 1000;
   const deadline = Date.now() + timeoutMs;
   const skipAttempts = [];
   const bounded = (promise, ms, label) => {
@@ -148,7 +149,8 @@ const summarize = (log) => {
   const c = {}; for (const e of log) c[e.name] = (c[e.name] || 0) + 1; return c;
 };
 
-test('凍結 #6①：封標／揭盅／受咒／落籌接線與 SKIP、?sfx=0 靜音', { timeout: 15 * 60 * 1000 }, async (t) => {
+// 時間預算放寬（driveUntil 5→10 分、整體 test timeout 15→40 分）：原上限在基準 71918da5 即貼邊(seed2 313.6s)，0.65.4 起放寬；使用者 2026-10-10 明確同意。斷言不變。
+test('凍結 #6①：封標／揭盅／受咒／落籌接線與 SKIP、?sfx=0 靜音', { timeout: 40 * 60 * 1000 }, async (t) => {
   const { chromium } = createRequire(path.join(ROOT, 'tools/anyCreature/package.json'))('playwright');
   const srv = spawn('python', ['-m', 'http.server', String(PORT), '--bind', '127.0.0.1'], { cwd: ROOT, stdio: 'ignore' });
   await new Promise((r) => setTimeout(r, 900));
