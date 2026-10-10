@@ -17,10 +17,15 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SRV_ROOT = process.env.YAOSHI_RENDER_ROOT || ROOT;
-const PORT = 9754;
+import net from 'node:net';
+const PORT = await new Promise((res) => { const s = net.createServer(); s.listen(0, '127.0.0.1', () => { const p = s.address().port; s.close(() => res(p)); }); });
 const SHOT_DIR = process.env.YAOSHI_SHOT_DIR || '';
 const NIGHTS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 const TEXT8 = '看我的厲害吧哈哈'; // 8 字
+const TEXT14 = '各位客官這口價我跟定了'.padEnd(14, '啦').slice(0, 14);
+assert.equal(Array.from(TEXT14).length, 14);
+const TEXT19 = '各位客官這口價我跟定了不放手啦啦啦啦啦啦'.slice(0, 19);
+assert.equal(Array.from(TEXT19).length, 19);
 const TEXT40 = '這是一句四十字的最壞情況長對白用來檢查三席泡同時出現時會不會遮住牌桌中央的夜規則橫幅文字行啦'.slice(0, 40);
 assert.equal(Array.from(TEXT8).length, 8);
 assert.equal(Array.from(TEXT40).length, 40);
@@ -42,6 +47,8 @@ async function withPage(fn) {
     await ctx.addInitScript(() => { try { localStorage.setItem('yaoshi_intro_v1', '1'); } catch (e) {} });
     const page = await ctx.newPage();
     const errs = []; page.on('pageerror', (e) => errs.push(String(e))); page.on('console', (m) => { if (m.type() === 'error') errs.push('console:' + m.text()); });
+    const served = await (await fetch(`http://127.0.0.1:${PORT}/index.html`)).text();
+    assert.equal(served, fs.readFileSync(path.join(SRV_ROOT, 'index.html'), 'utf8'), '伺服器回的 index.html 不是 SRV_ROOT 的那份（埠被別的伺服器佔用？）');
     await page.goto(`http://127.0.0.1:${PORT}/index.html`);
     await page.waitForFunction(() => window.__yaoshi3d?.tray && window.__yaoshi, null, { timeout: 60000 });
     await page.evaluate(() => { window.__yaoshi.newGame('solo', 1, ['qingmian']); });
@@ -55,6 +62,7 @@ async function withPage(fn) {
 /* 頁內：切到第 N 夜（只換 S.round／S.nightRule 後重畫座位與橫幅，不碰任何對白或亂數邏輯）、三席同時說 txt，量全部幾何。 */
 const MEASURE = `(async ({ N, txt }) => {
   SKIP = false; S.round = N; S.nightRule = ruleForRound(N); renderSeats();
+  const RL = ['qingmian','hongyi','duanshou','shoujing','hunter','xiaonv','lvshan','zutou','dangpu','luzhu']; [1,2,3].forEach((id) => { document.getElementById('bub' + id).dataset.role = RL[(N + id * 3) % 10]; }); /* 每夜輪換角色造型（祖靈內距較高，最壞情況要量到） */
   [1, 2, 3].forEach((id) => say(id, txt));
   await new Promise((r) => setTimeout(r, 450));
   const R = (r) => ({ l: r.left, t: r.top, r: r.right, b: r.bottom });
@@ -66,8 +74,8 @@ const MEASURE = `(async ({ N, txt }) => {
       for (const q of rg.getClientRects()) if (q.width > 0 && q.height > 0) out.push({ ...R(q), s: n.textContent.trim().slice(0, 16) }); }
     return out; };
   const banner = lines(document.getElementById('feltHead'));
-  const center = [...lines(document.getElementById('felt'), '#feltHead'), ...lines(document.getElementById('budget')), ...lines(document.getElementById('mainbtn'))];
-  const boxes = [...document.querySelectorAll('#budget button, #budget .stepper, #mainbtn')].filter((e) => e.getClientRects().length).map((e) => ({ ...R(e.getBoundingClientRect()), s: (e.id || e.className || e.tagName) + ':' + e.textContent.trim().slice(0, 6) }));
+  const center = [...lines(document.getElementById('felt'), '#feltHead'), ...lines(document.getElementById('railW')), ...lines(document.getElementById('railE')), ...lines(document.getElementById('budget')), ...lines(document.getElementById('mainbtn'))];
+  const boxes = [...document.querySelectorAll('#budget button, #budget .stepper, #mainbtn, #railW .railTabs button, #railE .railTabs button, #helpBtn')].filter((e) => e.getClientRects().length).map((e) => ({ ...R(e.getBoundingClientRect()), s: (e.id || e.className || e.tagName) + ':' + e.textContent.trim().slice(0, 6) }));
   const bubbles = [1, 2, 3].map((id) => { const b = document.getElementById('bub' + id), cs = getComputedStyle(b), r = b.getBoundingClientRect();
     const seat = b.closest('.seat').getBoundingClientRect();
     const a = getComputedStyle(b, '::after');
@@ -95,7 +103,7 @@ async function sweep(page, txt, label) {
   return all;
 }
 
-for (const [label, txt] of [['len8', TEXT8], ['len40', TEXT40]]) {
+for (const [label, txt] of [['len8', TEXT8], ['len14', TEXT14], ['len19', TEXT19], ['len40', TEXT40]]) {
   test(`N1 ${label} 三席同時：泡與夜規則橫幅每行文字交集面積＝0（12 夜）`, { timeout: 240000 }, async () => {
     await withPage(async (page, errs) => {
       const all = await sweep(page, txt, label);
@@ -120,6 +128,8 @@ for (const [label, txt] of [['len8', TEXT8], ['len40', TEXT40]]) {
       const bad = [];
       for (const m of all) {
         assert.ok(m.center.length > 0 && m.boxes.length > 0, `第 ${m.N} 夜沒量到中央資訊／出價鈕`);
+        assert.ok(m.center.some((x) => x.r < 120) && m.center.some((x) => x.l > 720), `第 ${m.N} 夜沒量到西／東側欄卡文字`);
+        assert.ok(m.boxes.filter((x) => x.r < 130 || x.l > 710).length >= 2, `第 ${m.N} 夜沒量到側欄分頁按鈕框`);
         for (const b of m.bubbles) for (const x of [...m.center, ...m.boxes]) { const a = area(b.box, x); if (a > 0) bad.push(`第 ${m.N} 夜 泡${b.id}[${fmt(b.box)}] ∩ 「${x.s}」[${fmt(x)}] = ${a.toFixed(0)}px²`); }
       }
       assert.equal(bad.length, 0, `泡遮住中央資訊 ${bad.length} 處：\n` + bad.slice(0, 12).join('\n'));
