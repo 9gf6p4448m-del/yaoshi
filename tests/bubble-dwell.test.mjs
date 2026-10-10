@@ -132,3 +132,24 @@ test('D 字級≥14px、西／東泡可換行、844x390 三席長句泡都在視
     if (SHOT_DIR) { fs.mkdirSync(SHOT_DIR, { recursive: true }); await page.screenshot({ path: path.join(SHOT_DIR, 'bubble-844x390-all.png') }); }
   });
 });
+
+test('G 新局清泡：上一局的泡不會補到新局同座位（含 newGame 換章路徑）', { timeout: 60000 }, async () => {
+  await withPage(async (page, errs) => {
+    const r = await page.evaluate(() => new Promise((resolve) => {
+      SKIP = false; const out = {};
+      say(2, '上一局的台詞');
+      window.__yaoshi.newGame('solo', 7, ['qingmian']);
+      setTimeout(() => {
+        const b = document.getElementById('bub2'); out.after = { show: b.classList.contains('show'), text: b.textContent };
+        say(2, '上一局的台詞二');
+        try { window.__yaoshi.newGame('solo', 8, ['qingmian'], { chapter: 1 }); out.chapterOk = true; } catch (e) { out.chapterOk = String(e); }
+        setTimeout(() => { const c = document.getElementById('bub2'); out.afterChapter = { show: c.classList.contains('show'), text: c.textContent }; resolve(out); }, 800);
+      }, 800);
+    }));
+    console.log('G', JSON.stringify(r));
+    assert.deepEqual(r.after, { show: false, text: '' });
+    assert.equal(r.chapterOk, true);
+    assert.deepEqual(r.afterChapter, { show: false, text: '' });
+    assert.deepEqual(errs, []);
+  });
+});

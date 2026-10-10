@@ -4171,7 +4171,7 @@ function makeState(mode,seed,picks,privateDestinyDraws,destinyEffectMode="origin
   return S;
 }
 function newGame(mode,seed,picks,opts){
-  YB_COLLAPSED=false; CHAIN_SEEN.clear(); PUBLIC_REVEAL=null; PRIVATE_PHASE="none"; REVEAL_ANIMATING=false; NW_OPEN_SAID=false; NW_BUBBLE=null;
+  YB_COLLAPSED=false; CHAIN_SEEN.clear(); PUBLIC_REVEAL=null; PRIVATE_PHASE="none"; REVEAL_ANIMATING=false; NW_OPEN_SAID=false; NW_BUBBLE=null; bubClear();
   try{ if(opts&&opts.chapter!=null) makeState(mode,seed,picks,undefined,undefined,undefined,opts); else makeState(mode,seed,picks);}catch(e){
     if(e.message!=="secure destiny draw unavailable") throw e;
     const select=$("selectScr"),title=$("titleScr"),message=$("verLine");
@@ -6535,6 +6535,7 @@ function say(id,txt){
   b.textContent=txt; b.classList.add("show");
   st.timer=setTimeout(()=>{ if(BUB[id]!==st) return; delete BUB[id]; const bb=$("bub"+id); if(bb) bb.classList.remove("show"); }, ms);
 }
+function bubClear(){ for(const id of Object.keys(BUB)){ if(BUB[id].timer) clearTimeout(BUB[id].timer); delete BUB[id]; } } /* 新局（含夜行錄換章）清掉上一局的泡，免得補到換了角色的同座位 */
 function bubbleRestore(){
   for(const id of Object.keys(BUB)){
     const st=BUB[id];
