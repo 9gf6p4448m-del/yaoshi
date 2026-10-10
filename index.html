@@ -870,6 +870,7 @@ img.pic.state-dying{filter:brightness(.92)}
 #duel.pw #duelMove[class*="f-"],#duel.pw .mvghost[class*="f-"]{background:none}
 #duel.pw #duelMove.f-zuling,#duel.pw .mvghost.f-zuling{color:var(--zuling)} #duel.pw #duelMove.f-xianghuo,#duel.pw .mvghost.f-xianghuo{color:var(--xianghuo)} #duel.pw #duelMove.f-yinqi,#duel.pw .mvghost.f-yinqi{color:var(--yinqi)}
 #duel.pw #duelMove .mvline,#duel.pw .mvghost .mvline{display:block} #duel.pw #duelMove .mvdesc,#duel.pw .mvghost .mvdesc{display:block;font-size:11px;color:var(--dim);letter-spacing:0}
+#duel.pw #duelMove.mvend{width:100%;font-size:10px;line-height:14px;opacity:.6;white-space:nowrap;text-align:center}
 #duel.pw .mvghost{z-index:3;font-size:10px;min-height:0;line-height:14px;letter-spacing:0}
 #duel.pw .fpw{display:none}      /* ON 不顯示舊的戰力數字（草案 §2.6：看戲台上燒掉幾隻） */
 /* 直式手機只有 390px 高，多了拍首／招式兩行字幕就會把結尾那行擠出畫面
@@ -6305,7 +6306,7 @@ const PW_FX={
   MOVECAM_TIER_MUL:{1:1,2:1.5,3:2},
   CAP_MIN_VIS:1800, /* 一則字幕（含說明）至少在畫面上留多久，即使後面已有新字幕 */
   CAP_FADE:200,     /* 舊字幕被新字幕取代時的淡出 */
-  CAP_GHOSTS:2,        /* 同時最多留幾則舊字幕殘影（疊在主字幕上方） */
+  CAP_GHOSTS:2,        /* 同時最多留幾則舊字幕殘影（疊在主字幕下方） */
   /* ── 批 2-a「傷害可讀性」（v0.49，2026-09-07；凍結檔 docs/experiments/2026-09-07-acceptance-dmg-readability.md）──
      使用者手機試玩 v0.45 回報「扣血的部分看不太出來、顏色分不出」。以下三個全部【試玩必調】。 */
   DMG_SCALE:1.6,       /* 跳字字級倍率（CSS 由 pwCloseupMount 寫成 #dmgLayer 的 --dmgs） */
@@ -7978,7 +7979,7 @@ function pwCapGhostLayout(){
 }
 let PW_CAP_END_T=0;
 function pwCapGhostClear(){ clearTimeout(PW_CAP_END_T); PW_CAP_GH.forEach(g=>pwCapGhostDrop(g,false)); PW_CAP_GH=[]; PW_CAP_AT=0; }
-function pwCapGhostMake(el,endRow){
+function pwCapGhostMake(el){
   if(!el.innerHTML||SKIP) return;
   const host=$("duel"); if(!host) return;
   const age=Date.now()-PW_CAP_AT;
@@ -7986,28 +7987,34 @@ function pwCapGhostMake(el,endRow){
   const ln=el.querySelector(".mvline"), ds=el.querySelector(".mvdesc");
   e.textContent=(ln?ln.textContent:"")+(ds?"　"+ds.textContent:"");
   e.style.cssText="position:absolute;left:3%;width:94%;opacity:.6;pointer-events:none;margin:0;text-align:center";
-  if(endRow){ e.style.cssText+=";left:0;width:100%;white-space:nowrap;top:"+el.offsetTop+"px"; } /* 結尾版：單行、站在主字幕那一列（那列清空後仍有 min-height 18px），不加高版面 */
   host.appendChild(e);
   const g={el:e,t:0}; PW_CAP_GH.unshift(g);
-  g.t=setTimeout(()=>{ const i=PW_CAP_GH.indexOf(g); if(i>=0){ PW_CAP_GH.splice(i,1); pwCapGhostDrop(g,true); if(!endRow) pwCapGhostLayout(); } },Math.max(PW_FX.CAP_FADE,PW_FX.CAP_MIN_VIS-age));
+  g.t=setTimeout(()=>{ const i=PW_CAP_GH.indexOf(g); if(i>=0){ PW_CAP_GH.splice(i,1); pwCapGhostDrop(g,true); pwCapGhostLayout(); } },Math.max(PW_FX.CAP_FADE,PW_FX.CAP_MIN_VIS-age));
   while(PW_CAP_GH.length>PW_FX.CAP_GHOSTS){ pwCapGhostDrop(PW_CAP_GH.pop(),true); }
   return g;
 }
-/* 三拍打完收字幕：?movecam 開著時，最後一則改成「單行殘影」留在原列補滿 CAP_MIN_VIS 才淡出，主字幕照基準立刻清空
-   ——版面高度與基準相同（結果列不被擠），不佔 sleep。 */
+/* 三拍打完收字幕：?movecam 開著時，最後一則「就地」縮成單行（仍在 #duelMove 裡、同一個 flex 流）補滿 CAP_MIN_VIS 才淡出清空。
+   不另開絕對定位殘影——結果列寫入後 column flex 會重新置中，絕對定位的殘影會留在舊位置蓋到隻數牌（覆審 r2）；
+   就地版跟著版面走，列高 ≤ 基準 min-height 18px，版面與基準相同。不佔 sleep。 */
 function pwMoveCapEnd(){
   const el=$("duelMove");
   if(!pwMovecamOn()||SKIP||!el||!el.innerHTML||!PW_CAP_AT){ pwMoveCap(null); return; }
   PW_CAP_GH.forEach(g=>pwCapGhostDrop(g,true)); PW_CAP_GH=[];
-  pwCapGhostMake(el,true);
-  const keep=PW_CAP_GH.slice();
-  el.innerHTML=""; el.className="";
-  PW_CAP_GH=keep; PW_CAP_AT=0;
+  const ln=el.querySelector(".mvline"), ds=el.querySelector(".mvdesc");
+  el.className=el.className.replace(/side-[AB]/,"").trim()+" mvend";
+  el.textContent=(ln?ln.textContent:"")+(ds?"　"+ds.textContent:"");
+  clearTimeout(PW_CAP_END_T);
+  PW_CAP_END_T=setTimeout(()=>{
+    if(!el.classList.contains("mvend")) return;
+    const done=()=>{ el.innerHTML=""; el.className=""; };
+    if(typeof el.animate==="function"){ try{ el.animate([{opacity:1},{opacity:0}],{duration:PW_FX.CAP_FADE,fill:"forwards"}).onfinish=()=>{ done(); for(const a of el.getAnimations()) a.cancel(); }; return; }catch(e){} }
+    done();
+  },Math.max(0,PW_FX.CAP_MIN_VIS-(Date.now()-PW_CAP_AT)));
 }
 function pwMoveCap(who,item,move,desc,fac,side){
   const el=$("duelMove"); if(!el) return;
   if(who==null){ el.innerHTML=""; el.className=""; pwCapGhostClear(); return; }
-  if(pwMovecamOn()) pwCapGhostMake(el,false);
+  if(pwMovecamOn()) pwCapGhostMake(el);
   el.className=`${(FAC[fac]||{}).cls||""} side-${side}`;
   el.innerHTML=`<span class="mvline"><b>${who}</b>・${item}：${move}</span>`+(desc?`<span class="mvdesc">${desc}</span>`:"");
   PW_CAP_AT=Date.now();

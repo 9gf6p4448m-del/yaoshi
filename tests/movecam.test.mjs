@@ -84,8 +84,15 @@ async function runBeat(page, { level, tier, unitsB, figs }) {
 /* ── ② 真頁面版面：字幕留存、殘影不蓋主字幕（M2）、結尾列（L1） ── */
 async function layoutRun(query, steps) {
   const page = await open(query);
+  if (steps.vp) await page.setViewportSize(steps.vp);
   const r = await page.evaluate(async (steps) => {
     const d = document.getElementById('duel'); d.classList.add('pw'); d.style.display = 'flex'; /* 真版面：#duel 是 column flex（不是 display:block 假版面） */
+    if (steps.arena) { /* 真的 arena：產品 pwArenaHTML＋8 枚隻數牌，才有 .pwchips／#duelArena 可比 */
+      const mk = (n) => ({ units: Array.from({ length: n }, (_, i) => ({ id: i, t: 'a', fac: 'zuling', body: 'swarm', nm: '甲' + i })), comp: { swarm: n, elite: 1 }, curses: 0 });
+      const P = window.__yaoshi.S.players;
+      document.getElementById('duelArena').innerHTML = window.pwArenaHTML({ A: P[0], B: P[1], war: { unitsA: 8, unitsB: 8 } }, [mk(8), mk(8)]);
+      document.getElementById('duelBeat').textContent = '三拍・祟';
+    }
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     const rect = (e) => { const b = e.getBoundingClientRect(); return { top: b.top, bottom: b.bottom, left: b.left, right: b.right }; };
     const out = []; const T0 = performance.now();
@@ -96,11 +103,17 @@ async function layoutRun(query, steps) {
       await sleep(s.after);
       out.push({ main: rect(document.getElementById('duelMove')), ghosts: [...document.querySelectorAll('.mvghost')].map(rect) });
     }
-    if (steps.end) {
+    if (steps.end) { /* 正式順序：先 pwMoveCapEnd，再寫結果列 */
+      window.pwMoveCapEnd();
       document.getElementById('duelResult').textContent = '勝負已分　x 勝！';
-      window.pwMoveCapEnd(); await sleep(300); /* 等舊殘影淡出收掉（CAP_FADE 被治具設成 1 也無妨） */
-      const mv = document.getElementById('duelMove');
-      out.push({ endMainText: mv.textContent, endMainH: mv.getBoundingClientRect().height, endGhosts: [...document.querySelectorAll('.mvghost')].map(rect), resultTop: document.getElementById('duelResult').getBoundingClientRect().top });
+      document.getElementById('duelSub').textContent = '🔥 乙 燒掉 3/8 隻 → −2 壽命・甲 燒掉 1/8 隻';
+      await sleep(300);
+      const el = [...document.querySelectorAll('#duelMove,.mvghost')].find((e) => e.textContent.includes(steps.watch));
+      const duel = document.getElementById('duel');
+      out.push({ cap: el ? rect(el) : null, capH: el ? el.getBoundingClientRect().height : 0,
+        chips: [...document.querySelectorAll('.pwchips')].map(rect), arena: rect(document.getElementById('duelArena')),
+        result: rect(document.getElementById('duelResult')), sub: rect(document.getElementById('duelSub')),
+        lay: { sh: duel.scrollHeight, ch: duel.clientHeight } });
     }
     await sleep(steps.tail); clearInterval(poll);
     return { out, lastSeen };
@@ -127,15 +140,36 @@ const inter = (a, b) => Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 
       assert.ok(!inter(g, last.main), `M2 ${name}：殘影與主字幕 rect 不得相交：ghost ${JSON.stringify(g)} main ${JSON.stringify(last.main)}`);
       assert.ok(g.top >= last.main.bottom - 0.5, `M2 ${name}：殘影在主字幕下方`);
     }
+    { const g0 = last.ghosts[0]; assert.ok(g0.top - last.main.bottom <= 3, `M2 ${name}：第一則殘影緊貼主字幕下緣（縫隙 ${g0.top - last.main.bottom}px ≤ 3；用舊高度排版在 2→1 行時實測縫隙 8px；2→2 行新舊高度相同，本條對 2a144ac7 無鑑別力）`);
+    }
   }
-  /* L1：三拍結束，最後一則改成單行殘影留在原列：主字幕清空（版面與基準同高）、殘影不蓋結果列、仍留滿 1800ms */
-  const e = await layoutRun('&movecam=1', { watch: T20, caps: [cap('乙', '乙的說明', 'B', 100), cap('甲', T20, 'A', 100)], end: true, tail: 2200 });
-  const end = e.out[2];
-  assert.equal(end.endMainText, '', 'L1：結尾時主字幕清空（版面與基準相同）');
-  assert.ok(end.endMainH <= 19, `L1：清空後主字幕列高度不加高（${end.endMainH}px，基準 min-height 18px）`);
-  assert.ok(end.endGhosts.length === 1, 'L1：最後一則以單行殘影留著（活性）');
-  assert.ok(end.endGhosts[0].bottom <= end.resultTop + 0.5, `L1：殘影不蓋結果列：ghost.bottom ${end.endGhosts[0].bottom} ≤ result.top ${end.resultTop}`);
-  assert.ok(e.lastSeen >= 1800, `L1：最後一則仍可見 ≥1800ms，實測 ${Math.round(e.lastSeen)}ms`);
+  /* L1（覆審 r2 MEDIUM）：三拍結束最後一則留在畫面 ≥1800ms，且與隻數牌／arena／結果列 rect 交集＝0（多種視窗、正式順序、真 arena） */
+  for (const vp of [{ width: 844, height: 390 }, { width: 852, height: 393 }, { width: 932, height: 430 }, { width: 667, height: 375 }]) {
+    const e = await layoutRun('&movecam=1', { vp, arena: true, watch: T20, caps: [cap('乙', '乙的說明', 'B', 100), cap('甲', T20, 'A', 100)], end: true, tail: 2200 });
+    const end = e.out[2], tag = `${vp.width}x${vp.height}`;
+    assert.ok(end.cap, `L1 ${tag}：最後一則仍在畫面（活性）`);
+    assert.ok(end.chips.length === 2, `L1 ${tag}：真 arena 有雙方隻數牌（活性）`);
+    for (const [nm, r] of [...end.chips.map((c, i) => ['隻數牌' + i, c]), ['arena', end.arena], ['結果列', end.result], ['結尾副行', end.sub]]) {
+      assert.ok(!inter(end.cap, r), `L1 ${tag}：最後一則字幕與${nm} rect 不得相交：cap ${JSON.stringify(end.cap)} ${nm} ${JSON.stringify(r)}`);
+    }
+    assert.ok(end.capH <= 19, `L1 ${tag}：結尾字幕不加高版面（${end.capH}px）`);
+    assert.ok(e.lastSeen >= 1800, `L1 ${tag}：最後一則仍可見 ≥1800ms，實測 ${Math.round(e.lastSeen)}ms`);
+  }
+  /* 開局中途開新局：殘影與計時器不殘留 */
+  {
+    const page = await open('&movecam=1');
+    const r = await page.evaluate(async () => {
+      const d = document.getElementById('duel'); d.classList.add('pw'); d.style.display = 'flex';
+      window.pwMoveCap('甲', '劍', '斬', '說明', 'zuling', 'A'); window.pwMoveCap('乙', '盾', '擋', '說明二', 'xianghuo', 'B');
+      const before = document.querySelectorAll('.mvghost').length;
+      window.__yaoshi.newGame('solo', 2, ['qingmian']);
+      await new Promise((r) => setTimeout(r, 2600));
+      return { before, after: document.querySelectorAll('.mvghost').length, main: document.getElementById('duelMove').textContent };
+    });
+    assert.equal(r.before, 1, '前置：newGame 前有 1 則殘影（活性）');
+    assert.equal(r.after, 0, `newGame 後 2.6s 殘影不殘留（實測 ${r.after}）`);
+    await page.close();
+  }
 }
 await browser.close();
 console.log('movecam: 多停毫秒（治具迴圈下）／特寫對準在場出招者／殘影不蓋字幕／結尾列／字幕留存 PASS');
