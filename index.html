@@ -870,8 +870,9 @@ img.pic.state-dying{filter:brightness(.92)}
 #duel.pw #duelMove[class*="f-"],#duel.pw .mvghost[class*="f-"]{background:none}
 #duel.pw #duelMove.f-zuling,#duel.pw .mvghost.f-zuling{color:var(--zuling)} #duel.pw #duelMove.f-xianghuo,#duel.pw .mvghost.f-xianghuo{color:var(--xianghuo)} #duel.pw #duelMove.f-yinqi,#duel.pw .mvghost.f-yinqi{color:var(--yinqi)}
 #duel.pw #duelMove .mvline,#duel.pw .mvghost .mvline{display:block} #duel.pw #duelMove .mvdesc,#duel.pw .mvghost .mvdesc{display:block;font-size:11px;color:var(--dim);letter-spacing:0}
-#duel.pw #duelMove.mvend{width:100%;font-size:10px;line-height:14px;opacity:.6;white-space:nowrap;text-align:center}
-#duel.pw #duelMove.mvend.mvwrap{font-size:9px;line-height:9px;white-space:normal} /* 窄螢幕（667）單行放不下：縮到 9px 允許換 2 行，總高 18px＝基準 min-height，不加高版面 */
+/* 覆審 r4 L2：結尾單行列框高 13px、上外距多 5px（13＋5＝基準 min-height 18，版面不動），框頂下移 5px 讓開溢出 arena 底的隻數牌；
+   窄螢幕放不下一行時由 pwMoveCapEnd 縮字級（不換兩行） */
+#duel.pw #duelMove.mvend{width:100%;font-size:10px;line-height:13px;height:13px;min-height:0;margin-top:7px;opacity:.6;white-space:nowrap;text-align:center}
 #duel.pw .mvghost{z-index:3;font-size:10px;min-height:0;line-height:14px;letter-spacing:0}
 #duel.pw .fpw{display:none}      /* ON 不顯示舊的戰力數字（草案 §2.6：看戲台上燒掉幾隻） */
 /* 直式手機只有 390px 高，多了拍首／招式兩行字幕就會把結尾那行擠出畫面
@@ -882,7 +883,7 @@ img.pic.state-dying{filter:brightness(.92)}
    置中的 column flex 把上緣的拍數燈與下緣字幕各切掉一半（#duel 是 overflow:hidden）。把字幕之間的外距收掉；
    .fav 佔位框的 172px 不動（3D 人形的 CSS 像素高 FIG.pixelH 對的是它）。 */
 @media (orientation:landscape) and (max-height:440px){
-  #beatLamps{margin-bottom:0} #duel.pw #duelBeat{margin-bottom:0} #duel.pw #duelMove{margin-top:0}
+  #beatLamps{margin-bottom:0} #duel.pw #duelBeat{margin-bottom:0} #duel.pw #duelMove{margin-top:0} #duel.pw #duelMove.mvend{margin-top:5px}
   #duel.pw #duelResult{margin-top:0} #duelSub{margin-top:1px}
 }
 .pwcnt{font-size:21px;font-weight:bold;color:var(--gold);line-height:1.2;
@@ -6306,6 +6307,7 @@ const PW_FX={
   MOVECAM_HOLD:[0,250,500],
   MOVECAM_TIER_MUL:{1:1,2:1.5,3:2},
   CAP_MIN_VIS:1800, /* 一則字幕（含說明）至少在畫面上留多久，即使後面已有新字幕 */
+  CAP_END_PAD:150,  /* 覆審 r4 R1：結尾那則在 CAP_MIN_VIS 之外再多留的餘裕（真 3D 結尾常有 200ms 級的掉幀，吃掉的是這段而不是 1800） */
   CAP_FADE:200,     /* 舊字幕被新字幕取代時的淡出 */
   CAP_GHOSTS:2,        /* 同時最多留幾則舊字幕殘影（疊在主字幕下方） */
   /* ── 批 2-a「傷害可讀性」（v0.49，2026-09-07；凍結檔 docs/experiments/2026-09-07-acceptance-dmg-readability.md）──
@@ -7979,7 +7981,29 @@ function pwCapGhostLayout(){
   for(const g of PW_CAP_GH){ g.el.style.top=y+"px"; y+=g.el.offsetHeight; }
 }
 let PW_CAP_END_T=0;
-function pwCapGhostClear(){ clearTimeout(PW_CAP_END_T); PW_CAP_GH.forEach(g=>pwCapGhostDrop(g,false)); PW_CAP_GH=[]; PW_CAP_AT=0; }
+/* 覆審 r4 R1：字幕「可見時長」從真的畫出那一刻起算，不是寫入 DOM 那一刻。寫入後若主執行緒被 3D 首幀卡住（swiftshader 實測 290–467ms），
+   寫入時間會比使用者看到早半秒。雙 rAF：第二個 rAF 跑的時候，寫入後的第一幀已經畫完。PW_CAP_SHOWN＝0 代表還沒畫出。 */
+let PW_CAP_SHOWN=0, PW_CAP_SEQ=0;
+function pwCapMarkShown(el){
+  const s=++PW_CAP_SEQ; PW_CAP_SHOWN=0;
+  if(typeof requestAnimationFrame!=="function"){ PW_CAP_SHOWN=Date.now(); return; }
+  /* 真 3D 下 rAF 照跳、但淡入動畫要等那一幀真的送上畫面才開始（opacity 一直是 0）——所以逐幀看 opacity，
+     變得看得見（>0.05）的那一幀之後再一個 rAF 才記 SHOWN（雙 rAF：確定已畫出）。最多看 1.5 秒（防呆）。 */
+  const t0=Date.now();
+  const step=()=>{
+    if(s!==PW_CAP_SEQ) return;
+    let op=1; try{ op=parseFloat(getComputedStyle(el).opacity); }catch(e){}
+    if(op>0.05||Date.now()-t0>1500){ requestAnimationFrame(()=>{ if(s===PW_CAP_SEQ) PW_CAP_SHOWN=Date.now(); }); return; }
+    requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+/* 等最後一則字幕真的畫出（最多 maxMs；背景分頁 rAF 停擺時不卡死）。走 pwSleep：SKIP／跳過鍵照常立刻醒。 */
+async function pwCapWaitShown(maxMs){
+  const t0=Date.now();
+  while(!PW_CAP_SHOWN&&PW_CAP_AT&&!SKIP&&Date.now()-t0<maxMs) await pwSleep(16);
+}
+function pwCapGhostClear(){ clearTimeout(PW_CAP_END_T); PW_CAP_GH.forEach(g=>pwCapGhostDrop(g,false)); PW_CAP_GH=[]; PW_CAP_AT=0; PW_CAP_SHOWN=0; PW_CAP_SEQ++; }
 function pwCapGhostMake(el){
   if(!el.innerHTML||SKIP) return;
   const host=$("duel"); if(!host) return;
@@ -8004,22 +8028,33 @@ function pwMoveCapEnd(){
   const ln=el.querySelector(".mvline"), ds=el.querySelector(".mvdesc");
   el.className=el.className.replace(/side-[AB]/,"").trim()+" mvend";
   el.textContent=(ln?ln.textContent:"")+(ds?"　"+ds.textContent:"");
-  if(el.scrollWidth>el.clientWidth) el.classList.add("mvwrap");
+  /* 覆審 r4 L2：單行放不下（窄螢幕 667）就把字級縮到剛好一行（下限 7px），不再換兩行——兩行要 18px 高，單行 13px 才能下移 5px 讓開隻數牌 */
+  if(el.scrollWidth>el.clientWidth){ let fs=Math.max(7,Math.floor(10*el.clientWidth/el.scrollWidth*10)/10); el.style.fontSize=fs+"px";
+    while(el.scrollWidth>el.clientWidth&&fs>7){ fs=Math.max(7,fs-0.25); el.style.fontSize=fs+"px"; } }
   clearTimeout(PW_CAP_END_T);
-  PW_CAP_END_T=setTimeout(()=>{
+  const seq=PW_CAP_SEQ, t0=Date.now();
+  const fade=()=>{
     if(!el.classList.contains("mvend")) return;
-    const done=()=>{ el.innerHTML=""; el.className=""; };
+    const done=()=>{ el.innerHTML=""; el.className=""; if(el.style.fontSize) el.style.fontSize=""; };
     if(typeof el.animate==="function"){ try{ el.animate([{opacity:1},{opacity:0}],{duration:PW_FX.CAP_FADE,fill:"forwards"}).onfinish=()=>{ done(); for(const a of el.getAnimations()) a.cancel(); }; return; }catch(e){} }
     done();
-  },Math.max(0,PW_FX.CAP_MIN_VIS-(Date.now()-PW_CAP_AT)));
+  };
+  /* 淡出從「真的畫出」起算滿 CAP_MIN_VIS＋CAP_END_PAD（R1）；還沒畫出就每 16ms 再看一次，最多等 1.6 秒（rAF 停擺時退回寫入時間） */
+  const arm=()=>{
+    if(seq!==PW_CAP_SEQ||!el.classList.contains("mvend")) return;
+    if(!PW_CAP_SHOWN&&Date.now()-t0<1600){ PW_CAP_END_T=setTimeout(arm,16); return; }
+    PW_CAP_END_T=setTimeout(fade,Math.max(0,PW_FX.CAP_MIN_VIS+PW_FX.CAP_END_PAD-(Date.now()-(PW_CAP_SHOWN||PW_CAP_AT))));
+  };
+  arm();
 }
 function pwMoveCap(who,item,move,desc,fac,side){
   const el=$("duelMove"); if(!el) return;
-  if(who==null){ el.innerHTML=""; el.className=""; pwCapGhostClear(); return; }
+  if(who==null){ el.innerHTML=""; el.className=""; if(el.style.fontSize) el.style.fontSize=""; pwCapGhostClear(); return; }
   if(pwMovecamOn()) pwCapGhostMake(el);
-  el.className=`${(FAC[fac]||{}).cls||""} side-${side}`;
+  el.className=`${(FAC[fac]||{}).cls||""} side-${side}`; if(el.style.fontSize) el.style.fontSize="";
   el.innerHTML=`<span class="mvline"><b>${who}</b>・${item}：${move}</span>`+(desc?`<span class="mvdesc">${desc}</span>`:"");
   PW_CAP_AT=Date.now();
+  if(pwMovecamOn()) pwCapMarkShown(el);
   if(pwMovecamOn()) pwCapGhostLayout(); /* 新字寫完才排殘影（M2：先排會用舊高度，殘影蓋住新字幕說明行） */
   pwRise(el,0);
 }
@@ -8497,8 +8532,15 @@ async function playDuelWar(f,views){
   }
   /* 結尾等待：movecam 開著時，最後一則字幕要在「使用者實際看到的」路徑上至少可見 CAP_MIN_VIS（之後 .pw 一移除、#duelMove 就 display:none），
      所以結尾等待取 max(END_MS, 字幕還差多少)——最壞多等不到 1 秒；SKIP 照常立刻過。 */
+  /* 覆審 r4 R1：從「真的畫出」起算（PW_CAP_SHOWN，雙 rAF），等滿 CAP_MIN_VIS＋CAP_END_PAD＋淡出 CAP_FADE＋一幀餘裕才讓 .pw 移除；
+     額外等待（超過 END_MS 的部分，含等畫出的時間）硬上限 990ms，絕不超過 1 秒。 */
   let endWait=PW_FX.END_MS;
-  if(PW_FX.MOVECAM_LEVEL>0&&PW_CAP_AT){ endWait=Math.max(endWait,PW_FX.CAP_MIN_VIS+50-(Date.now()-PW_CAP_AT)); }
+  if(PW_FX.MOVECAM_LEVEL>0&&PW_CAP_AT&&!SKIP){
+    const tEnd0=Date.now(), cap=PW_FX.END_MS+990;
+    await pwCapWaitShown(cap);
+    const spent=Date.now()-tEnd0, from=PW_CAP_SHOWN||PW_CAP_AT;
+    endWait=Math.min(cap-spent,Math.max(PW_FX.END_MS-spent,PW_FX.CAP_MIN_VIS+PW_FX.CAP_END_PAD+PW_FX.CAP_FADE+20-(Date.now()-from)));
+  }
   await pwSleep(endWait);
   FXC.duels++;
   const fight={

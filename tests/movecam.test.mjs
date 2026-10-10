@@ -217,5 +217,99 @@ for (const staged of [true, false]) {
     assert.ok(r.trunc.h <= 19, `r3 ${tag}：結尾字幕列高 ≤ 基準 18px（${r.trunc.h}px）`);
   }
 }
+
+/* ── ④ 首幀延遲（覆審 r4 R1）：真 playDuelWar（真 END_MS、真 pwSleep），每則字幕寫入後的那一幀注入 STALL ms 的主執行緒忙等
+   （模擬真 3D swiftshader 實測 290–467ms 的首幀延遲：rAF 回呼裡忙等＝那一幀晚 STALL ms 才畫出）。
+   量法改用 rAF 取樣（每幀一次，取樣點就是畫面更新的節奏），不是 8ms setInterval——setInterval 量不到「寫了但還沒畫」。
+   可見＝畫面上有字且 opacity>0.05；量「最後一則」從第一個可見幀到最後一個可見幀。
+   鑑別力：0c927b93／44c94ddc 從寫入 DOM 起算 → 實際可見少掉 STALL ms → 紅在「可見 ≥1800」這條行為斷言。 */
+async function stallFlow(vp, staged, stall) {
+  const page = await open('&movecam=1', { fixtureLoop: false });
+  await page.setViewportSize(vp);
+  const r = await page.evaluate(async ({ staged, stall }) => {
+    const Y = window.__yaoshi; Y.newGame('solo', 1, ['qingmian']);
+    const P = Y.S.players, ok = (k) => Y.pwMoveTier(k, 1) === 1 && Y.pwMoveCapText(k).item;
+    const tr1 = Object.keys(Y.TRAITS).find(ok);
+    const tr2 = Object.keys(Y.TRAITS).filter(ok).sort((a, b) => Y.pwMoveCapText(b).desc.length - Y.pwMoveCapText(a).desc.length)[0];
+    const it = (k) => Y.pwMoveCapText(k).item;
+    const mk = (nms) => ({ units: nms.map((nm, i) => ({ id: i, t: 'a', fac: 'zuling', body: 'swarm', nm })), comp: { swarm: nms.length }, curses: 0 });
+    const views = [mk([it(tr1), '甲2', '甲3']), mk([it(tr2), '乙2', '乙3'])];
+    window.pwBeatTier = () => 1;
+    window.pwTraitFx = () => staged; window.pwAwaitFigures = async () => {};
+    window.pwFigsOf = () => [{ group: { visible: true }, unit: { id: 0 } }]; window.pwFigureOf = (s, id) => ({ group: { visible: true }, unit: { id } });
+    window.fx3d = () => {};
+    const f = { A: P[0], B: P[1], w: P[0], l: P[1], tie: false, dmg: 2, war: { phase: null, unitsA: 3, unitsB: 3, burnedA: 0, burnedB: 1,
+      beats: [{ beat: 1, kind: 'trait', trId: tr1, side: 'A', amount: 0 }, { beat: 3, kind: 'trait', trId: tr2, side: 'B', amount: 0 }] } };
+    const ov = document.getElementById('duel'); ov.style.display = 'flex'; ov.classList.add('on'); ov.classList.add('pw');
+    const mv = document.getElementById('duelMove');
+    let writeAt = 0, first = 0, last = 0, stalls = 0, endSeen = false;
+    /* 每則新字幕寫入（.mvline 出現）→ 下一個 rAF 忙等 stall ms：寫入後第一幀晚 stall ms 才畫出 */
+    const mo = new MutationObserver(() => { if (mv.querySelector('.mvline')) { writeAt = performance.now(); first = 0; last = 0;
+      if (stall) requestAnimationFrame(() => { stalls++; const e = performance.now() + stall; while (performance.now() < e) { /* 忙等 */ } }); } });
+    mo.observe(mv, { childList: true });
+    const vis = () => { if (!ov.classList.contains('pw')) return false; const cs = getComputedStyle(mv); return !!mv.textContent.trim() && cs.display !== 'none' && parseFloat(cs.opacity) > 0.05; };
+    let on = true; const tick = () => { const n = performance.now(); if (vis()) { if (!first) first = n; last = n; if (mv.classList.contains('mvend')) endSeen = true; } if (on) requestAnimationFrame(tick); };
+    requestAnimationFrame(tick);
+    await window.playDuelWar(f, views);
+    ov.classList.remove('on'); ov.classList.remove('pw'); /* playDuel 結尾同一行 */
+    await new Promise((r) => setTimeout(r, 300)); on = false; mo.disconnect();
+    return { visibleMs: last - first, firstDelay: first - writeAt, stalls, endSeen };
+  }, { staged, stall });
+  await page.close();
+  return r;
+}
+for (const staged of [true, false]) {
+  for (const vp of [{ width: 844, height: 390 }, { width: 667, height: 375 }]) {
+    const tag = `${vp.width}x${vp.height}／${staged ? 'staged' : 'fallback'}`;
+    const s = await stallFlow(vp, staged, 450);
+    assert.ok(s.visibleMs >= 1800, `r4-R1 ${tag}：首幀延遲 450ms 時最後一則從畫出起連續可見 ≥1800ms，實測 ${Math.round(s.visibleMs)}ms（首幀延遲實測 ${Math.round(s.firstDelay)}ms）`);
+    assert.ok(s.stalls >= 2 && s.firstDelay >= 400, `r4-R1 ${tag}：注入的首幀延遲確實發生（活性：忙等 ${s.stalls} 次、首個可見幀離寫入 ${Math.round(s.firstDelay)}ms ≥400）`);
+    assert.ok(s.endSeen, `r4-R1 ${tag}：最後一則有進入結尾單行狀態（活性）`);
+  }
+}
+
+/* ── ⑤ 結尾列讓開隻數牌（覆審 r4 L2）：真 pwArenaHTML＋產品 CSS；結尾時敗方欄位掛上產品同一個 .shake（playDuelWar 結尾 le.classList.add("shake")），
+   旋轉 ±4° 的那 0.45 秒隻數牌外框會掉到 arena 底下（真局實測溢出 0.2–5.7px）。逐幀（rAF）量結尾列框與隻數牌框的垂直相交，取最大值 ≤2.44px
+   （r3 接受範圍上限）；版面 gate（scrollHeight／拍燈頂／結果列／副行底）與 movecam=0 相同。
+   鑑別力：0c927b93／44c94ddc 結尾列框頂＝arena 底，相交＝溢出量（實測 >2.44）→ 紅在相交斷言。 */
+async function chipRun(vp, query) {
+  const page = await open(query);
+  await page.setViewportSize(vp);
+  const r = await page.evaluate(async () => {
+    const d = document.getElementById('duel'); d.classList.add('pw'); d.style.display = 'flex';
+    const mk = (n) => ({ units: Array.from({ length: n }, (_, i) => ({ id: i, t: 'a', fac: 'zuling', body: 'swarm', nm: '甲' + i })), comp: { swarm: n, elite: 1 }, curses: 0 });
+    const P = window.__yaoshi.S.players;
+    document.getElementById('duelArena').innerHTML = window.pwArenaHTML({ A: P[0], B: P[1], war: { unitsA: 8, unitsB: 8 } }, [mk(8), mk(8)]);
+    document.getElementById('duelBeat').textContent = '三拍・祟';
+    window.pwMoveCap('甲', '劍', '斬', '甲說明二十字說明二十字說明二十字說明二十甲說明二十字說明二十字說明二十字說明二十甲說明二十字說明二十字', 'zuling', 'A');
+    await new Promise((z) => setTimeout(z, 100));
+    window.pwMoveCapEnd();
+    const le = document.getElementById('dL'); le.classList.remove('anim-clash-left', 'anim-clash-right'); le.classList.add('shake'); le.style.opacity = '.55'; /* 產品結尾同三步 */
+    document.getElementById('duelResult').textContent = '勝負已分　x 勝！';
+    document.getElementById('duelSub').textContent = '🔥 乙 燒掉 3/8 隻 → −2 壽命・甲 燒掉 1/8 隻';
+    const R = (e) => { const b = e.getBoundingClientRect(); return { top: b.top, bottom: b.bottom, left: b.left, right: b.right }; };
+    const mv = document.getElementById('duelMove'), bl = document.getElementById('beatLamps'), arena = document.getElementById('duelArena');
+    let ovl = 0, spill = 0, frames = 0; const t0 = performance.now();
+    await new Promise((done) => { const tick = () => { frames++;
+      const m = R(mv), a = R(arena);
+      for (const c of [...document.querySelectorAll('.pwchips')].map(R)) {
+        spill = Math.max(spill, c.bottom - a.bottom);
+        if (Math.min(c.right, m.right) - Math.max(c.left, m.left) > 0.5) ovl = Math.max(ovl, Math.min(c.bottom, m.bottom) - Math.max(c.top, m.top));
+      }
+      if (performance.now() - t0 < 600) requestAnimationFrame(tick); else done(); }; requestAnimationFrame(tick); });
+    return { cls: mv.className, txt: mv.textContent.length, sw: mv.scrollWidth, cw: mv.clientWidth, ovl, spill, frames,
+      gate: { sh: d.scrollHeight, lamp: bl ? bl.getBoundingClientRect().top : null, res: R(document.getElementById('duelResult')), sub: document.getElementById('duelSub').getBoundingClientRect().bottom } };
+  });
+  await page.close();
+  return r;
+}
+for (const vp of [{ width: 844, height: 390 }, { width: 852, height: 393 }, { width: 932, height: 430 }, { width: 667, height: 375 }]) {
+  const tag = `${vp.width}x${vp.height}`;
+  const on = await chipRun(vp, '&movecam=1'), off = await chipRun(vp, '&movecam=0');
+  assert.ok(on.ovl <= 2.44, `r4-L2 ${tag}：結尾列與隻數牌垂直相交（逐幀最大）≤2.44px，實測 ${on.ovl.toFixed(2)}px（隻數牌溢出 arena 底最大 ${on.spill.toFixed(2)}px，${on.frames} 幀）`);
+  assert.ok(/mvend/.test(on.cls) && on.txt > 0 && on.spill > 2.44, `r4-L2 ${tag}：活性——結尾列有字（${on.txt} 字）且 shake 期間隻數牌真的溢出 arena 底 >2.44px（${on.spill.toFixed(2)}）`);
+  assert.ok(on.sw <= on.cw, `r4-L2 ${tag}：結尾說明單行完整可見（scrollWidth ${on.sw} ≤ clientWidth ${on.cw}）`);
+  assert.deepEqual(on.gate, off.gate, `r4-L2 ${tag}：版面 gate（scrollHeight／拍燈頂／結果列／副行底）與 movecam=0 相同`);
+}
 await browser.close();
 console.log('movecam: 多停毫秒（治具迴圈下）／特寫對準在場出招者／殘影不蓋字幕／結尾列／字幕留存 PASS');
