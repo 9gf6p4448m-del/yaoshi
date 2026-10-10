@@ -871,6 +871,7 @@ img.pic.state-dying{filter:brightness(.92)}
 #duel.pw #duelMove.f-zuling,#duel.pw .mvghost.f-zuling{color:var(--zuling)} #duel.pw #duelMove.f-xianghuo,#duel.pw .mvghost.f-xianghuo{color:var(--xianghuo)} #duel.pw #duelMove.f-yinqi,#duel.pw .mvghost.f-yinqi{color:var(--yinqi)}
 #duel.pw #duelMove .mvline,#duel.pw .mvghost .mvline{display:block} #duel.pw #duelMove .mvdesc,#duel.pw .mvghost .mvdesc{display:block;font-size:11px;color:var(--dim);letter-spacing:0}
 #duel.pw #duelMove.mvend{width:100%;font-size:10px;line-height:14px;opacity:.6;white-space:nowrap;text-align:center}
+#duel.pw #duelMove.mvend.mvwrap{font-size:9px;line-height:9px;white-space:normal} /* 窄螢幕（667）單行放不下：縮到 9px 允許換 2 行，總高 18px＝基準 min-height，不加高版面 */
 #duel.pw .mvghost{z-index:3;font-size:10px;min-height:0;line-height:14px;letter-spacing:0}
 #duel.pw .fpw{display:none}      /* ON 不顯示舊的戰力數字（草案 §2.6：看戲台上燒掉幾隻） */
 /* 直式手機只有 390px 高，多了拍首／招式兩行字幕就會把結尾那行擠出畫面
@@ -8003,6 +8004,7 @@ function pwMoveCapEnd(){
   const ln=el.querySelector(".mvline"), ds=el.querySelector(".mvdesc");
   el.className=el.className.replace(/side-[AB]/,"").trim()+" mvend";
   el.textContent=(ln?ln.textContent:"")+(ds?"　"+ds.textContent:"");
+  if(el.scrollWidth>el.clientWidth) el.classList.add("mvwrap");
   clearTimeout(PW_CAP_END_T);
   PW_CAP_END_T=setTimeout(()=>{
     if(!el.classList.contains("mvend")) return;
@@ -8493,7 +8495,11 @@ async function playDuelWar(f,views){
        完整戰況照舊在對決結束後的「第 N 夜・戰況」列表裡。 */
     $("duelSub").innerHTML=`🔥 ${f.l.name} 燒掉 ${bl}/${tl} 隻 → −${f.dmg} 壽命・${f.w.name} 燒掉 ${bw}/${tw} 隻`;
   }
-  await pwSleep(PW_FX.END_MS);
+  /* 結尾等待：movecam 開著時，最後一則字幕要在「使用者實際看到的」路徑上至少可見 CAP_MIN_VIS（之後 .pw 一移除、#duelMove 就 display:none），
+     所以結尾等待取 max(END_MS, 字幕還差多少)——最壞多等不到 1 秒；SKIP 照常立刻過。 */
+  let endWait=PW_FX.END_MS;
+  if(PW_FX.MOVECAM_LEVEL>0&&PW_CAP_AT){ endWait=Math.max(endWait,PW_FX.CAP_MIN_VIS+50-(Date.now()-PW_CAP_AT)); }
+  await pwSleep(endWait);
   FXC.duels++;
   const fight={
     round:S.round, a:f.A.id, b:f.B.id,

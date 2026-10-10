@@ -19,10 +19,10 @@ function loadPlaywright() {
 }
 const { chromium } = loadPlaywright();
 const browser = await chromium.launch();
-async function open(query = '') {
+async function open(query = '', { fixtureLoop = true } = {}) {
   const page = await browser.newPage({ viewport: { width: 844, height: 390 } });
   await page.goto(pathToFileURL(TARGET).href + '?paperwar=1' + query, { waitUntil: 'load' });
-  await page.evaluate(() => { /* sfx-wiring 治具（tests/sfx-wiring.test.mjs newGame）逐字同一個迴圈 */
+  if (fixtureLoop) await page.evaluate(() => { /* sfx-wiring 治具（tests/sfx-wiring.test.mjs newGame）逐字同一個迴圈 */
     const F = window.__yaoshi.PW_FX; for (const k of Object.keys(F)) if (/_MS$/.test(k)) F[k] = 1;
     window.__yaoshi.newGame('solo', 1, ['qingmian']); /* pwPlayBeat 讀 S.rngUi：要有真局面 */
   });
@@ -169,6 +169,52 @@ const inter = (a, b) => Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 
     assert.equal(r.before, 1, '前置：newGame 前有 1 則殘影（活性）');
     assert.equal(r.after, 0, `newGame 後 2.6s 殘影不殘留（實測 ${r.after}）`);
     await page.close();
+  }
+}
+
+/* ── ③ 真流程（覆審 r3 MEDIUM-1／2）：真 playDuelWar（真 END_MS 等待、不套 *_MS→1 迴圈）＋ playDuel 結尾同一行 .pw 移除；
+   量「最後一則字幕從出現到被 .pw 移除而隱藏」的連續可見毫秒；staged（pwTraitFx 回 true）與 fallback（回 false）兩路徑；667 寬完整可見 */
+async function endFlow(vp, staged) {
+  const page = await open('&movecam=1', { fixtureLoop: false });
+  await page.setViewportSize(vp);
+  const r = await page.evaluate(async ({ staged }) => {
+    const Y = window.__yaoshi; Y.newGame('solo', 1, ['qingmian']);
+    const P = Y.S.players, tr1 = Object.keys(Y.TRAITS).find((k) => Y.pwMoveTier(k, 1) === 1 && Y.pwMoveCapText(k).item);
+    const tr2 = Object.keys(Y.TRAITS).filter((k) => Y.pwMoveTier(k, 1) === 1 && Y.pwMoveCapText(k).item).sort((a, b) => Y.pwMoveCapText(b).desc.length - Y.pwMoveCapText(a).desc.length)[0];
+    const it = (k) => Y.pwMoveCapText(k).item;
+    const mk = (nms) => ({ units: nms.map((nm, i) => ({ id: i, t: 'a', fac: 'zuling', body: 'swarm', nm })), comp: { swarm: nms.length }, curses: 0 });
+    const views = [mk([it(tr1), '甲2', '甲3']), mk([it(tr2), '乙2', '乙3'])];
+    window.pwBeatTier = () => 1; /* 最後一拍也是 tier1：最後一則字幕在戰鬥結束前只剩短短一段（覆審 r3 量到的情境） */
+    window.pwTraitFx = () => staged; window.pwAwaitFigures = async () => {};
+    window.pwFigsOf = () => [{ group: { visible: true }, unit: { id: 0 } }]; window.pwFigureOf = (s, id) => ({ group: { visible: true }, unit: { id } });
+    window.fx3d = () => {};
+    const f = { A: P[0], B: P[1], w: P[0], l: P[1], tie: false, dmg: 2, war: { phase: null, unitsA: 3, unitsB: 3, burnedA: 0, burnedB: 1,
+      beats: [{ beat: 1, kind: 'trait', trId: tr1, side: 'A', amount: 0 }, { beat: 3, kind: 'trait', trId: tr2, side: 'B', amount: 0 }] } };
+    const ov = document.getElementById('duel'); ov.style.display = 'flex'; ov.classList.add('on'); ov.classList.add('pw');
+    const mv = document.getElementById('duelMove'); let first = 0, last = 0, lastText = '', trunc = null, curText = '';
+    const vis = () => { const cs = getComputedStyle(mv); return mv.textContent.trim() && cs.display !== 'none' && parseFloat(cs.opacity) > 0.05 && getComputedStyle(ov).display !== 'none'; };
+    const poll = setInterval(() => {
+      const t = mv.textContent.trim(); const now = performance.now();
+      if (t !== curText) { curText = t; if (t && !mv.classList.contains('mvend')) first = 0; } /* 換了一則新字幕：重新計首次可見 */
+      if (!first && vis()) first = now;
+      if (vis()) { last = now; lastText = t; if (mv.classList.contains('mvend')) { const rg = document.createRange(); rg.selectNodeContents(mv); const rr = rg.getBoundingClientRect(), cr = mv.getBoundingClientRect();
+        trunc = { sw: mv.scrollWidth, cw: mv.clientWidth, inside: rr.left >= cr.left - 0.5 && rr.right <= cr.right + 0.5, h: cr.height }; } }
+    }, 8);
+    await window.playDuelWar(f, views);
+    ov.classList.remove('on'); ov.classList.remove('pw'); /* playDuel 結尾同一行：.pw 一移除，#duelMove 就 display:none */
+    await new Promise((r) => setTimeout(r, 400)); clearInterval(poll);
+    return { visibleMs: last - first, lastText, trunc, tr2desc: Y.pwMoveCapText(tr2).desc.length };
+  }, { staged });
+  await page.close();
+  return r;
+}
+for (const staged of [true, false]) {
+  for (const vp of [{ width: 844, height: 390 }, { width: 852, height: 393 }, { width: 932, height: 430 }, { width: 667, height: 375 }]) {
+    const r = await endFlow(vp, staged), tag = `${vp.width}x${vp.height}／${staged ? 'staged' : 'fallback'}`;
+    assert.ok(r.trunc, `r3 ${tag}：結尾字幕有進入就地單行狀態（活性）`);
+    assert.ok(r.visibleMs >= 1800, `r3 ${tag}：最後一則在真流程（含 .pw 移除）連續可見 ≥1800ms，實測 ${Math.round(r.visibleMs)}ms`);
+    assert.ok(r.trunc.sw <= r.trunc.cw && r.trunc.inside, `r3 ${tag}：結尾說明完整可見（scrollWidth ${r.trunc.sw} ≤ clientWidth ${r.trunc.cw}，文字 Range 在容器內：${r.trunc.inside}）`);
+    assert.ok(r.trunc.h <= 19, `r3 ${tag}：結尾字幕列高 ≤ 基準 18px（${r.trunc.h}px）`);
   }
 }
 await browser.close();
