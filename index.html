@@ -10,7 +10,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="stylesheet" href="assets/theme.css?v=0.65.3"><!-- v0.59.0：字型與色票 token 改了，同樣帶發布版本當快取鑰匙（與下方 safe-area.css 同一個值） -->
+<link rel="stylesheet" href="assets/theme.css?v=0.65.4"><!-- v0.59.0：字型與色票 token 改了，同樣帶發布版本當快取鑰匙（與下方 safe-area.css 同一個值） -->
 <style>
 /* ===== 佔位美術：正式版整批替換，邏輯層不得依賴任何樣式 =====
    ===== 美術層（2026-09-03 起）：色彩／字型變數與動畫 keyframes 在 assets/theme.css，
@@ -860,16 +860,17 @@ img.pic.state-dying{filter:brightness(.92)}
 #duelBeat,#duelMove{display:none}
 #duel.pw #duelBeat{display:block;font-size:15px;letter-spacing:3px;color:var(--gold);
   min-height:21px;margin-bottom:2px;text-align:center;text-shadow:0 2px 8px #000,0 0 3px #000}
-#duel.pw #duelMove{display:block;font-size:13px;min-height:18px;margin-top:2px;
+#duel.pw #duelMove,#duel.pw .mvghost{display:block;font-size:13px;min-height:18px;margin-top:2px;
   text-align:center;color:#ffd9a0;text-shadow:0 2px 8px #000,0 0 3px #000}
 /* 演出可讀性小卷（2026-09-05 晚）：招式字幕靠出招那一側、字色用出招方系色、第二行效果說明 */
 /* #duel 是置中的 column flex：字幕元素給 62% 寬、靠出招那一側對齊 flex 容器，字在其中置中 → 字的中心落在該側欄位附近
    （覆審 H-1：原本元素縮到內容寬、padding 反而把字推去對面；改 text-align:left 又會貼到螢幕邊） */
 #duel.pw #duelMove.side-A,#duel.pw #duelMove.side-B{width:62%;box-sizing:border-box;text-align:center}
 #duel.pw #duelMove.side-A{align-self:flex-start} #duel.pw #duelMove.side-B{align-self:flex-end}
-#duel.pw #duelMove[class*="f-"]{background:none}
-#duel.pw #duelMove.f-zuling{color:var(--zuling)} #duel.pw #duelMove.f-xianghuo{color:var(--xianghuo)} #duel.pw #duelMove.f-yinqi{color:var(--yinqi)}
-#duel.pw #duelMove .mvline{display:block} #duel.pw #duelMove .mvdesc{display:block;font-size:11px;color:var(--dim);letter-spacing:0}
+#duel.pw #duelMove[class*="f-"],#duel.pw .mvghost[class*="f-"]{background:none}
+#duel.pw #duelMove.f-zuling,#duel.pw .mvghost.f-zuling{color:var(--zuling)} #duel.pw #duelMove.f-xianghuo,#duel.pw .mvghost.f-xianghuo{color:var(--xianghuo)} #duel.pw #duelMove.f-yinqi,#duel.pw .mvghost.f-yinqi{color:var(--yinqi)}
+#duel.pw #duelMove .mvline,#duel.pw .mvghost .mvline{display:block} #duel.pw #duelMove .mvdesc,#duel.pw .mvghost .mvdesc{display:block;font-size:11px;color:var(--dim);letter-spacing:0}
+#duel.pw .mvghost{z-index:3;font-size:10px;min-height:0;line-height:14px;letter-spacing:0}
 #duel.pw .fpw{display:none}      /* ON 不顯示舊的戰力數字（草案 §2.6：看戲台上燒掉幾隻） */
 /* 直式手機只有 390px 高，多了拍首／招式兩行字幕就會把結尾那行擠出畫面
    （實測 scratchpad/layout.js：未收斂前 scrollHeight 396 > clientHeight 390，結尾字幕被裁）。
@@ -1138,7 +1139,7 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
 .endrank{font-size:14px;padding:4px 0;border-bottom:1px dashed var(--line)}
 .heal{color:var(--green)} .dmg{color:var(--red)}
 </style>
-<link rel="stylesheet" href="assets/safe-area.css?v=0.65.3"><!-- ?v＝RELEASE_VERSION（tests/ui-hierarchy.test.mjs 核對兩者相同）。
+<link rel="stylesheet" href="assets/safe-area.css?v=0.65.4"><!-- ?v＝RELEASE_VERSION（tests/ui-hierarchy.test.mjs 核對兩者相同）。
   不照 sfx／renderer 用 RELEASE_VERSION 字串拼接：這個 <link> 在 <head>、早於主 script，那時 RELEASE_VERSION 還沒定義；
   挪到主 script 之後注入會先畫一幀沒套這份樣式的畫面，而主 script 前又不能多開一支 script 標籤（tests/tools/load.mjs 只抓第一個）。 -->
 <script type="importmap">
@@ -2850,9 +2851,9 @@ function chainHintHTML(p,it){
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.65.3", VERSION_NOTE="0.65.3：對白泡放慢——角色說話的泡停留隨字數（約 3.5～6.5 秒，原本固定 2.3 秒）、字放大到 14px、同一席連說不再被舊計時器提早收掉、畫面重畫時未到期的泡不再消失（純呈現，結算不變；按「跳過」仍 0.3 秒）。0.65.2：修正對戰字幕出現「法寶：undefined」與血祭過陰的字幕；中咒時的鏡頭推近預設關閉（網址加 ?cursecam=1 可開）。0.65.1：牌桌光影升級——四盞燈籠換成燭火暖橘、光圈收得更集中，桌後上方多一盞燭火聚光，桌上的法寶會在紅布上投出影子；背景的夜空與遠處屋簷維持原本的深藍紫層次。只在牌桌與首頁生效，對決畫面的燈籠、曝光與聚光照舊（只多一層很淡的環境反光）。純畫面，結算不變；網址加 ?fx=0 可退回 0.64.0 的燈光做比對。0.64.0：孝女白琴、閭山法師、普渡爐主有了自己的手——孝女手腕綁一圈米白粗麻帶、側邊打結垂下兩條短布尾，指尖與手背沾著淡淡紙錢灰；閭山法師戴黑檀念珠、拇指套黃骨扳指，手背一道朱紅毛筆符；普渡爐主腕上繞黃色雙股編繩、垂著一顆米白布福袋，無名指戴淡青綠玉戒。布尾與福袋會跟著手的動作晃、手停下就慢慢停住（純畫面，結算不變；網址加 ?handb3=0 回到 0.62.5 的手）。0.63.0：寫實美術上線——10 位角色的頭像（健康／蒼白／瀕死三種氣色）、選角大圖與 32 件法寶／詛咒品圖示全部換成寫實風格；「抓交替水符」依圖示改名「水鬼名冊」（效果不變）；白虎煞改成插針的白虎紙、冥婚紅包與林投姐髮簪、水鬼浮標等重畫成小圖也認得出。圖載入失敗時自動退回舊圖，選角後立刻按入市也不會被吞。純畫面，結算不變；網址加 ?pic=0 可退回舊圖做比對。0.62.6：擺錢推重新設計——錢改從自家信物前緣出發，手從身側斜斜伸過來、指尖抵著錢柱一路推，推錢時手不再來回彈跳；北席的錢要推過整個托盤，手只能伸到托盤後緣就停，最後約三成路程仍是錢自己滑過去；西席推到中線右邊那格時，越過中線前也有一小段錢自己走；推錢排隊換格等少數時刻手的朝向仍會一幀甩約 60°（0.62.5 排隊換格本來就有約 80° 的甩動，現在推錢途中也會出現）。拍令牌、敗方扒錢、勝方停一拍維持原樣。直式手機上（未納入這次驗收、尚未改善）：手偶爾會穿過別席的信物（比上一版多）；西席推錢剛開始約 6～9 幀看不到手；推到一半手看不見的幀數變多（量測劇本 75／111 幀，0.62.5 為 46／67）；手貼著錢推的程度未達橫式標準（最差一段只有 0.217／0.241）；西席推到中線右邊那格時，錢出了手搆得到的範圍後看不到手；推錢時手的計算量約為上一版的 6～7 倍。純畫面，結算不變。0.62.5：擺錢推的手動作回到 0.62.3 的跟錢方式（0.62.4 改版後手會停在原地、錢自己滑過去）；因此推錢時偶爾來回彈跳回到 0.62.3 的程度，拍令牌等其他動作的改善保留（純畫面，結算不變）。0.62.4：擺錢推與拍令牌時，手偶爾來回彈跳的問題略有改善（純畫面，結算不變）。0.62.3：詛咒時手的發抖與符紙堆擺動頻率跟著放慢，不再抖得比動作快（純畫面，結算不變）。0.62.2：手的動作預設放慢——擺錢、拍令牌、敗方扒錢、勝方停一拍與收手預設慢 1.5 倍，得標抓法寶與詛咒推按預設慢 1.3 倍（不用再加網址參數）；想回到之前的原速，網址後面加 ?handslow=1&grabslow=1。純畫面，結算不變。0.62.1：新增兩個網址參數，讓你在手機上自己調手的動作速度（不加參數＝跟之前一模一樣）——在網址後面加 ?handslow=2，擺錢、拍令牌、敗方扒錢、勝方停一拍與收手會整組慢 2 倍（錢柱、令牌跟著手一起慢，開標前公告也等手收完才出）；加 ?grabslow=2，得標抓法寶與詛咒推按慢 2 倍（揭盅卡跟著晚出）；兩個可以一起用，例如 ?handslow=2&grabslow=1.5。數字可以有小數，建議先試 1.5 與 2，找到順眼的值告訴我再寫成預設；0、負數、超過 10 或不是數字都當 1。純畫面，結算不變。0.62.0：新手模型上線——五指有指節、手背看得到血管與肌腱，皮膚更細緻；獵人的疤改成有凹凸的疤，青面攤主維持大塊斑，孝女白琴、閭山法師、普渡爐主的皮膚各自不同；拇指與手腕交界的細橫紋修掉了。純畫面，結算不變；網址加 ?skin=0 可退回新手網格＋舊皮膚做比對。0.61.1：毒標塞詛咒品放慢到約 2 秒——施放者的手臂從自己座位那側伸過來，把符紙堆貼著桌面繞過別件拍品推到受害者手上按住（按住約 0.7 秒才收手）；符紙堆不再被抬到半空，碰到桌上的錢或令牌時小幅抬過；北席塞給西、東席時先往前推、再沿著桌前繞過去，手一路蓋在符紙堆上不停頓；收手時先把手抬起再退回。桌機量過 12 種誰塞給誰的組合各一個擺法，手機與其他擺法未逐一驗（純演出，結算不變）。0.61.0：四位角色有了自己的手——青面攤主（青灰斑、泛黃長指甲、腕上一串銅錢）、紅衣婆婆（乾枯灰白、鉤狀長指甲、黑髮辮繞腕）、斷手書生（手腕一道斜斜的縫合痕、指尖墨漬）、大家樂組頭（粗短、金戒、舊錶、手背寫著號碼）；拍令牌時拇指收攏一些（純演出，結算不變；網址加 ?handb1=0 回舊的手、?thumb=0 回舊的拍法）；0.60.1：毒標塞詛咒品改成「推到受害者面前按住就停」——符紙堆按在受害者手上後留在他席前，不再被受害者拖回去（原本看起來像被拿走；純演出，結算不變）；0.60.0：得標改成「得標的人伸手把法寶抓回自己面前」——法寶被抓起時會掙扎一下，拿回後在席前停一下才收起；毒標塞詛咒品改成「施放者把符紙堆推過桌心、按在受害者手上」，按住時一條紙錢繩纏上受害者手腕、手會發抖（純演出，結算不變；可按「跳過」；網址加 ?grab=0 回舊的拋物線）；0.59.12：開標擺錢一席一席依序——一次只有一隻手在推，每席推完（含多格）再換下一席，最後一隻手收完稍停一下才出現開標前公告（純演出，結算不變；可按「跳過」）；0.59.11：開標擺錢放慢——錢從席位推到桌面的飛行、同席多格排隊與手的動作一起放慢（約 0.42→0.70 秒），開標前公告等到手與錢都停下再多停 1 秒才出現（純演出，結算不變；可按「跳過」）；0.59.10：開局載入修正——3D 牌桌比開局晚載好時桌面不再一片黑（補播開局事件）、預先攤平載入鏈讓牌桌更快出現、載入慢時顯示「請神入座中…」（純呈現，結算不變）；0.59.9：展開「盯上宣告」「你・倒數」面板改成不透明、蓋過席位名牌（底下的字不再穿透交錯）；0.59.8：開標先看擺錢——按「蓋牌開標」後先讓你看完大家把錢擺到桌上（約 2 秒，可按「跳過」），「開標前公告」才出現（純演出，結算不變）；0.59.7：席位之手中等寫實——所有角色的手換程式生成寫實皮膚（指甲、指節紋、肌腱、靜脈），收驚婆老皺乾、獵人粗有繭疤、當鋪蒼白修長；紅繩改圓繩繞腕、木珠球形、護腕加鉚釘；手連著延伸到畫面外的手臂（純演出，大小不變）；0.59.6：收驚婆、當鋪、獵人的手各帶角色記號（紅線、黑袖套＋算盤珠戒指、皮護腕＋舊疤，純演出）；0.59.5：四席各一隻寫實右手——出價時推錢柱、盯上時跟著令牌拍下、開標時敗方把錢扒回（純演出，可跳過，結算不變）；0.59.4：窄橫式手機燒香框不再被截成「第 5 夜…」，只留「你 x／敵 y」、請神夜改金框；0.59.3：出價時桌角信物依角色做一個小動作（算盤晃、白幡擺、獸夾合、法印壓…）；點窄籤進法寶鑑賞頁（鏡頭推近＋自轉＋idle浮動，取代開卡停靠）＋成交總覽／戰況改買家分欄與心願／對決／天明三段（Y版）";
+const VERSION="0.65.4", VERSION_NOTE="0.65.4：招式特寫——每支招式出手時鏡頭拉近出招者與對面、多停一拍讓你看清「誰做了什麼」（預設輕：每招多停 0.25 秒起；網址加 ?movecam=2 為中、?movecam=0 關閉回 0.65.3），招式字幕不再被下一則立刻蓋掉——舊字幕縮成一行留在下方至少 1.8 秒才淡出，三拍打完最後一則也補滿 1.8 秒才收（純演出，結算不變）。0.65.3：對白泡放慢——角色說話的泡停留隨字數（約 3.5～6.5 秒，原本固定 2.3 秒）、字放大到 14px、同一席連說不再被舊計時器提早收掉、畫面重畫時未到期的泡不再消失（純呈現，結算不變；按「跳過」仍 0.3 秒）。0.65.2：修正對戰字幕出現「法寶：undefined」與血祭過陰的字幕；中咒時的鏡頭推近預設關閉（網址加 ?cursecam=1 可開）。0.65.1：牌桌光影升級——四盞燈籠換成燭火暖橘、光圈收得更集中，桌後上方多一盞燭火聚光，桌上的法寶會在紅布上投出影子；背景的夜空與遠處屋簷維持原本的深藍紫層次。只在牌桌與首頁生效，對決畫面的燈籠、曝光與聚光照舊（只多一層很淡的環境反光）。純畫面，結算不變；網址加 ?fx=0 可退回 0.64.0 的燈光做比對。0.64.0：孝女白琴、閭山法師、普渡爐主有了自己的手——孝女手腕綁一圈米白粗麻帶、側邊打結垂下兩條短布尾，指尖與手背沾著淡淡紙錢灰；閭山法師戴黑檀念珠、拇指套黃骨扳指，手背一道朱紅毛筆符；普渡爐主腕上繞黃色雙股編繩、垂著一顆米白布福袋，無名指戴淡青綠玉戒。布尾與福袋會跟著手的動作晃、手停下就慢慢停住（純畫面，結算不變；網址加 ?handb3=0 回到 0.62.5 的手）。0.63.0：寫實美術上線——10 位角色的頭像（健康／蒼白／瀕死三種氣色）、選角大圖與 32 件法寶／詛咒品圖示全部換成寫實風格；「抓交替水符」依圖示改名「水鬼名冊」（效果不變）；白虎煞改成插針的白虎紙、冥婚紅包與林投姐髮簪、水鬼浮標等重畫成小圖也認得出。圖載入失敗時自動退回舊圖，選角後立刻按入市也不會被吞。純畫面，結算不變；網址加 ?pic=0 可退回舊圖做比對。0.62.6：擺錢推重新設計——錢改從自家信物前緣出發，手從身側斜斜伸過來、指尖抵著錢柱一路推，推錢時手不再來回彈跳；北席的錢要推過整個托盤，手只能伸到托盤後緣就停，最後約三成路程仍是錢自己滑過去；西席推到中線右邊那格時，越過中線前也有一小段錢自己走；推錢排隊換格等少數時刻手的朝向仍會一幀甩約 60°（0.62.5 排隊換格本來就有約 80° 的甩動，現在推錢途中也會出現）。拍令牌、敗方扒錢、勝方停一拍維持原樣。直式手機上（未納入這次驗收、尚未改善）：手偶爾會穿過別席的信物（比上一版多）；西席推錢剛開始約 6～9 幀看不到手；推到一半手看不見的幀數變多（量測劇本 75／111 幀，0.62.5 為 46／67）；手貼著錢推的程度未達橫式標準（最差一段只有 0.217／0.241）；西席推到中線右邊那格時，錢出了手搆得到的範圍後看不到手；推錢時手的計算量約為上一版的 6～7 倍。純畫面，結算不變。0.62.5：擺錢推的手動作回到 0.62.3 的跟錢方式（0.62.4 改版後手會停在原地、錢自己滑過去）；因此推錢時偶爾來回彈跳回到 0.62.3 的程度，拍令牌等其他動作的改善保留（純畫面，結算不變）。0.62.4：擺錢推與拍令牌時，手偶爾來回彈跳的問題略有改善（純畫面，結算不變）。0.62.3：詛咒時手的發抖與符紙堆擺動頻率跟著放慢，不再抖得比動作快（純畫面，結算不變）。0.62.2：手的動作預設放慢——擺錢、拍令牌、敗方扒錢、勝方停一拍與收手預設慢 1.5 倍，得標抓法寶與詛咒推按預設慢 1.3 倍（不用再加網址參數）；想回到之前的原速，網址後面加 ?handslow=1&grabslow=1。純畫面，結算不變。0.62.1：新增兩個網址參數，讓你在手機上自己調手的動作速度（不加參數＝跟之前一模一樣）——在網址後面加 ?handslow=2，擺錢、拍令牌、敗方扒錢、勝方停一拍與收手會整組慢 2 倍（錢柱、令牌跟著手一起慢，開標前公告也等手收完才出）；加 ?grabslow=2，得標抓法寶與詛咒推按慢 2 倍（揭盅卡跟著晚出）；兩個可以一起用，例如 ?handslow=2&grabslow=1.5。數字可以有小數，建議先試 1.5 與 2，找到順眼的值告訴我再寫成預設；0、負數、超過 10 或不是數字都當 1。純畫面，結算不變。0.62.0：新手模型上線——五指有指節、手背看得到血管與肌腱，皮膚更細緻；獵人的疤改成有凹凸的疤，青面攤主維持大塊斑，孝女白琴、閭山法師、普渡爐主的皮膚各自不同；拇指與手腕交界的細橫紋修掉了。純畫面，結算不變；網址加 ?skin=0 可退回新手網格＋舊皮膚做比對。0.61.1：毒標塞詛咒品放慢到約 2 秒——施放者的手臂從自己座位那側伸過來，把符紙堆貼著桌面繞過別件拍品推到受害者手上按住（按住約 0.7 秒才收手）；符紙堆不再被抬到半空，碰到桌上的錢或令牌時小幅抬過；北席塞給西、東席時先往前推、再沿著桌前繞過去，手一路蓋在符紙堆上不停頓；收手時先把手抬起再退回。桌機量過 12 種誰塞給誰的組合各一個擺法，手機與其他擺法未逐一驗（純演出，結算不變）。0.61.0：四位角色有了自己的手——青面攤主（青灰斑、泛黃長指甲、腕上一串銅錢）、紅衣婆婆（乾枯灰白、鉤狀長指甲、黑髮辮繞腕）、斷手書生（手腕一道斜斜的縫合痕、指尖墨漬）、大家樂組頭（粗短、金戒、舊錶、手背寫著號碼）；拍令牌時拇指收攏一些（純演出，結算不變；網址加 ?handb1=0 回舊的手、?thumb=0 回舊的拍法）；0.60.1：毒標塞詛咒品改成「推到受害者面前按住就停」——符紙堆按在受害者手上後留在他席前，不再被受害者拖回去（原本看起來像被拿走；純演出，結算不變）；0.60.0：得標改成「得標的人伸手把法寶抓回自己面前」——法寶被抓起時會掙扎一下，拿回後在席前停一下才收起；毒標塞詛咒品改成「施放者把符紙堆推過桌心、按在受害者手上」，按住時一條紙錢繩纏上受害者手腕、手會發抖（純演出，結算不變；可按「跳過」；網址加 ?grab=0 回舊的拋物線）；0.59.12：開標擺錢一席一席依序——一次只有一隻手在推，每席推完（含多格）再換下一席，最後一隻手收完稍停一下才出現開標前公告（純演出，結算不變；可按「跳過」）；0.59.11：開標擺錢放慢——錢從席位推到桌面的飛行、同席多格排隊與手的動作一起放慢（約 0.42→0.70 秒），開標前公告等到手與錢都停下再多停 1 秒才出現（純演出，結算不變；可按「跳過」）；0.59.10：開局載入修正——3D 牌桌比開局晚載好時桌面不再一片黑（補播開局事件）、預先攤平載入鏈讓牌桌更快出現、載入慢時顯示「請神入座中…」（純呈現，結算不變）；0.59.9：展開「盯上宣告」「你・倒數」面板改成不透明、蓋過席位名牌（底下的字不再穿透交錯）；0.59.8：開標先看擺錢——按「蓋牌開標」後先讓你看完大家把錢擺到桌上（約 2 秒，可按「跳過」），「開標前公告」才出現（純演出，結算不變）；0.59.7：席位之手中等寫實——所有角色的手換程式生成寫實皮膚（指甲、指節紋、肌腱、靜脈），收驚婆老皺乾、獵人粗有繭疤、當鋪蒼白修長；紅繩改圓繩繞腕、木珠球形、護腕加鉚釘；手連著延伸到畫面外的手臂（純演出，大小不變）；0.59.6：收驚婆、當鋪、獵人的手各帶角色記號（紅線、黑袖套＋算盤珠戒指、皮護腕＋舊疤，純演出）；0.59.5：四席各一隻寫實右手——出價時推錢柱、盯上時跟著令牌拍下、開標時敗方把錢扒回（純演出，可跳過，結算不變）；0.59.4：窄橫式手機燒香框不再被截成「第 5 夜…」，只留「你 x／敵 y」、請神夜改金框；0.59.3：出價時桌角信物依角色做一個小動作（算盤晃、白幡擺、獸夾合、法印壓…）；點窄籤進法寶鑑賞頁（鏡頭推近＋自轉＋idle浮動，取代開卡停靠）＋成交總覽／戰況改買家分欄與心願／對決／天明三段（Y版）";
 /* 每次部署遞增此版號；首頁顯示與 asset query 都讀它，讓玩家可核實公開頁。 */
-const RELEASE_VERSION="0.65.3";
+const RELEASE_VERSION="0.65.4";
 /* ===== 音訊診斷與喚醒（2026-09-03，使用者回報 v0.27 iPhone 整個沒聲音、🔇 與靜音撥桿都排除）=====
    我沒有 iPhone 可重現，所以把每一層的狀態印在規則頁最上面，讓使用者唸給我聽：
    ctx 有沒有／state（iOS 特有 "interrupted"）／取樣率／音效開關／sfx.js 有沒有載到（聲部數）／最後一次 play 與例外／
@@ -6296,6 +6297,15 @@ const PW_FX={
   FOCUS_SHRINK:0.92,   /* 退暗的同時縮一點，交鋒那兩尊才跳得出來 */
   DMG_MS:600,          /* 傷害跳字上飄＋淡出的時間 */
   ACTOR_CARD_MS:700,   /* 出手卡停留多久 */
+  /* 招式特寫＋字幕不阻塞（使用者 2026-10-10 裁乙＋出招者特寫）：?movecam=0 關（＝71918da5 行為）／1 輕／2 中。
+     輕＝每招多停 +250ms、中＝+500ms（tier1 最精簡；tier2／3 乘 MOVECAM_TIER_MUL）。多停的這段鏡頭推近出招者與對面、字幕可讀。
+     字幕改成「新字幕進來時舊字幕淡出、至少留滿 CAP_MIN_VIS_MS」，不佔 sleep。純演出，不碰引擎／亂數／傷害。【試玩必調】 */
+  MOVECAM_LEVEL:1,
+  MOVECAM_HOLD_MS:[0,250,500],
+  MOVECAM_TIER_MUL:{1:1,2:1.5,3:2},
+  CAP_MIN_VIS_MS:1800, /* 一則字幕（含說明）至少在畫面上留多久，即使後面已有新字幕 */
+  CAP_FADE_MS:200,     /* 舊字幕被新字幕取代時的淡出 */
+  CAP_GHOSTS:2,        /* 同時最多留幾則舊字幕殘影（疊在主字幕上方） */
   /* ── 批 2-a「傷害可讀性」（v0.49，2026-09-07；凍結檔 docs/experiments/2026-09-07-acceptance-dmg-readability.md）──
      使用者手機試玩 v0.45 回報「扣血的部分看不太出來、顏色分不出」。以下三個全部【試玩必調】。 */
   DMG_SCALE:1.6,       /* 跳字字級倍率（CSS 由 pwCloseupMount 寫成 #dmgLayer 的 --dmgs） */
@@ -6329,6 +6339,11 @@ try{
 try{
   const camq=new URLSearchParams(typeof location!=="undefined"&&location.search?location.search:"").get("cam");
   if(camq==="0") PW_FX.CAM_ON=false; else if(camq==="1") PW_FX.CAM_ON=true;
+}catch(e){}
+/* ?movecam=0|1|2：招式特寫＋字幕不阻塞（見 PW_FX.MOVECAM_LEVEL）；其他值不理。寫法同上。 */
+try{
+  const mcq=new URLSearchParams(typeof location!=="undefined"&&location.search?location.search:"").get("movecam");
+  if(mcq==="0"||mcq==="1"||mcq==="2") PW_FX.MOVECAM_LEVEL=+mcq;
 }catch(e){}
 /* ?cursecam=1 打開中咒鏡頭（預設關，見 PW_FX.CURSE_CAM_ON）；?cursecam=0 顯式關。寫法同上。 */
 try{
@@ -6523,7 +6538,7 @@ function windStart(){ windStop(); if(!sfxOn()) return; const tick=()=>{ if(!SKIP
 function windStop(){ if(WIND_T){ clearInterval(WIND_T); WIND_T=null; } }
 /* 對白泡停留（2026-10-10 試玩回饋「對白出現的很快，都看不清楚」）：停留隨字數 clamp(1800+250*字數, 3500, 6500) ms，SKIP 仍 300ms。
    每席一筆 BUB[id]={text,until,timer}：同席連說先取消舊計時器（否則舊句的計時器會提早收掉新句）；
-   renderSeats 會重建 .bubble，所以重畫後由 bubbleRestore 把未到期的泡補回同一段文字。純呈現，不碰 S.rng*。 */
+   renderSeats 會重建 .bubble，所以重畫後由 bubbleRestore 把未到期的泡補回同一段文字。純呈現，不涉亂數。 */
 const BUB_MIN_MS=3500, BUB_MAX_MS=6500;
 const BUB={};
 function bubDwell(txt){ return SKIP?300:Math.min(BUB_MAX_MS,Math.max(BUB_MIN_MS,1800+250*Array.from(String(txt)).length)); }
@@ -7943,11 +7958,55 @@ function pwRise(el,delay){
 function pwCap(id,html){ const el=$(id); if(!el) return; el.innerHTML=html; if(html) pwRise(el,0); }
 /* 演出可讀性小卷（2026-09-05 晚，使用者回饋 3「不知道誰丟、做了什麼」）：招式字幕寫出出招方、法寶、招名與效果說明，
    class 帶出招方系色與側別（CSS 靠那一側顯示）。who 給 null＝清空。 */
+/* 字幕不阻塞（?movecam≥1）：新字幕進來時，舊字幕不硬切——複製成「殘影」留在原位上方（最新的最靠近主字幕，一路往上疊），
+   每則殘影到「顯示滿 CAP_MIN_VIS_MS」才淡出；同時最多 CAP_GHOSTS 則，第 CAP_GHOSTS+1 則進來時最舊的立刻淡出
+   （連招極密時寧可犧牲最舊那則的留存，也不拉長戰鬥）。殘影是 #duel 底下的絕對定位層，不佔版面高度。 */
+let PW_CAP_AT=0, PW_CAP_GH=[]; /* PW_CAP_GH：新→舊，每項 {el,t:計時器} */
+function pwMovecamOn(){ return PW_FX.MOVECAM_LEVEL>0; }
+function pwCapGhostDrop(g,fade){
+  if(!g) return; clearTimeout(g.t);
+  if(fade&&!SKIP&&typeof g.el.animate==="function"){
+    try{ g.el.animate([{opacity:.6},{opacity:0}],{duration:PW_FX.CAP_FADE_MS,fill:"forwards"}).onfinish=()=>g.el.remove(); return; }catch(e){}
+  }
+  g.el.remove();
+}
+function pwCapGhostLayout(){
+  const host=$("duel"), el=$("duelMove"); if(!host||!el) return;
+  const hr=host.getBoundingClientRect(), er=el.getBoundingClientRect();
+  let y=er.bottom-hr.top+1;
+  for(const g of PW_CAP_GH){ g.el.style.top=y+"px"; y+=g.el.getBoundingClientRect().height; }
+}
+let PW_CAP_END_T=0;
+function pwCapGhostClear(){ clearTimeout(PW_CAP_END_T); PW_CAP_GH.forEach(g=>pwCapGhostDrop(g,false)); PW_CAP_GH=[]; PW_CAP_AT=0; }
+/* 三拍打完收字幕：?movecam 開著時，最後一則主字幕補滿 CAP_MIN_VIS_MS 才收（殘影淡出，不佔 sleep、不推遲結果列）。 */
+function pwMoveCapEnd(){
+  const el=$("duelMove");
+  if(!pwMovecamOn()||SKIP||!el||!el.innerHTML||!PW_CAP_AT){ pwMoveCap(null); return; }
+  PW_CAP_GH.forEach(g=>pwCapGhostDrop(g,true)); PW_CAP_GH=[];
+  clearTimeout(PW_CAP_END_T);
+  PW_CAP_END_T=setTimeout(()=>{ if(el.innerHTML){ pwMoveCap(null); } },Math.max(0,PW_FX.CAP_MIN_VIS_MS-(Date.now()-PW_CAP_AT)));
+}
+function pwCapGhostMake(el){
+  if(!el.innerHTML||SKIP) return;
+  const host=$("duel"); if(!host) return;
+  const age=Date.now()-PW_CAP_AT;
+  const e=document.createElement("div"); e.className="mvghost "+el.className.replace(/side-[AB]/,"").trim();
+  const ln=el.querySelector(".mvline"), ds=el.querySelector(".mvdesc");
+  e.textContent=(ln?ln.textContent:"")+(ds?"　"+ds.textContent:"");
+  e.style.cssText="position:absolute;left:3%;width:94%;opacity:.6;pointer-events:none;margin:0;text-align:center";
+  host.appendChild(e);
+  const g={el:e,t:0}; PW_CAP_GH.unshift(g);
+  g.t=setTimeout(()=>{ const i=PW_CAP_GH.indexOf(g); if(i>=0){ PW_CAP_GH.splice(i,1); pwCapGhostDrop(g,true); pwCapGhostLayout(); } },Math.max(PW_FX.CAP_FADE_MS,PW_FX.CAP_MIN_VIS_MS-age));
+  while(PW_CAP_GH.length>PW_FX.CAP_GHOSTS){ pwCapGhostDrop(PW_CAP_GH.pop(),true); }
+  pwCapGhostLayout();
+}
 function pwMoveCap(who,item,move,desc,fac,side){
   const el=$("duelMove"); if(!el) return;
-  if(who==null){ el.innerHTML=""; el.className=""; return; }
+  if(who==null){ el.innerHTML=""; el.className=""; pwCapGhostClear(); return; }
+  if(pwMovecamOn()) pwCapGhostMake(el);
   el.className=`${(FAC[fac]||{}).cls||""} side-${side}`;
   el.innerHTML=`<span class="mvline"><b>${who}</b>・${item}：${move}</span>`+(desc?`<span class="mvdesc">${desc}</span>`:"");
+  PW_CAP_AT=Date.now();
   pwRise(el,0);
 }
 function pwArenaHTML(f,views){
@@ -8249,6 +8308,16 @@ function pwItemOf(views,b){
   const v=views[b.side==="B"?1:0], u=v&&v.units.find(x=>x.id===b.actor);
   return (u&&u.nm)||"";
 }
+/* 招式特寫：招式記錄不帶出招單位，所以由法寶名反查擁有它的那一尊（pwItemOf 同一條 u.nm 口徑），對面取第一尊看得見的。
+   直接派 ys:fx-focus（不經 pwFocus，免得動到 FXC.focus／fights[].focus 的紀錄）；找不到單位就不切鏡，只留多停那段。 */
+function pwMoveFocus(side,foeSide,views,itemName,ms){
+  if(SKIP) return false;
+  const v=views&&views[side==="B"?1:0], u=v&&v.units.find(x=>x.nm===itemName);
+  const foe=pwFigsOf(foeSide).find(g=>g&&g.group&&g.group.visible&&g.unit);
+  if(!u||!foe) return false;
+  fx3d("ys:fx-focus",{side,actor:u.id,foeSide,target:foe.unit.id,ms,kind:"trait",dim:PW_FX.FOCUS_DIM,shrink:PW_FX.FOCUS_SHRINK});
+  return true;
+}
 async function pwPlayBeat(f,beat,list,views){
   const t0=Date.now();
   const tier=pwBeatTier(list,beat,f,views); /* v0.54：這一拍的視覺等級（招式時長與拍末下限都吃它） */
@@ -8311,7 +8380,11 @@ async function pwPlayBeat(f,beat,list,views){
          那是「跳過」的語意，不是這裡要的。關掉近景時一個事件都不派（P0 逐事件相同）。 */
       if(pwCloseup()) fx3d("ys:fx-focus-end",{why:"trait"});
       pwActorCard(b.side,nm,evFac); /* 近景切鏡卷 HUD (c)：招式一定配一張出手卡 */
-      if(staged){ await pwSleep(pwTierMs(mvTier)); continue; } /* 3D 舞台接了才等這一招 tier 的時長；fallback 照 v0.32 等 evMs */
+      /* 招式特寫（?movecam）：出招者與對面一起拉近，多停 hold 讓人看清「誰做了什麼」；字幕不阻塞（見 pwMoveCap）。純演出。 */
+      const hold=PW_FX.MOVECAM_LEVEL>0&&!SKIP ? Math.round(PW_FX.MOVECAM_HOLD_MS[PW_FX.MOVECAM_LEVEL]*PW_FX.MOVECAM_TIER_MUL[mvTier]) : 0;
+      if(hold>0&&pwCloseup()) pwMoveFocus(b.side,foeSide,views,nm,(staged?pwTierMs(mvTier):evMs)+hold);
+      if(staged){ await pwSleep(pwTierMs(mvTier)+hold); continue; } /* 3D 舞台接了才等這一招 tier 的時長；fallback 照 v0.32 等 evMs */
+      if(hold>0){ await pwSleep(evMs+hold); continue; }
     }else if(b.kind==="curse"){
       const cue=pwCurseFeedback(b),holder=b.side==="B"?f.B:f.A;
       const item={n:cue.name,curse:true};
@@ -8386,7 +8459,7 @@ async function playDuelWar(f,views){
     byBeat[Math.min(3,Math.max(1,b.beat|0))-1].push(b);
   }
   for(let beat=1;beat<=3;beat++) await pwPlayBeat(f,beat,byBeat[beat-1],views);
-  pwMoveCap(null);
+  pwMoveCapEnd();
   if(f.tie){
     $("duelResult").innerHTML=`<span class="mut">勢均力敵，互不失血</span>`;
   }else{
@@ -8439,6 +8512,7 @@ async function playDuel(f){
   /* 先清上一場的陣列與字幕（接線卷審查 H-3）：等 3D 妖載入那幾秒不能停在上一場的名字與隻數牌上，
      而且 duel-figures 的 realign 會抓 #dL/#dR，留著殘留的欄位會讓 3D 妖在新陣列畫出來之前先站錯位 */
   for(const id of ["duelArena","duelBeat","duelMove","duelResult","duelSub"]) $(id).innerHTML="";
+  pwCapGhostClear();
   fx3d("ys:duel",duelDetail); /* 鏡頭切到看得見交手兩人的低角度 */
   bgm("duel");                          /* 對決層：切一首緊張的，退場時回牌桌層 */
   $("table").classList.add("duelfade"); /* 讓 3D 當舞台背景 */
