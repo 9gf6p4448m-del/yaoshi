@@ -129,6 +129,18 @@ html.ysHome #vignette{background:radial-gradient(ellipse 62% 64% at 60% 42%,rgba
   #table.t3d .railTabs .tabpick::after{content:"";position:absolute;inset:-10px -6px}
   #table.t3d .railTabs .tabpick.on{background:var(--gold);color:#14101f}
   #table.t3d .railTabs button[aria-expanded="true"]{background:var(--c-ink-bg2);box-shadow:inset 0 -2px 0 var(--c-zhu)}
+  /* UX 檢視 H3／M4（v0.65.8）：› 提示可點、點過實心；押 N／👁 疊在籤角（絕對定位，不佔流、不推版面） */
+  #table.t3d .railTabs button{position:relative}
+  #table.t3d .railTabs .tabArr{flex:0 0 auto;margin-left:auto;font-size:14px;line-height:1;color:var(--gold);font-weight:700}
+  #table.t3d .railTabs .tabpick + .tabbid + .tabArr,#table.t3d .railTabs .tabpick + .tabArr{margin-left:2px}
+  #table.t3d .railTabs button.seen{background:var(--c-ink-bg2);background:color-mix(in srgb,var(--sys,var(--gold)) 42%,var(--c-ink-bg))}
+  #table.t3d .railTabs .tabbid,#table.t3d .railTabs .tabmark{position:absolute;z-index:2;pointer-events:none;font-size:10px;line-height:12px;padding:0 4px;background:var(--gold);color:#14101f;border-radius:1px;font-weight:700;white-space:nowrap}
+  #table.t3d .railTabs .tabbid{top:-7px;right:-3px}
+  #table.t3d #railE .railTabs .tabbid{right:auto;left:-3px}
+  #table.t3d .railTabs .tabbid.poison{background:var(--curse);color:#fff}
+  #table.t3d .railTabs .tabmark{bottom:-6px;right:-3px;background:var(--panel2);color:#ffd97a;border:1px solid #c9a24a}
+  #table.t3d #railE .railTabs .tabmark{right:auto;left:-3px}
+  #apprHint{position:fixed;left:50%;bottom:max(14px,var(--safe-bottom,0px));transform:translateX(-50%);z-index:30;pointer-events:none;padding:6px 14px;border:1px solid var(--line-gold);border-radius:var(--r-panel,2px);background:rgba(20,16,31,.92);color:var(--gold);font-size:13px;line-height:1.3;white-space:nowrap;box-shadow:0 2px 10px rgba(0,0,0,.5)}
   .railTabs button.sys-zuling{--sys:var(--sys-zuling)} .railTabs button.sys-xianghuo{--sys:var(--sys-xianghuo)}
   .railTabs button.sys-yinqi{--sys:var(--sys-yinqi)} .railTabs button.sys-curse{--sys:var(--sys-curse)}
   #table.t3d .railPages{display:none}
@@ -2905,7 +2917,7 @@ function chainHintHTML(p,it){
 /* ?sim=1 進平衡模擬器工具頁，不影響正常遊戲頁（不自動執行、不動任何既有流程） */
 /* ===== 版本字串單一事實來源（2026-09-02 使用者裁定）：每次改版只改下面這一行，<title> 與首頁那行都由此帶出；
    使用者以首頁字串判斷是否已推上線；線上檢查用 grep 'VERSION="' ===== */
-const VERSION="0.66.0", VERSION_NOTE="0.66.0：選角說明文字更正——收驚婆、孝女白琴、普渡爐主的說明原本寫的起始壽命（34、36、42）是舊制數字，改成實際開局壽命 44、46、52（純文字，結算不變）。3D 牌桌頂部的「今夜心願」不再另佔一整條擋住法寶——預設縮成一顆小標籤「🌒 心願名」，點一下浮出完整文案（再點、點別處、或 6 秒後收回，浮層不推版面；純呈現，結算不變）。中央卡片（教學、異事、局末、夜行錄章末）比畫面高時，動作鈕固定在卡片底部不再被底列切掉，卡片還能往下捲時鈕上方顯示「▾ 還有」；異事輸入頁主鈕不再留著「進入下一夜」；交卷後底列的出價摘要清掉，夜末與局末不再掛著與左側大字不符的壽命數（純呈現，結算不變）。0.65.5：對白框換新造型——深色木牌配金細線、左右兩側依說話角色上色、帶一個指向說話者座位的小尾巴；香火系（收驚婆、閭山法師、普渡爐主、大家樂組頭）右上角多一枚朱紅小印、祖靈系（獵人）底緣一圈骨色菱紋、陰氣系（紅衣婆婆、孝女白琴、陰間當鋪、青面攤主）框外泛暗綠微光並帶斷續綠火線，斷手書生只有角色色邊（純呈現，結算不變）。0.65.4：招式特寫——每支招式出手時鏡頭拉近出招者與對面、多停一拍讓你看清「誰做了什麼」（預設輕：每招多停 0.25 秒起；網址加 ?movecam=2 為中、?movecam=0 關閉回 0.65.3），招式字幕不再被下一則立刻蓋掉——舊字幕縮成一行留在下方至少 1.8 秒才淡出，三拍打完最後一則也補滿 1.8 秒才收（純演出，結算不變）。0.65.3：對白泡放慢——角色說話的泡停留隨字數（約 3.5～6.5 秒，原本固定 2.3 秒）、字放大到 14px、同一席連說不再被舊計時器提早收掉、畫面重畫時未到期的泡不再消失（純呈現，結算不變；按「跳過」仍 0.3 秒）。0.65.2：修正對戰字幕出現「法寶：undefined」與血祭過陰的字幕；中咒時的鏡頭推近預設關閉（網址加 ?cursecam=1 可開）。0.65.1：牌桌光影升級——四盞燈籠換成燭火暖橘、光圈收得更集中，桌後上方多一盞燭火聚光，桌上的法寶會在紅布上投出影子；背景的夜空與遠處屋簷維持原本的深藍紫層次。只在牌桌與首頁生效，對決畫面的燈籠、曝光與聚光照舊（只多一層很淡的環境反光）。純畫面，結算不變；網址加 ?fx=0 可退回 0.64.0 的燈光做比對。0.64.0：孝女白琴、閭山法師、普渡爐主有了自己的手——孝女手腕綁一圈米白粗麻帶、側邊打結垂下兩條短布尾，指尖與手背沾著淡淡紙錢灰；閭山法師戴黑檀念珠、拇指套黃骨扳指，手背一道朱紅毛筆符；普渡爐主腕上繞黃色雙股編繩、垂著一顆米白布福袋，無名指戴淡青綠玉戒。布尾與福袋會跟著手的動作晃、手停下就慢慢停住（純畫面，結算不變；網址加 ?handb3=0 回到 0.62.5 的手）。0.63.0：寫實美術上線——10 位角色的頭像（健康／蒼白／瀕死三種氣色）、選角大圖與 32 件法寶／詛咒品圖示全部換成寫實風格；「抓交替水符」依圖示改名「水鬼名冊」（效果不變）；白虎煞改成插針的白虎紙、冥婚紅包與林投姐髮簪、水鬼浮標等重畫成小圖也認得出。圖載入失敗時自動退回舊圖，選角後立刻按入市也不會被吞。純畫面，結算不變；網址加 ?pic=0 可退回舊圖做比對。0.62.6：擺錢推重新設計——錢改從自家信物前緣出發，手從身側斜斜伸過來、指尖抵著錢柱一路推，推錢時手不再來回彈跳；北席的錢要推過整個托盤，手只能伸到托盤後緣就停，最後約三成路程仍是錢自己滑過去；西席推到中線右邊那格時，越過中線前也有一小段錢自己走；推錢排隊換格等少數時刻手的朝向仍會一幀甩約 60°（0.62.5 排隊換格本來就有約 80° 的甩動，現在推錢途中也會出現）。拍令牌、敗方扒錢、勝方停一拍維持原樣。直式手機上（未納入這次驗收、尚未改善）：手偶爾會穿過別席的信物（比上一版多）；西席推錢剛開始約 6～9 幀看不到手；推到一半手看不見的幀數變多（量測劇本 75／111 幀，0.62.5 為 46／67）；手貼著錢推的程度未達橫式標準（最差一段只有 0.217／0.241）；西席推到中線右邊那格時，錢出了手搆得到的範圍後看不到手；推錢時手的計算量約為上一版的 6～7 倍。純畫面，結算不變。0.62.5：擺錢推的手動作回到 0.62.3 的跟錢方式（0.62.4 改版後手會停在原地、錢自己滑過去）；因此推錢時偶爾來回彈跳回到 0.62.3 的程度，拍令牌等其他動作的改善保留（純畫面，結算不變）。0.62.4：擺錢推與拍令牌時，手偶爾來回彈跳的問題略有改善（純畫面，結算不變）。0.62.3：詛咒時手的發抖與符紙堆擺動頻率跟著放慢，不再抖得比動作快（純畫面，結算不變）。0.62.2：手的動作預設放慢——擺錢、拍令牌、敗方扒錢、勝方停一拍與收手預設慢 1.5 倍，得標抓法寶與詛咒推按預設慢 1.3 倍（不用再加網址參數）；想回到之前的原速，網址後面加 ?handslow=1&grabslow=1。純畫面，結算不變。0.62.1：新增兩個網址參數，讓你在手機上自己調手的動作速度（不加參數＝跟之前一模一樣）——在網址後面加 ?handslow=2，擺錢、拍令牌、敗方扒錢、勝方停一拍與收手會整組慢 2 倍（錢柱、令牌跟著手一起慢，開標前公告也等手收完才出）；加 ?grabslow=2，得標抓法寶與詛咒推按慢 2 倍（揭盅卡跟著晚出）；兩個可以一起用，例如 ?handslow=2&grabslow=1.5。數字可以有小數，建議先試 1.5 與 2，找到順眼的值告訴我再寫成預設；0、負數、超過 10 或不是數字都當 1。純畫面，結算不變。0.62.0：新手模型上線——五指有指節、手背看得到血管與肌腱，皮膚更細緻；獵人的疤改成有凹凸的疤，青面攤主維持大塊斑，孝女白琴、閭山法師、普渡爐主的皮膚各自不同；拇指與手腕交界的細橫紋修掉了。純畫面，結算不變；網址加 ?skin=0 可退回新手網格＋舊皮膚做比對。0.61.1：毒標塞詛咒品放慢到約 2 秒——施放者的手臂從自己座位那側伸過來，把符紙堆貼著桌面繞過別件拍品推到受害者手上按住（按住約 0.7 秒才收手）；符紙堆不再被抬到半空，碰到桌上的錢或令牌時小幅抬過；北席塞給西、東席時先往前推、再沿著桌前繞過去，手一路蓋在符紙堆上不停頓；收手時先把手抬起再退回。桌機量過 12 種誰塞給誰的組合各一個擺法，手機與其他擺法未逐一驗（純演出，結算不變）。0.61.0：四位角色有了自己的手——青面攤主（青灰斑、泛黃長指甲、腕上一串銅錢）、紅衣婆婆（乾枯灰白、鉤狀長指甲、黑髮辮繞腕）、斷手書生（手腕一道斜斜的縫合痕、指尖墨漬）、大家樂組頭（粗短、金戒、舊錶、手背寫著號碼）；拍令牌時拇指收攏一些（純演出，結算不變；網址加 ?handb1=0 回舊的手、?thumb=0 回舊的拍法）；0.60.1：毒標塞詛咒品改成「推到受害者面前按住就停」——符紙堆按在受害者手上後留在他席前，不再被受害者拖回去（原本看起來像被拿走；純演出，結算不變）；0.60.0：得標改成「得標的人伸手把法寶抓回自己面前」——法寶被抓起時會掙扎一下，拿回後在席前停一下才收起；毒標塞詛咒品改成「施放者把符紙堆推過桌心、按在受害者手上」，按住時一條紙錢繩纏上受害者手腕、手會發抖（純演出，結算不變；可按「跳過」；網址加 ?grab=0 回舊的拋物線）；0.59.12：開標擺錢一席一席依序——一次只有一隻手在推，每席推完（含多格）再換下一席，最後一隻手收完稍停一下才出現開標前公告（純演出，結算不變；可按「跳過」）；0.59.11：開標擺錢放慢——錢從席位推到桌面的飛行、同席多格排隊與手的動作一起放慢（約 0.42→0.70 秒），開標前公告等到手與錢都停下再多停 1 秒才出現（純演出，結算不變；可按「跳過」）；0.59.10：開局載入修正——3D 牌桌比開局晚載好時桌面不再一片黑（補播開局事件）、預先攤平載入鏈讓牌桌更快出現、載入慢時顯示「請神入座中…」（純呈現，結算不變）；0.59.9：展開「盯上宣告」「你・倒數」面板改成不透明、蓋過席位名牌（底下的字不再穿透交錯）；0.59.8：開標先看擺錢——按「蓋牌開標」後先讓你看完大家把錢擺到桌上（約 2 秒，可按「跳過」），「開標前公告」才出現（純演出，結算不變）；0.59.7：席位之手中等寫實——所有角色的手換程式生成寫實皮膚（指甲、指節紋、肌腱、靜脈），收驚婆老皺乾、獵人粗有繭疤、當鋪蒼白修長；紅繩改圓繩繞腕、木珠球形、護腕加鉚釘；手連著延伸到畫面外的手臂（純演出，大小不變）；0.59.6：收驚婆、當鋪、獵人的手各帶角色記號（紅線、黑袖套＋算盤珠戒指、皮護腕＋舊疤，純演出）；0.59.5：四席各一隻寫實右手——出價時推錢柱、盯上時跟著令牌拍下、開標時敗方把錢扒回（純演出，可跳過，結算不變）；0.59.4：窄橫式手機燒香框不再被截成「第 5 夜…」，只留「你 x／敵 y」、請神夜改金框；0.59.3：出價時桌角信物依角色做一個小動作（算盤晃、白幡擺、獸夾合、法印壓…）；點窄籤進法寶鑑賞頁（鏡頭推近＋自轉＋idle浮動，取代開卡停靠）＋成交總覽／戰況改買家分欄與心願／對決／天明三段（Y版）";
+const VERSION="0.66.0", VERSION_NOTE="0.66.0：選角說明文字更正——收驚婆、孝女白琴、普渡爐主的說明原本寫的起始壽命（34、36、42）是舊制數字，改成實際開局壽命 44、46、52（純文字，結算不變）。3D 牌桌頂部的「今夜心願」不再另佔一整條擋住法寶——預設縮成一顆小標籤「🌒 心願名」，點一下浮出完整文案（再點、點別處、或 6 秒後收回，浮層不推版面；純呈現，結算不變）。中央卡片（教學、異事、局末、夜行錄章末）比畫面高時，動作鈕固定在卡片底部不再被底列切掉，卡片還能往下捲時鈕上方顯示「▾ 還有」；異事輸入頁主鈕不再留著「進入下一夜」；交卷後底列的出價摘要清掉，夜末與局末不再掛著與左側大字不符的壽命數（純呈現，結算不變）。拍品窄籤尾端多一個「›」、點過的籤變實心；第一次進鑑賞頁會提示「點空白返回・左右滑換件」（3 秒後消失、每局一次）；出價或盯上後，窄籤角上會看到「押 N」或 👁 標記；北列與押寶面板的箭頭統一（▾＝可展開、▴＝可收起），北列箭頭放大到 14px；押寶夜的面板預設收合、不再蓋住桌上的法寶（點一下可展開，純呈現，結算不變）。0.65.5：對白框換新造型——深色木牌配金細線、左右兩側依說話角色上色、帶一個指向說話者座位的小尾巴；香火系（收驚婆、閭山法師、普渡爐主、大家樂組頭）右上角多一枚朱紅小印、祖靈系（獵人）底緣一圈骨色菱紋、陰氣系（紅衣婆婆、孝女白琴、陰間當鋪、青面攤主）框外泛暗綠微光並帶斷續綠火線，斷手書生只有角色色邊（純呈現，結算不變）。0.65.4：招式特寫——每支招式出手時鏡頭拉近出招者與對面、多停一拍讓你看清「誰做了什麼」（預設輕：每招多停 0.25 秒起；網址加 ?movecam=2 為中、?movecam=0 關閉回 0.65.3），招式字幕不再被下一則立刻蓋掉——舊字幕縮成一行留在下方至少 1.8 秒才淡出，三拍打完最後一則也補滿 1.8 秒才收（純演出，結算不變）。0.65.3：對白泡放慢——角色說話的泡停留隨字數（約 3.5～6.5 秒，原本固定 2.3 秒）、字放大到 14px、同一席連說不再被舊計時器提早收掉、畫面重畫時未到期的泡不再消失（純呈現，結算不變；按「跳過」仍 0.3 秒）。0.65.2：修正對戰字幕出現「法寶：undefined」與血祭過陰的字幕；中咒時的鏡頭推近預設關閉（網址加 ?cursecam=1 可開）。0.65.1：牌桌光影升級——四盞燈籠換成燭火暖橘、光圈收得更集中，桌後上方多一盞燭火聚光，桌上的法寶會在紅布上投出影子；背景的夜空與遠處屋簷維持原本的深藍紫層次。只在牌桌與首頁生效，對決畫面的燈籠、曝光與聚光照舊（只多一層很淡的環境反光）。純畫面，結算不變；網址加 ?fx=0 可退回 0.64.0 的燈光做比對。0.64.0：孝女白琴、閭山法師、普渡爐主有了自己的手——孝女手腕綁一圈米白粗麻帶、側邊打結垂下兩條短布尾，指尖與手背沾著淡淡紙錢灰；閭山法師戴黑檀念珠、拇指套黃骨扳指，手背一道朱紅毛筆符；普渡爐主腕上繞黃色雙股編繩、垂著一顆米白布福袋，無名指戴淡青綠玉戒。布尾與福袋會跟著手的動作晃、手停下就慢慢停住（純畫面，結算不變；網址加 ?handb3=0 回到 0.62.5 的手）。0.63.0：寫實美術上線——10 位角色的頭像（健康／蒼白／瀕死三種氣色）、選角大圖與 32 件法寶／詛咒品圖示全部換成寫實風格；「抓交替水符」依圖示改名「水鬼名冊」（效果不變）；白虎煞改成插針的白虎紙、冥婚紅包與林投姐髮簪、水鬼浮標等重畫成小圖也認得出。圖載入失敗時自動退回舊圖，選角後立刻按入市也不會被吞。純畫面，結算不變；網址加 ?pic=0 可退回舊圖做比對。0.62.6：擺錢推重新設計——錢改從自家信物前緣出發，手從身側斜斜伸過來、指尖抵著錢柱一路推，推錢時手不再來回彈跳；北席的錢要推過整個托盤，手只能伸到托盤後緣就停，最後約三成路程仍是錢自己滑過去；西席推到中線右邊那格時，越過中線前也有一小段錢自己走；推錢排隊換格等少數時刻手的朝向仍會一幀甩約 60°（0.62.5 排隊換格本來就有約 80° 的甩動，現在推錢途中也會出現）。拍令牌、敗方扒錢、勝方停一拍維持原樣。直式手機上（未納入這次驗收、尚未改善）：手偶爾會穿過別席的信物（比上一版多）；西席推錢剛開始約 6～9 幀看不到手；推到一半手看不見的幀數變多（量測劇本 75／111 幀，0.62.5 為 46／67）；手貼著錢推的程度未達橫式標準（最差一段只有 0.217／0.241）；西席推到中線右邊那格時，錢出了手搆得到的範圍後看不到手；推錢時手的計算量約為上一版的 6～7 倍。純畫面，結算不變。0.62.5：擺錢推的手動作回到 0.62.3 的跟錢方式（0.62.4 改版後手會停在原地、錢自己滑過去）；因此推錢時偶爾來回彈跳回到 0.62.3 的程度，拍令牌等其他動作的改善保留（純畫面，結算不變）。0.62.4：擺錢推與拍令牌時，手偶爾來回彈跳的問題略有改善（純畫面，結算不變）。0.62.3：詛咒時手的發抖與符紙堆擺動頻率跟著放慢，不再抖得比動作快（純畫面，結算不變）。0.62.2：手的動作預設放慢——擺錢、拍令牌、敗方扒錢、勝方停一拍與收手預設慢 1.5 倍，得標抓法寶與詛咒推按預設慢 1.3 倍（不用再加網址參數）；想回到之前的原速，網址後面加 ?handslow=1&grabslow=1。純畫面，結算不變。0.62.1：新增兩個網址參數，讓你在手機上自己調手的動作速度（不加參數＝跟之前一模一樣）——在網址後面加 ?handslow=2，擺錢、拍令牌、敗方扒錢、勝方停一拍與收手會整組慢 2 倍（錢柱、令牌跟著手一起慢，開標前公告也等手收完才出）；加 ?grabslow=2，得標抓法寶與詛咒推按慢 2 倍（揭盅卡跟著晚出）；兩個可以一起用，例如 ?handslow=2&grabslow=1.5。數字可以有小數，建議先試 1.5 與 2，找到順眼的值告訴我再寫成預設；0、負數、超過 10 或不是數字都當 1。純畫面，結算不變。0.62.0：新手模型上線——五指有指節、手背看得到血管與肌腱，皮膚更細緻；獵人的疤改成有凹凸的疤，青面攤主維持大塊斑，孝女白琴、閭山法師、普渡爐主的皮膚各自不同；拇指與手腕交界的細橫紋修掉了。純畫面，結算不變；網址加 ?skin=0 可退回新手網格＋舊皮膚做比對。0.61.1：毒標塞詛咒品放慢到約 2 秒——施放者的手臂從自己座位那側伸過來，把符紙堆貼著桌面繞過別件拍品推到受害者手上按住（按住約 0.7 秒才收手）；符紙堆不再被抬到半空，碰到桌上的錢或令牌時小幅抬過；北席塞給西、東席時先往前推、再沿著桌前繞過去，手一路蓋在符紙堆上不停頓；收手時先把手抬起再退回。桌機量過 12 種誰塞給誰的組合各一個擺法，手機與其他擺法未逐一驗（純演出，結算不變）。0.61.0：四位角色有了自己的手——青面攤主（青灰斑、泛黃長指甲、腕上一串銅錢）、紅衣婆婆（乾枯灰白、鉤狀長指甲、黑髮辮繞腕）、斷手書生（手腕一道斜斜的縫合痕、指尖墨漬）、大家樂組頭（粗短、金戒、舊錶、手背寫著號碼）；拍令牌時拇指收攏一些（純演出，結算不變；網址加 ?handb1=0 回舊的手、?thumb=0 回舊的拍法）；0.60.1：毒標塞詛咒品改成「推到受害者面前按住就停」——符紙堆按在受害者手上後留在他席前，不再被受害者拖回去（原本看起來像被拿走；純演出，結算不變）；0.60.0：得標改成「得標的人伸手把法寶抓回自己面前」——法寶被抓起時會掙扎一下，拿回後在席前停一下才收起；毒標塞詛咒品改成「施放者把符紙堆推過桌心、按在受害者手上」，按住時一條紙錢繩纏上受害者手腕、手會發抖（純演出，結算不變；可按「跳過」；網址加 ?grab=0 回舊的拋物線）；0.59.12：開標擺錢一席一席依序——一次只有一隻手在推，每席推完（含多格）再換下一席，最後一隻手收完稍停一下才出現開標前公告（純演出，結算不變；可按「跳過」）；0.59.11：開標擺錢放慢——錢從席位推到桌面的飛行、同席多格排隊與手的動作一起放慢（約 0.42→0.70 秒），開標前公告等到手與錢都停下再多停 1 秒才出現（純演出，結算不變；可按「跳過」）；0.59.10：開局載入修正——3D 牌桌比開局晚載好時桌面不再一片黑（補播開局事件）、預先攤平載入鏈讓牌桌更快出現、載入慢時顯示「請神入座中…」（純呈現，結算不變）；0.59.9：展開「盯上宣告」「你・倒數」面板改成不透明、蓋過席位名牌（底下的字不再穿透交錯）；0.59.8：開標先看擺錢——按「蓋牌開標」後先讓你看完大家把錢擺到桌上（約 2 秒，可按「跳過」），「開標前公告」才出現（純演出，結算不變）；0.59.7：席位之手中等寫實——所有角色的手換程式生成寫實皮膚（指甲、指節紋、肌腱、靜脈），收驚婆老皺乾、獵人粗有繭疤、當鋪蒼白修長；紅繩改圓繩繞腕、木珠球形、護腕加鉚釘；手連著延伸到畫面外的手臂（純演出，大小不變）；0.59.6：收驚婆、當鋪、獵人的手各帶角色記號（紅線、黑袖套＋算盤珠戒指、皮護腕＋舊疤，純演出）；0.59.5：四席各一隻寫實右手——出價時推錢柱、盯上時跟著令牌拍下、開標時敗方把錢扒回（純演出，可跳過，結算不變）；0.59.4：窄橫式手機燒香框不再被截成「第 5 夜…」，只留「你 x／敵 y」、請神夜改金框；0.59.3：出價時桌角信物依角色做一個小動作（算盤晃、白幡擺、獸夾合、法印壓…）；點窄籤進法寶鑑賞頁（鏡頭推近＋自轉＋idle浮動，取代開卡停靠）＋成交總覽／戰況改買家分欄與心願／對決／天明三段（Y版）";
 /* 每次部署遞增此版號；首頁顯示與 asset query 都讀它，讓玩家可核實公開頁。 */
 const RELEASE_VERSION="0.66.0";
 /* ===== 音訊診斷與喚醒（2026-09-03，使用者回報 v0.27 iPhone 整個沒聲音、🔇 與靜音撥桿都排除）=====
@@ -3558,9 +3570,20 @@ function appraiseInkDone(){
   clearTimeout(pg.__inkTimer); pg.classList.remove("inking");
 }
 /** 進場／切換共用一條路（凍結 #4：鑑賞中點別的籤直接換，不回牌桌態；修訂：每次切換都重燒）。 */
+/* UX 檢視 H3（v0.65.8）：鑑賞頁第一次進來提示怎麼返回／換件，3 秒後自己消失；每局一次（newGame 重置）。不攔事件。 */
+let APPR_HINT_DONE=false, APPR_HINT_TIMER=null;
+function apprHintRemove(){ if(APPR_HINT_TIMER){ clearTimeout(APPR_HINT_TIMER); APPR_HINT_TIMER=null; } const h=typeof document!=="undefined"&&document.getElementById("apprHint"); if(h) h.remove(); }
+function apprHintOnce(){
+  if(APPR_HINT_DONE||typeof document==="undefined") return;
+  APPR_HINT_DONE=true;
+  const h=document.createElement("div"); h.id="apprHint"; h.setAttribute("role","status"); h.textContent="點空白返回・左右滑換件";
+  document.body.appendChild(h);
+  APPR_HINT_TIMER=setTimeout(apprHintRemove,3000);
+}
 function openAppraise(id,i){
   if(!appraiseSupported()) return;
   const rail=$(id); if(!rail||!rail.querySelector(`#mc${i}`)) return;
+  apprHintOnce();
   appraiseScrollRemove(); /* 上一卷先收（卡片放回原位），下面的 class 切換才看得到完整卡列 */
   ["railW","railE"].forEach(r=>{ if(r!==id){ railCardOpen(r,null); const pg=$(r)&&$(r).querySelector(".railPages"); if(pg){ pg.style.top=""; } } });
   railCardOpen(id,i);
@@ -3574,6 +3597,7 @@ function openAppraise(id,i){
 }
 function closeAppraise(){
   if(!APPR.on) return;
+  apprHintRemove();
   const id=APPR.id;
   appraiseScrollRemove();
   APPR.on=false; APPR.id=null; APPR.i=null;
@@ -3585,6 +3609,8 @@ function closeAppraise(){
  *  3D 不可用（?table3d=0 或托盤尚未掛上）時整個 .rail 本來就是 display:none，不會有機會呼叫到這裡。 */
 function railTabClick(id,i){
   if(!appraiseSupported()) return;
+  TAB_SEEN.add(S.round+":"+i);
+  try{ const b=document.querySelector(`#${id} .railTabs button[data-slot="${i}"]`); if(b) b.classList.add("seen"); }catch(e){}
   if(APPR.on&&APPR.id===id&&APPR.i===i){ closeAppraise(); return; }
   openAppraise(id,i);
 }
@@ -3662,9 +3688,27 @@ function tabPickHTML(i){
   const on=!!YB.pick[i];
   return `<span class="tabpick ${on?"on":""}" role="checkbox" aria-checked="${on}" aria-label="押寶夜勾選：${S.market[i].n}" onclick="event.stopPropagation();ybToggle(${i})">${on?"✓":""}</span>`;
 }
+/* UX 檢視 H3／M4（v0.65.8）：窄籤尾端補 ›（看得出能點開）、點過的籤變實心（.seen）、我標了哪件就在籤上疊一枚「押 N」／👁
+   （絕對定位疊在籤角，不佔流 ⇒ 籤與 #felt 的版面不動）。點過的記錄跟局走（newGame 清）。 */
+let TAB_SEEN=new Set();
+function tabBidHTML(i){
+  const b=typeof myBids!=="undefined"&&myBids&&myBids[i];
+  const bid=(b&&b.amt>0)?`<span class="tabbid ${b.intent==="poison"?"poison":""}">${b.intent==="poison"?"毒":"押"} ${b.amt}</span>`:"";
+  const mk=(typeof CFG!=="undefined"&&CFG.MARK_ON&&S.marks&&S.marks[ACTIVE]===i)?`<span class="tabmark" aria-label="我盯上這件">👁</span>`:"";
+  return bid+mk;
+}
+/** 出價視窗關閉（closeSheet 只換單張卡、不重畫窄籤）時，就地更新該槽窄籤的「押 N」／👁，不動版面。 */
+function tabBidRefresh(i){
+  try{
+    const b=document.querySelector(`.railTabs button[data-slot="${i}"]`); if(!b) return;
+    b.querySelectorAll(".tabbid,.tabmark").forEach(e=>e.remove());
+    const t=document.createElement("template"); t.innerHTML=tabBidHTML(i);
+    b.insertBefore(t.content,b.querySelector(".tabArr"));
+  }catch(e){}
+}
 function railHTML(idxs,cardFn,id){
   const fn=cardFn||mcardHTML;
-  const nav=`<div class="railTabs" aria-label="選擇要閱讀的法寶">${idxs.map(i=>`<button type="button" class="sys-${S.market[i].f}" data-slot="${i}" aria-expanded="false" onclick="railTabClick('${id}',${i})">${S.market[i].n}${tabPickHTML(i)}</button>`).join('')}</div>`;
+  const nav=`<div class="railTabs" aria-label="選擇要閱讀的法寶">${idxs.map(i=>`<button type="button" class="sys-${S.market[i].f}${TAB_SEEN.has(S.round+":"+i)?" seen":""}" data-slot="${i}" aria-expanded="false" onclick="railTabClick('${id}',${i})">${S.market[i].n}${tabPickHTML(i)}${tabBidHTML(i)}<span class="tabArr" aria-hidden="true">›</span></button>`).join('')}</div>`;
   /* .railCardClose 只在 3D 牌桌開卡停靠時顯示（見 assets/theme.css），其餘版面（#market 內嵌卡列、portrait fallback）
      不受影響——按鈕平時是 display:none。 */
   const close=`<button type="button" class="railCardClose" aria-label="關閉法寶卡" onclick="closeRailCard('${id}')">×</button>`;
@@ -4274,6 +4318,7 @@ function makeState(mode,seed,picks,privateDestinyDraws,destinyEffectMode="origin
   return S;
 }
 function newGame(mode,seed,picks,opts){
+  TAB_SEEN=new Set(); APPR_HINT_DONE=false; apprHintRemove();
   YB_COLLAPSED=false; CHAIN_SEEN.clear(); WISHCHIP_SEEN.clear(); PUBLIC_REVEAL=null; PRIVATE_PHASE="none"; REVEAL_ANIMATING=false; NW_OPEN_SAID=false; NW_BUBBLE=null; bubClear();
   try{ if(opts&&opts.chapter!=null) makeState(mode,seed,picks,undefined,undefined,undefined,opts); else makeState(mode,seed,picks);}catch(e){
     if(e.message!=="secure destiny draw unavailable") throw e;
@@ -6928,7 +6973,7 @@ function startBidUI(){
   if(CFG.MARK_ON&&S.marks&&S.marks[ACTIVE]===undefined){ showMarkUI(); return; }
   myBids=S.market.map(()=>({amt:0,type:"cons",intent:"keep",target:null}));
   /* 押寶夜（singleStake）：一注 X ＋ 勾選要壓哪幾件，交卷時才展開成 myBids */
-  YB=isStakeNight()?{amt:0,type:"cons",pick:S.market.map(()=>false)}:null;
+  YB=isStakeNight()?{amt:0,type:"cons",pick:S.market.map(()=>false)}:null; if(YB) YB_COLLAPSED=true; /* v0.65.8 M9：押寶夜面板預設收合，不蓋 3D 拍品；展開仍可用 */
   initIncense();
   showMarket();
 }
@@ -7013,7 +7058,7 @@ function pickMark(i){
   S.marks[ACTIVE]=i;
   if(i!=null) pushMark3d(ACTIVE,i); /* v0.56b 第二段：血玉令牌從自己席位重重拍在那一格的托盤前（純演出） */
   myBids=S.market.map(()=>({amt:0,type:"cons",intent:"keep",target:null}));
-  YB=isStakeNight()?{amt:0,type:"cons",pick:S.market.map(()=>false)}:null;
+  YB=isStakeNight()?{amt:0,type:"cons",pick:S.market.map(()=>false)}:null; if(YB) YB_COLLAPSED=true; /* v0.65.8 M9：押寶夜面板預設收合，不蓋 3D 拍品；展開仍可用 */
   initIncense();
   showMarket();
 }
@@ -7173,7 +7218,7 @@ function stakeHTML(ap){
   if(!YB) return "";
   const cap=consCapFor(ap);
   const n=YB.pick.filter((picked,i)=>picked&&!S.market[i].curse).length;
-  if(typeof YB_COLLAPSED!=="undefined"&&YB_COLLAPSED) return `<button type="button" class="stakebar collapsed" aria-expanded="false" aria-label="展開押寶面板" onclick="ybCollapse(false)"><span>🎲 <b style="color:var(--gold)">押寶</b> ${YB.amt}・已勾 <b style="color:var(--gold)">${n}</b> 件</span><span class="stakeArr" aria-hidden="true">▴</span></button>`;
+  if(typeof YB_COLLAPSED!=="undefined"&&YB_COLLAPSED) return `<button type="button" class="stakebar collapsed" aria-expanded="false" aria-label="展開押寶面板" onclick="ybCollapse(false)"><span>🎲 <b style="color:var(--gold)">押寶</b> ${YB.amt}・已勾 <b style="color:var(--gold)">${n}</b> 件</span><span class="stakeArr" aria-hidden="true">▾</span></button>`;
   const fee=stakeFeeRange(ap,YB.pick,YB.amt);
   const worst=stakeWorstCost(ap,YB.pick,YB.amt,YB.type);
   return `<div class="stakebar">
@@ -7181,7 +7226,7 @@ function stakeHTML(ap){
       <span style="font-size:11px"><span class="nob">🎲 <b style="color:var(--gold)">押寶夜</b>・</span><span class="nob">今夜這一注</span></span>
       <div class="stepper"><button onclick="ybBump(-1)">−</button><span class="amt" id="ybAmt">${YB.amt}</span><button onclick="ybBump(1)" data-sfx="chip">＋</button></div>
       <button class="typebtn${YB.type==="yaming"?" yaming":""}" onclick="ybFlip()">${YB.type==="cons"?"保守標":"押命標"}</button>
-      <button type="button" class="stakeCol" aria-label="收起押寶面板（讓出桌面）" aria-expanded="true" onclick="ybCollapse(true)">▾</button>
+      <button type="button" class="stakeCol" aria-label="收起押寶面板（讓出桌面）" aria-expanded="true" onclick="ybCollapse(true)">▴</button>
       <span class="mut" style="font-size:10.5px;text-align:left;line-height:1.35">已勾 <b style="color:var(--gold)">${n}</b> 件・勾幾件都同一個數字、<b>最多得一件</b>${YB.type==="cons"?`・上限 ${cap}`:""}<br>${n>0&&YB.amt>0?`全落標預留最多 ${worst}（買路錢 ${stakeFeeLabel(fee)}）`:n>0?"尚未下注＝今夜不出手":"未勾任何拍品＝今夜不出手"}・詛咒品不開標</span>
     </div>
   </div>`;
@@ -7395,6 +7440,7 @@ function closeSheet(){
   pushBid3d(ACTIVE,sheetIdx,myBids[sheetIdx]?myBids[sheetIdx].amt:0);
   const wrap=$("mc"+sheetIdx);
   if(wrap)wrap.outerHTML=mcardHTML(S.market[sheetIdx],sheetIdx);
+  tabBidRefresh(sheetIdx);
   updateBudget();
 }
 function updateBudget(){
