@@ -1208,9 +1208,13 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
      只在掏空頁出現（setH1Phase 管；setHollow 每次都先清掉）。 */
   /* 位置：#felt 左下角（桌上道具——骰子居中偏下、右側小人偶——都不在這裡；實測三尺寸與所有道具外框交集為 0）。
      窄寬度（max 116px）讓盯上頁那句折成兩行，才不會橫跨到骰子。 */
+  /* v0.66.0 整合修訂 1：合併信物小動作後，兩行版在 844／932 盯上頁會與座位 2 的算盤（含撥珠子 Mesh）、斷手書生等信物相交；
+     改成一行（行高 1.1；bottom 維持 2px——貼到 0 會讓 #felt scrollHeight 多 1px，違反 H1 條 2）。667 寬一行會橫跨座位 0 信物，改貼左緣、max-width 104px 維持兩行。
+     全角色排列掃描：tests/tools/h1hint-relic-sweep.mjs（三尺寸、夜 1 盯上／出價，交集全為 0）。 */
   #h1hint{display:none;position:absolute;left:4px;bottom:2px;z-index:3;pointer-events:none;
-    width:max-content;max-width:116px;padding:0 8px;border:1px solid var(--line-gold-soft);border-radius:8px;background:var(--strip-bg);
-    color:var(--gold);font-size:11px;line-height:1.2;white-space:normal;text-align:left}
+    width:max-content;max-width:none;padding:0 8px;border:1px solid var(--line-gold-soft);border-radius:8px;background:var(--strip-bg);
+    color:var(--gold);font-size:11px;line-height:1.1;white-space:nowrap;text-align:left}
+  @media (max-width:700px){ #h1hint{left:0;max-width:104px;padding:0 5px;white-space:normal} }
   #felt.hollow #h1hint.on{display:block}
   /* 盯上頁主鈕「不盯任何一件」＝次要（不蓋朱印、較矮、細字）；功能不變。屬性由 setH1Phase 設、setHollow 清。 */
   #table[data-h1="mark"] #mainbtn{height:36px;background:transparent;color:var(--ink);border:1px solid var(--line);box-shadow:none;font-weight:normal;font-size:13px}
