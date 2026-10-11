@@ -1,0 +1,49 @@
+{
+ "base": "db281fa950c8152f6afdb09aacd5905e57dde53c",
+ "M0_unmodified_defaultBase": {
+  "status": "green",
+  "line": "✔ #9(46) 相對基準：只動允許的檔案；index.html 只有 NW-C",
+  "msg": []
+ },
+ "M1_engine_line_modified": {
+  "status": "red",
+  "line": "✖ #9(46) 相對基準：只動允許的檔案；index.html 只有 NW-C",
+  "msg": [
+   "AssertionError [ERR_ASSERTION]: index.html 不得刪改既有行（基準 db281fa950c8152f6afdb09aacd5905e57dde53c 舊行 1258 起 1 行）"
+  ]
+ },
+ "M2_insert_outside_marker": {
+  "status": "red",
+  "line": "✖ #9(46) 相對基準：只動允許的檔案；index.html 只有 NW-C",
+  "msg": [
+   "AssertionError [ERR_ASSERTION]: hunk 新行 2886–2886 落在標記區間(9114–9130) 之外"
+  ]
+ },
+ "M3_insert_in_array_outside_marker": {
+  "status": "red",
+  "line": "✖ #9(46) 相對基準：只動允許的檔案；index.html 只有 NW-C",
+  "msg": [
+   "AssertionError [ERR_ASSERTION]: hunk 新行 9103–9103 落在標記區間(9114–9130) 之外"
+  ]
+ },
+ "M4_invalid_base": {
+  "status": "red",
+  "line": "✖ #9(46) 相對基準：只動允許的檔案；index.html 只有 NW-C",
+  "msg": [
+   "AssertionError [ERR_ASSERTION]: 範圍守衛未驗證：基準 deadbeefdeadbeef 不是有效提交"
+  ]
+ },
+ "M5_env_base_explicit": {
+  "status": "green",
+  "line": "✔ #9(46) 相對基準：只動允許的檔案；index.html 只有 NW-C",
+  "msg": []
+ },
+ "M6_no_origin_main": {
+  "status": "red",
+  "line": "✖ #9(46) 相對基準：只動允許的檔案；index.html 只有 NW-C",
+  "msg": [
+   "AssertionError [ERR_ASSERTION]: 範圍守衛未驗證：沒有 NW46_BASE，也算不出 merge-base HEAD origin/main（沒有 origin/main）——明確失敗，不靜默通過"
+  ]
+ }
+}
+ALL_AS_EXPECTED true

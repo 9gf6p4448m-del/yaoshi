@@ -40,13 +40,14 @@ try {
 } finally {
   sh(`git worktree remove --force ${WT}`, { cwd: ROOT, stdio: 'pipe' });
 }
-/* M6：沒有 origin/main 的 repo（git init 的獨立副本）：必須明確 fail */
-const T = fs.mkdtempSync(path.join(os.tmpdir(), 'n46-noorigin-'));
+/* M6：沒有 origin/main 的獨立 repo（worktree 內容、移除 .git 指標後 git init）：必須明確 fail */
+const WT2 = 'C:/Users/shung/wt/yaoshi/tmp-n46-noorigin';
+sh(`git worktree add --detach ${WT2} HEAD`, { cwd: ROOT, stdio: 'pipe' });
 try {
-  sh(`git archive HEAD -- index.html tests docs/experiments/2026-09-25-n1-nightwalk docs/experiments/2026-10-11-n1-ch4-6 | tar -x -C "${T}"`, { cwd: ROOT, shell: 'bash', stdio: 'pipe' });
-  sh('git init -q && git add -A && git -c user.email=a@b -c user.name=n commit -qm x', { cwd: T, stdio: 'pipe' });
-  results.M6_no_origin_main = run(T);
-} finally { fs.rmSync(T, { recursive: true, force: true }); }
+  fs.rmSync(path.join(WT2, '.git'), { force: true });
+  sh('git init -q && git add -A && git -c user.email=a@b -c user.name=n commit -qm x', { cwd: WT2, stdio: 'pipe' });
+  results.M6_no_origin_main = run(WT2);
+} finally { fs.rmSync(WT2, { recursive: true, force: true }); sh('git worktree prune', { cwd: ROOT, stdio: 'pipe' }); }
 console.log(JSON.stringify(results, null, 1));
 const exp = { M0_unmodified_defaultBase: 'green', M1_engine_line_modified: 'red', M2_insert_outside_marker: 'red', M3_insert_in_array_outside_marker: 'red', M4_invalid_base: 'red', M5_env_base_explicit: 'green', M6_no_origin_main: 'red' };
 const ok = Object.entries(exp).every(([k, v]) => results[k].status === v);
