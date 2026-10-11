@@ -558,8 +558,9 @@ img.pic.state-dying{filter:brightness(.92)}
 .bubble.show{opacity:1}
 /* ── 對白泡造型 D（示意）：C 的統一深木牌＋金細線＋角色色邊＋尾巴，疊系別「低面積」小飾（底色不換）。
    角色→系別對照只寫在這裡（CSS）；repo 內無權威對照（獵人＝祖靈見 GAME_DESIGN.md:357，其餘為自訂，待使用者確認） ── */
+/* 左右 3px 角色色邊在 border-box 下會吃掉內容寬：左右內距 9→6px 補回，內容區寬度＝0.65.4（3+6＝原 9），換行與泡寬不變 */
 .bubble{--rc:#c9b896;background:linear-gradient(180deg,#3b2a1c,#281b11);color:#f3e6cc;border:1px solid #7a5c32;
-  border-left:3px solid var(--rc);border-right:3px solid var(--rc);border-radius:2px;
+  border-left:3px solid var(--rc);border-right:3px solid var(--rc);border-radius:2px;padding-left:6px;padding-right:6px;
   box-shadow:inset 0 0 0 1px rgba(232,200,96,.16),0 3px 8px rgba(0,0,0,.65)}
 .bubble::after{content:"";position:absolute;top:50%;margin-top:-6px;left:-10px;border:6px solid transparent;border-right:7px solid var(--rc);border-left:0}
 #east .bubble::after{left:auto;right:-10px;border-right:0;border-left:7px solid var(--rc)}
