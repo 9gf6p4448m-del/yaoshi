@@ -44,9 +44,17 @@ async function withPage(fn) {
   } finally { await browser.close(); srv.kill(); }
 }
 
-/* 進到「該夜有心願」的出價頁（盯上頁按 pickMark 進入）。 */
-async function toBidWithWish(page, keepAuto = false) {
+/* 進到盯上頁（#mainbtn 顯示「不盯」）。同時在頁內裝 MutationObserver，用 performance.now 記心願標籤「第一次展開／最終收回」的時間
+   （頁內計時：機器負載造成的 node 端延遲不會被算進去）。 */
+async function toMark(page) {
   await page.evaluate(() => { CFG.T = 1; window.__yaoshi.newGame('solo', 1, ['qingmian']); });
+  await page.evaluate(() => {
+    window.__wc = { openedAt: null, closedAt: null, sentinelAt: null };
+    new MutationObserver(() => {
+      const o = !!document.querySelector('#feltHead .wishbar.open'), w = window.__wc, t = performance.now();
+      if (o) { if (w.openedAt === null) { w.openedAt = t; setTimeout(() => { w.sentinelAt = performance.now(); }, 4500); } w.closedAt = null; } else if (w.openedAt !== null && w.closedAt === null) w.closedAt = t;
+    }).observe(document.getElementById('feltHead'), { subtree: true, childList: true, attributes: true, attributeFilter: ['class'] });
+  });
   await page.waitForSelector('#table.on');
   for (let i = 0; i < 30; i++) {
     const st = await page.evaluate(() => { const b = document.querySelector('#mainbtn'); return { mark: !!b && b.textContent.includes('不盯'), disabled: !b || b.disabled }; });
@@ -55,12 +63,21 @@ async function toBidWithWish(page, keepAuto = false) {
     await page.waitForTimeout(150);
   }
   await page.waitForFunction(() => document.querySelector('#mainbtn')?.textContent.includes('不盯'), null, { timeout: 30000 });
+}
+
+/* 進到「該夜有心願」的出價頁（盯上頁按 pickMark 進入）。 */
+async function toBidWithWish(page, keepAuto = false) {
+  await toMark(page);
   await page.evaluate(() => pickMark(2));
   await page.waitForTimeout(700);
   const has = await page.evaluate(() => !!document.querySelector('#feltHead .wishbar'));
   assert.ok(has, '出價頁 #feltHead 內應有心願條（seed 1、solo）');
-  /* 出價頁第一次渲染會自動展開 3.5 秒：A／B／C 要量「預設收合態」，先等它收回（keepAuto 給 H／J 看自動展開本身） */
-  if (!keepAuto) await page.waitForFunction(() => !document.querySelector('#feltHead .wishbar.open'), null, { timeout: 20000 }).catch(() => {});
+  /* 出價頁第一次渲染會自動展開 3.5 秒：A／B／C 要量「預設收合態」，先等它收回（keepAuto 給 H／J 看自動展開本身）。
+     等待上限 20 秒（機器負載下頁面計時器實測會延遲到 13 秒）；超時＝測試失敗並印出狀態，不吞掉。 */
+  if (!keepAuto) {
+    try { await page.waitForFunction(() => !document.querySelector('#feltHead .wishbar.open'), null, { timeout: 20000 }); }
+    catch (e) { throw new Error('自動展開 20 秒內沒收回：' + JSON.stringify(await page.evaluate(() => ({ wc: window.__wc, cls: document.querySelector('#feltHead .wishbar')?.className, now: performance.now() })))); }
+  }
 }
 
 const HEAD = `(() => {
@@ -165,23 +182,30 @@ test('G 標籤含 ▾、展開後為 ▴', async () => {
   });
 });
 
-test('I 可點區 ≥32px（可見標籤上下 7px 處與外側擴張區都命中）', async () => {
+test('I 可點區 ≥32px（垂直掃描連續命中高度），且不往下吃拍品的點擊', async () => {
   await withPage(async (page) => {
     await toBidWithWish(page);
-    const tapAt = async (dy) => { const c = await page.evaluate((dy) => { const r = document.querySelector('#feltHead .wishbar').getBoundingClientRect(); return [r.left + r.width / 2, dy < 0 ? r.top + dy : r.bottom + dy]; }, dy); return c; };
     for (const [w, h] of VIEWPORTS) {
       await page.setViewportSize({ width: w, height: h });
       await page.waitForTimeout(400);
-      for (const dy of [-7, 7]) {
-        const [x, y] = await tapAt(dy);
-        const hit = await page.evaluate(([x, y]) => { const e = document.elementFromPoint(x, y); return !!(e && e.closest('.wishchip')); }, [x, y]);
-        assert.ok(hit, `${w}x${h} 可見標籤${dy < 0 ? '上' : '下'}方 7px 處應仍命中標籤（可點區 ≥32px）`);
-      }
+      const r = await page.evaluate(() => {
+        const c = document.querySelector('#feltHead .wishbar').getBoundingClientRect(), x = c.left + c.width / 2;
+        let n = 0, first = null, last = null;
+        for (let y = Math.floor(c.top) - 40; y <= Math.ceil(c.bottom) + 40; y++) {
+          const e = document.elementFromPoint(x, y);
+          if (e && e.closest('.wishchip')) { n++; if (first === null) first = y; last = y; }
+        }
+        const below = document.elementFromPoint(x, c.bottom + 2);
+        return { n, first, last, bottom: c.bottom, belowHit: !!(below && below.closest('.wishchip')) };
+      });
+      assert.ok(r.n >= 32, `${w}x${h} 可點區垂直命中高度 ${r.n}px 應 ≥32（${JSON.stringify(r)}）`);
+      /* 實測 3D 拍品外框頂端緊貼標籤下緣（844：拍品頂 92、標籤底 91）：標籤下緣外不得再是可點區，否則吃拍品邊緣的點擊 */
+      assert.equal(r.belowHit, false, `${w}x${h} 標籤下緣外 2px 不得仍命中標籤（會吃桌面拍品點擊）`);
     }
     await page.setViewportSize({ width: 844, height: 390 });
     await page.waitForTimeout(400);
-    const [x, y] = await tapAt(-6);
-    await page.mouse.click(x, y); // 點在可見標籤外的擴張區也要能展開
+    const [x, y] = await page.evaluate(() => { const r = document.querySelector('#feltHead .wishbar').getBoundingClientRect(); return [r.left + r.width / 2, r.top - 6]; });
+    await page.mouse.click(x, y); // 點在可見標籤上方的擴張區也要能展開
     assert.ok(await page.evaluate(() => document.querySelector('#feltHead .wishbar').classList.contains('open')), '點擴張區應能展開');
   });
 });
@@ -192,7 +216,15 @@ test('H／J 出價頁自動展開一次、不改版面高度；同夜重畫不�
     const st = () => page.evaluate(() => { const e = document.querySelector('#feltHead .wishbar'); return !!e && e.classList.contains('open') && e.querySelector('.wishFull').getBoundingClientRect().height > 0; });
     assert.equal(await st(), true, '出價頁第一次渲染應自動展開');
     const open = await page.evaluate(HEAD);
+    /* 等待上限 20 秒：機器負載下頁面計時器實測延遲到 13 秒，node 端等太短會誤判；「幾秒內收回」改由頁內 performance.now 差判定（見下） */
     await page.waitForFunction(() => !document.querySelector('#feltHead .wishbar.open'), null, { timeout: 20000 });
+    /* 「約 3.5 秒內收回」不用牆鐘判定（機器負載下頁面主執行緒會整段停擺數秒，實測 8 秒內只跑兩個 interval tick）：
+       展開被看到的同時在頁內另掛一個 4500ms 哨兵 timer；timer 依到期時間排序執行，所以負載再重，3500ms 的收合 timer 也必在哨兵前執行。
+       收合 timer 若被改成 15000，哨兵先響＝紅。下限（≥3000ms）仍用頁內 performance.now 差：延遲只會讓它更大，不會誤紅。 */
+    await page.waitForFunction(() => window.__wc.sentinelAt !== null, null, { timeout: 30000 });
+    const wc = await page.evaluate(() => window.__wc);
+    assert.ok(wc.closedAt <= wc.sentinelAt, `自動展開應在 4500ms 哨兵前收回（收回 ${wc.closedAt}、哨兵 ${wc.sentinelAt}）`);
+    assert.ok(wc.closedAt - wc.openedAt >= 3000, `自動展開不得短於 3000ms（頁內計時 ${wc.closedAt - wc.openedAt}）`);
     const closed = await page.evaluate(HEAD);
     assert.equal(open.headH, closed.headH, '自動展開不得改 #feltHead 高度');
     assert.equal(open.feltH, closed.feltH, '自動展開不得改 #felt 高度');
@@ -213,6 +245,39 @@ test('H／J 出價頁自動展開一次、不改版面高度；同夜重畫不�
     assert.equal(r.p1First, true, '熱座換人要對新玩家重新自動展開');
     assert.equal(r.p1Redraw, false, '新玩家同夜重畫也不重複');
     assert.equal(r.midRedraw, true, '自動展開途中的重畫不得把它吃掉');
+    /* newGame 後重新進出價頁要重新自動展開（WISHCHIP_SEEN 要被清掉） */
+    await toBidWithWish(page, true);
+    assert.equal(await st(), true, 'newGame 後再進出價頁應重新自動展開');
+  });
+});
+
+test('盯上頁不自動展開', async () => {
+  await withPage(async (page) => {
+    await toMark(page);
+    await page.waitForTimeout(800);
+    const r = await page.evaluate(() => ({ chip: !!document.querySelector('#feltHead .wishchip'), open: !!document.querySelector('#feltHead .wishchip.open'), wc: window.__wc }));
+    assert.equal(r.chip, true, '盯上頁（hollow）應有心願標籤，否則本測試沒有鑑別力');
+    assert.equal(r.open, false, '盯上頁不得自動展開');
+    assert.equal(r.wc.openedAt, null, '盯上頁整段都不得曾經展開');
+  });
+});
+
+test('K 手動收合後重畫不再重新展開；L 鍵盤 Enter／Space 可切換', async () => {
+  await withPage(async (page) => {
+    await toBidWithWish(page, true);
+    const sel = '#feltHead .wishbar';
+    const isOpen = () => page.evaluate((s) => !!document.querySelector(s + '.open'), sel);
+    assert.equal(await isOpen(), true, '前置：自動展開中');
+    const c = await page.evaluate((s) => { const r = document.querySelector(s).getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }, sel);
+    await page.mouse.click(c[0], c[1]); // 窗內手動收合
+    assert.equal(await isOpen(), false);
+    const again = await page.evaluate(() => { setFeltPrivateContext(window.__yaoshi.S.players[0], true); setFeltPrivateContext(window.__yaoshi.S.players[0], true, true); return !!document.querySelector('#feltHead .wishbar.open'); });
+    assert.equal(again, false, '手動收合後重畫（含出價頁重畫）不得再被補回展開');
+    await page.focus(sel);
+    await page.keyboard.press('Enter');
+    assert.equal(await isOpen(), true, 'Enter 應展開');
+    await page.keyboard.press(' ');
+    assert.equal(await isOpen(), false, 'Space 應收回');
   });
 });
 

@@ -639,9 +639,10 @@ img.pic.state-dying{filter:brightness(.92)}
 #feltHead .wishchip{position:relative;flex:0 0 auto;max-width:none;padding:1px 6px;line-height:12px;white-space:nowrap;cursor:pointer;pointer-events:auto}
 #feltHead .wishchip .wishFull{display:none}
 /* 可點提示 ▾／▴（字元與色沿用上方面板的 .nsumArr：金色 11px；其定位規則限定在 #north，這裡只取外觀）；
-   可點區以透明 ::before 上下各擴 9px（相對 padding box，含 1px 邊框後距邊框外緣 ≥8px；可見高度不變、不推版面），總高 ≥32px */
+   可點區以透明 ::before 往上擴到總高 ≥32px（實測 844／667／932 的 3D 拍品外框頂端緊貼標籤下緣，往下擴會吃到拍品邊緣的點擊，
+   所以主要往上（下緣只多 2px，剛好湊滿 32px）、左右各 4px；上方是 #feltHead 自己的列與座位卡，座位層 z-index:19 在上，不受影響）。可見高度不變、不推版面 */
 #feltHead .wishchip .nsumArr{color:var(--gold);font-size:11px;margin-left:3px}
-#feltHead .wishchip::before{content:"";position:absolute;left:-4px;right:-4px;top:-9px;bottom:-9px}
+#feltHead .wishchip::before{content:"";position:absolute;left:-4px;right:-4px;top:-17px;bottom:-2px}
 /* 窄橫向（桌心欄＜縮寫條＋標籤並排的寬度，如 667）：標籤只換視覺順序到月相格右邊，與月相同一列，縮寫條整句落第二列；
    DOM 順序與文字不動。放得下的視窗（844 起）維持月相／縮寫／標籤同一列。 */
 @media (orientation:landscape) and (max-width:760px){
@@ -3998,18 +3999,24 @@ function wishChipClose(el){
   clearTimeout(WISHCHIP_TIMER); WISHCHIP_TIMER=0;
   if(el){ el.classList.remove("open"); el.setAttribute("aria-expanded","false"); const a=el.querySelector(".nsumArr"); if(a) a.textContent="▾"; }
 }
+function wishChipToggle(target){
+  const open=document.querySelector(".wishchip.open");
+  const hit=target&&target.closest?target.closest(".wishchip"):null;
+  if(hit||open) WISHCHIP_AUTO.until=0; /* 使用者手動展開／收合：之後的重畫不再補回自動展開 */
+  if(hit){
+    if(hit===open) wishChipClose(hit);
+    else{
+      if(open) wishChipClose(open);
+      wishChipOpen(hit,6000);
+    }
+  }else if(open) wishChipClose(open);
+}
 function wishChipBind(){
   if(WISHCHIP_BOUND) return; WISHCHIP_BOUND=true;
-  document.addEventListener("click",e=>{
-    const open=document.querySelector(".wishchip.open");
-    const hit=e.target&&e.target.closest?e.target.closest(".wishchip"):null;
-    if(hit){
-      if(hit===open) wishChipClose(hit);
-      else{
-        if(open) wishChipClose(open);
-        wishChipOpen(hit,6000);
-      }
-    }else if(open) wishChipClose(open);
+  document.addEventListener("click",e=>wishChipToggle(e.target));
+  /* role=button 要能用鍵盤：Enter／Space 與點擊同一套邏輯 */
+  document.addEventListener("keydown",e=>{
+    if((e.key==="Enter"||e.key===" ")&&e.target&&e.target.closest&&e.target.closest(".wishchip")){ e.preventDefault(); wishChipToggle(e.target); }
   });
 }
 /* 3D 拍賣桌的資訊層級：私有心願與公開夜況同在 #feltHead；舊平面桌維持原本 stage 位置。
