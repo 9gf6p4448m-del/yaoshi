@@ -151,7 +151,7 @@ async function apprProbe(page, phase) {
   const info = await page.evaluate(([rail]) => {
     const R = (e) => { const r = e.getBoundingClientRect(); return { l: r.left, t: r.top, r: r.right, b: r.bottom, w: r.width, h: r.height }; };
     const a = document.querySelector(`#${rail} .asc-act`), f = document.querySelector(`#${rail} .asc-fold`), g = document.querySelector(`#${rail} .asc-gain`);
-    const cs = (e) => { if (!e) return null; const c = getComputedStyle(e); return { cls: e.className, text: e.textContent.trim(), bg: c.backgroundColor, bts: c.borderTopStyle, bbs: c.borderBottomStyle, display: c.display }; };
+    const cs = (e) => { if (!e) return null; const c = getComputedStyle(e); return { cls: e.className, text: e.innerText.trim(), bg: c.backgroundColor, bts: c.borderTopStyle, bbs: c.borderBottomStyle, display: c.display }; };
     const ra = a ? R(a) : null;
     let hit = null;
     if (ra) { const e = document.elementFromPoint((ra.l + ra.r) / 2, (ra.t + ra.b) / 2); hit = !!e && (e === a || a.contains(e)); }
@@ -247,7 +247,7 @@ test('3 卷軸上有實體鈕；點擊等同點紙面；667x375 完整可見可�
       const a = d['appr_' + ph];
       assert.ok(a && !a.err, `${k} ${ph}：${a && a.err}`);
       assert.ok(a.act, `${k} ${ph}：卷軸上沒有 .asc-act 鈕`);
-      assert.match(a.act.text, ph === 'mark' ? /盯這一件/ : /出價這一件/, `${k} ${ph}：鈕文字不對`);
+      assert.match(a.act.text, a.vw <= 700 ? (ph === 'mark' ? /盯它/ : /出價/) : (ph === 'mark' ? /盯這一件/ : /出價這一件/), `${k} ${ph}：鈕文字不對（${a.act.text}）`); // 667 寬用短標籤（修訂：方案 1）
       assert.equal(a.inWin, true, `${k} ${ph}：鈕沒有完整落在視窗內 ${JSON.stringify(a.rectAct)}`);
       assert.equal(a.hit, true, `${k} ${ph}：鈕中心被別的元素蓋住（elementFromPoint 未命中）`);
     }

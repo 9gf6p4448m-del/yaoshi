@@ -1183,6 +1183,15 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
   .asc-ctl{display:flex;align-items:center;justify-content:space-between;gap:8px}
   .asc-pick.asc-act{margin-left:auto;flex:0 0 auto;background:var(--asc-zhu);color:#f6e4c8;min-height:28px;padding:0 10px}
   .asc.tight .asc-act{min-height:22px;padding:0 8px}
+  /* 窄畫面（667 寬）紙面只有約 110px：全標籤與規則鈕併列放不下會把規則鈕擠成多行、整卷高度爆掉、鏡子縮小——
+     改用短標籤（出價／盯它、規則 N 條 ▾）；寬畫面維持全標籤。 */
+  .asc-act .ls{display:none}
+  @media (max-width:700px){
+    .asc-act .lf{display:none} .asc-act .ls{display:inline}
+    .asc-fold .lf{display:none} .asc-ctl{gap:4px}
+    .asc-pick.asc-act,.asc.tight .asc-act{padding:0 5px}
+    .asc-ctl .asc-fold::after{content:"▾"}
+  }
   .asc-fold{background:none;border:0;border-bottom:1px dashed var(--asc-zhu);font-size:.92em}
   .asc-fold::after{content:" ▾";font-weight:700}
 </style>
@@ -3391,8 +3400,8 @@ function ascPickHTML(it,i){
 function ascActHTML(it,i){
   if(typeof YB!=="undefined"&&YB) return "";
   const ph=(typeof TRAY_PHASE!=="undefined")?TRAY_PHASE:null;
-  if(ph==="mark") return `<button type="button" class="asc-pick asc-act mark">👁 盯這一件</button>`;
-  if(ph==="bid") return `<button type="button" class="asc-pick asc-act bid">出價這一件</button>`;
+  if(ph==="mark") return `<button type="button" class="asc-pick asc-act mark"><span class="lf">👁 盯這一件</span><span class="ls">盯它</span></button>`;
+  if(ph==="bid") return `<button type="button" class="asc-pick asc-act bid"><span class="lf">出價這一件</span><span class="ls">出價</span></button>`;
   return "";
 }
 function appraiseScrollHTML(it,side,i){
@@ -3407,7 +3416,7 @@ function appraiseScrollHTML(it,side,i){
     `<div class="asc-strip"><div class="asc-nm">${apprEsc(it.n)}</div><div class="asc-seal">${apprEsc(fac)}</div></div>`+
     `<div class="asc-body">${plain?`<div class="asc-gain"><span class="asc-lab">${it.curse?"注意":"標下它"}</span>${apprEsc(plain)}</div>`:""}`+
     `${tags?`<div class="asc-tags">${tags}</div>`:""}${ascPickHTML(it,i)}${youH}`+
-    `<div class="asc-rules"><div class="asc-ctl"><button type="button" class="asc-fold">✦ 規則原文 <b>0</b> 條・點開</button>${act}</div>${extra?`<div class="asc-extra">${apprEsc(extra)}</div>`:""}</div>`+
+    `<div class="asc-rules"><div class="asc-ctl"><button type="button" class="asc-fold"><span class="lf">✦ </span>規則<span class="lf">原文</span> <b>0</b> 條<span class="lf">・點開</span></button>${act}</div>${extra?`<div class="asc-extra">${apprEsc(extra)}</div>`:""}</div>`+
     `</div></div><div class="asc-rod bot"></div></div>`;
 }
 /** 收卷：卡片放回原位（fillRails 重畫前、關閉、換件都走這裡）。 */
