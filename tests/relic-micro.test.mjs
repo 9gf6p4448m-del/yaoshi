@@ -180,3 +180,58 @@ test('M3b（加嚴，凍結檔修訂 2）煙只在動作窗可見：窗外不可
   assert.ok(vis / total <= 1.4 / 6 + 0.02, '煙可見占比 ' + (vis / total).toFixed(3));
   a.props.dispose();
 });
+
+/* ── 修訂 3（加嚴，冷讀審查補的斷言）─────────────────────────────────────────── */
+const pivotOf = (g) => g.children.find((c) => c.name === 'relic-micro-0');
+const posKey = (m) => { const p = m.geometry.attributes.position, c = m.geometry.attributes.color, out = []; for (let i = 0; i < p.count; i++) out.push([p.getX(i), p.getY(i), p.getZ(i), c ? c.getX(i) : 0, c ? c.getY(i) : 0, c ? c.getZ(i) : 0].map((v) => v.toFixed(6)).join(',')); return out; };
+
+test('M13 算盤：父件與分件任一時刻恰有一邊可見；窗外父件可見（不得永久消失）', () => {
+  const a = make(CUR), parent = relicMeshes(a.group)[0], pv = pivotOf(a.group); let sawPivot = false;
+  sim(a, 40, () => { const p = parent.visible, q = pv.visible; assert.ok(p !== q, '父件與分件同時可見或同時不可見'); if (q) sawPivot = true; });
+  assert.ok(sawPivot); assert.equal(parent.visible, true); a.props.dispose();
+});
+
+test('M14 分件與父件逐頂點（位置＋頂點色）相同，材質欄位相同', () => {
+  const a = make(CUR), parent = relicMeshes(a.group)[0], parts = kids(a.group).filter((k) => k.name.startsWith('relic-micro-0-'));
+  const want = posKey(parent).sort(), got = parts.flatMap(posKey).sort();
+  assert.deepEqual(got, want, '分件頂點（含頂點色）與父件不一致');
+  for (const k of parts) {
+    const A = k.material, B = parent.material;
+    assert.equal(A.side, B.side); assert.equal(A.roughness, B.roughness); assert.equal(A.metalness, B.metalness);
+    assert.equal(A.emissive.getHex(), B.emissive.getHex()); assert.equal(A.vertexColors, B.vertexColors); assert.equal(A.type, B.type);
+  }
+  a.props.dispose();
+});
+
+test('M4c 出價動作結束後空閒排程恢復（出價一次後仍會再演）', () => {
+  const a = make(CUR), seat0 = () => kids(a.group).filter((k) => seatOf(k) === 0);
+  a.props.bid(0, 0, 3); sim(a, 1.0);
+  let again = false; sim(a, 14, () => { if (seat0().some((k) => k.visible)) again = true; });
+  assert.ok(again, '出價之後 14 秒內算盤沒有再撥珠'); a.props.dispose();
+});
+
+test('M5b 動作結束前一幀珠偏移已近 0（不得停在最大偏移再硬跳回）', () => {
+  const a = make(CUR), rows = kids(a.group).filter((k) => k.name.includes('beads-')); let last = null, worst = 0, ends = 0, prevOn = false;
+  sim(a, 20, () => { const on = rows[0].visible; if (on) last = Math.abs(rows[0].position.x); if (prevOn && !on) { ends++; worst = Math.max(worst, last); } prevOn = on; });
+  assert.ok(ends >= 2); assert.ok(worst <= 0.0015, '結束前一幀偏移 ' + worst); a.props.dispose();
+});
+
+test('M4d dt=0 時鐘不前進：先餵 100 次 dt=0 再跑，首次動作時刻與沒餵相同', () => {
+  const first = (pre) => { const r = make(CUR); for (let i = 0; i < pre; i++) r.props.update(0); let t = 0, f = null; for (let i = 0; i < 600 && f === null; i++) { r.props.update(DT); t += DT; if (kids(r.group).some((k) => k.visible)) f = t; } r.props.dispose(); return f; };
+  assert.equal(first(100), first(0));
+});
+
+test('M9b 換角色後不殘留空的 pivot 群組', () => {
+  const a = make(CUR); assert.ok(pivotOf(a.group));
+  a.props.setSeats([0, 1, 2, 3].map((id) => ({ id, role: 'hunter' })));
+  assert.equal(a.group.children.filter((c) => c.name.startsWith('relic-micro-')).length, 0);
+  a.props.dispose();
+});
+
+test('M15 動作窗中途換版面：下一次 update 後分件姿態與父件同步', () => {
+  const a = make(CUR), parent = relicMeshes(a.group)[0], pv = pivotOf(a.group); let g = 0;
+  while (!pv.visible && g++ < 1200) sim(a, DT);
+  assert.ok(pv.visible); a.props.setLayout(...LAYOUTS.P); a.props.update(DT);
+  assert.ok(close([pv.position.toArray(), pv.scale.toArray(), [pv.rotation.y]], [parent.position.toArray(), parent.scale.toArray(), [parent.rotation.y]], 1e-12), '分件姿態與父件脫鉤');
+  a.props.dispose();
+});
