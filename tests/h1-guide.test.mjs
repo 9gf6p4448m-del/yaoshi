@@ -13,7 +13,7 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
-import { driveToFirst, openGame, waitTrayReady, scr, DRIVE_STEP } from './tools/appraise-c-lib.mjs';
+import { driveToFirst, openGame, waitTrayReady, waitSettled, scr, DRIVE_STEP } from './tools/appraise-c-lib.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SRV_ROOT = process.env.YAOSHI_RENDER_ROOT || ROOT;
@@ -83,7 +83,7 @@ async function driveRounds(page, vpKey) {
       if (!cls) { out[r].err = '沒到盯上／出價頁'; return out; }
       const rd = await page.evaluate(() => window.__yaoshi.S.round);
       if (rd !== r) { if (rd > r) { out[r].err = `round 跳到 ${rd}`; return out; } continue; }
-      await waitTrayReady(page); await page.waitForTimeout(400);
+      await waitTrayReady(page); await waitSettled(page); await page.waitForTimeout(1200); // 夜與夜之間桌上道具／拍品還在歸位（約 0.7 秒內），量穩定後的位置
       const m = await page.evaluate(MEAS);
       if (cls === 'mark') {
         out[r].mark = m;
@@ -92,7 +92,7 @@ async function driveRounds(page, vpKey) {
         await page.waitForTimeout(500);
         // pickMark 後守衛 500ms 內主鈕被吞；等到出價頁
         for (let i = 0; i < 200 && (await scr(page)) !== 'bid'; i++) await page.waitForTimeout(20);
-        if ((await scr(page)) === 'bid') { await page.waitForTimeout(300); out[r].bid = await page.evaluate(MEAS); if (SHOT_DIR) await page.screenshot({ path: path.join(SHOT_DIR, `${vpKey}-n${r}-bid.png`) }); }
+        if ((await scr(page)) === 'bid') { await waitSettled(page); await page.waitForTimeout(1200); out[r].bid = await page.evaluate(MEAS); if (SHOT_DIR) await page.screenshot({ path: path.join(SHOT_DIR, `${vpKey}-n${r}-bid.png`) }); }
       } else {
         out[r].bid = m;
         if (SHOT_DIR) await page.screenshot({ path: path.join(SHOT_DIR, `${vpKey}-n${r}-bid.png`) });
