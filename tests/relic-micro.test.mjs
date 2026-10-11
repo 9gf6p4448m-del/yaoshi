@@ -32,7 +32,8 @@ function make(create, { fx = true, roles = WORST, layout = 'L', slow } = {}) {
   return { parent, props, group: props.group };
 }
 const relicMeshes = (g) => g.children.filter((c) => c.name && c.name.startsWith('relic-') && !c.name.startsWith('relic-micro'));
-const kids = (g) => relicMeshes(g).flatMap((m) => m.children.filter((c) => c.isMesh));
+const kids = (g) => { const out = []; g.traverse((o) => { if (o.isMesh && o.name.startsWith('relic-micro-')) out.push(o); }); return out; };
+const seatOf = (k) => Number(k.name.split('-')[2]);
 const visMeshes = (g) => { let n = 0; g.traverse((o) => { if ((o.isMesh || o.isInstancedMesh) && o.visible) { let p = o.parent, ok = true; while (p) { if (!p.visible) ok = false; p = p.parent; } if (ok) n++; } }); return n; };
 const allMeshes = (g) => { let n = 0; g.traverse((o) => { if (o.isMesh) n++; }); return n; };
 const pose = (g) => relicMeshes(g).map((m) => [...m.position.toArray(), m.rotation.x, m.rotation.y, m.rotation.z, ...m.scale.toArray()]);
@@ -55,19 +56,23 @@ test('M2 預設開：空閒期間父信物姿態與基準逐值相等（動作�
   a.props.dispose(); b.props.dispose();
 });
 
-test('M3 draw call：可見 Mesh 數 − 基準 ≤ 4、至少出現過 1；子 Mesh ≤ 24 三角形；信物 tris 不變', () => {
+test('M3 draw call：可見 Mesh 數 − 基準 ≤ 4、至少出現過 1；分件三角形總和＝父 Mesh（修訂 A）、煙 ≤ 4；信物 tris 不變', () => {
   const a = make(CUR), b = make(BASE); let max = -9, seen = false;
   sim(a, 30, () => { b.props.update(DT); const d = visMeshes(a.group) - visMeshes(b.group); max = Math.max(max, d); if (d >= 1) seen = true; });
   assert.ok(seen, '子 Mesh 從未出現（空轉）');
   assert.ok(max <= 4 && max >= 1, 'max delta=' + max);
   assert.ok(kids(a.group).length > 0);
-  for (const m of kids(a.group)) assert.ok(tris(m) <= 24, m.name + ' tris=' + tris(m));
+  // 修訂 A（2026-10-11，使用者經主 session 同意）：算盤分件（body＋兩排珠）三角形總和 == 父 Mesh；煙 ≤ 4
+  const parts = kids(a.group).filter((k) => !k.name.includes('smoke')), parent0 = relicMeshes(a.group)[0];
+  assert.equal(parts.length, 3);
+  assert.equal(parts.reduce((n, k) => n + tris(k), 0), tris(parent0), '分件總和 ≠ 父 Mesh（珠子外觀被改）');
+  for (const k of kids(a.group).filter((q) => q.name.includes('smoke'))) assert.ok(tris(k) <= 4, k.name + ' tris=' + tris(k));
   assert.deepEqual(a.props.stats().relics.map((x) => x.tris), b.props.stats().relics.map((x) => x.tris));
   a.props.dispose(); b.props.dispose();
 });
 
 test('M4 只在空閒：出價動作期間該席子 Mesh 不可見且珠位移為 0', () => {
-  const a = make(CUR), seat0 = () => relicMeshes(a.group)[0].children.filter((c) => c.isMesh);
+  const a = make(CUR), seat0 = () => kids(a.group).filter((k) => seatOf(k) === 0);
   let guard = 0;
   while (!seat0().some((k) => k.visible) && guard++ < 1200) sim(a, DT);
   assert.ok(seat0().some((k) => k.visible), '等不到 seat0 動作窗');
@@ -85,7 +90,7 @@ test('M4b dt=0 不演', () => {
 });
 
 test('M5 動作確實有、精確回位：珠偏移 0.006–0.012、結束為 0；煙峰值 ≥0.25 且不可見時為 0', () => {
-  const a = make(CUR), dang = relicMeshes(a.group)[0], rows = dang.children.filter((c) => c.name.includes('beads'));
+  const a = make(CUR), rows = kids(a.group).filter((k) => k.name.includes('beads-'));
   assert.equal(rows.length, 2, '算盤應有兩排珠子 Mesh');
   const smokes = kids(a.group).filter((k) => k.name.includes('smoke')); assert.equal(smokes.length, 2, '收驚婆與爐主各一縷煙');
   let maxX = 0, peak = 0, idleZero = true, prevOn = false, endsZero = true;
@@ -110,14 +115,11 @@ test('M6 不增遮擋：子 Mesh 世界 AABB ⊆ relicBoxes；兩套版面 relic
     assert.equal(JSON.stringify(a.props.relicObstacles()), JSON.stringify(b.props.relicObstacles()), layout + ' relicObstacles');
     const boxes = a.props.relicBoxes(), box = new THREE.Box3(); let checked = 0; const E = 1e-9;
     sim(a, 24, () => {
-      relicMeshes(a.group).forEach((m, seat) => {
-        const B = boxes.find((x) => x.seat === seat);
-        for (const k of m.children.filter((c) => c.isMesh && c.visible)) {
-          box.setFromObject(k);
-          assert.ok(box.min.x >= B.x - B.hx - E && box.max.x <= B.x + B.hx + E && box.min.z >= B.z - B.hz - E && box.max.z <= B.z + B.hz + E && box.max.y <= B.top + E, `${layout} ${k.name} 超出 relicBoxes`);
-          checked++;
-        }
-      });
+      for (const k of kids(a.group).filter((q) => q.visible)) {
+        const B = boxes.find((x) => x.seat === seatOf(k)); box.setFromObject(k);
+        assert.ok(box.min.x >= B.x - B.hx - E && box.max.x <= B.x + B.hx + E && box.min.z >= B.z - B.hz - E && box.max.z <= B.z + B.hz + E && box.max.y <= B.top + E, `${layout} ${k.name} 超出 relicBoxes`);
+        checked++;
+      }
     });
     assert.ok(checked > 100, 'checked=' + checked);
     a.props.dispose(); b.props.dispose();
