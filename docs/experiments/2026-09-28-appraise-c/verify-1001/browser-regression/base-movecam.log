@@ -1,0 +1,67 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: r4-L2 932x430：版面 gate（scrollHeight／拍燈頂／結果列／副行底）與 movecam=0 相同
++ actual - expected
+
+  {
+    lamp: null,
+    res: {
++     bottom: 339.59375,
+-     bottom: 339.09375,
+      left: 404.21875,
+      right: 527.78125,
++     top: 313.59375
+-     top: 313.09375
+    },
+    sh: 430,
++   sub: 358.59375
+-   sub: 358.09375
+  }
+
+    at file:///C:/Users/shung/wt/yaoshi/verify-1001/tests/movecam.test.mjs:312:10 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: {
+    sh: 430,
+    lamp: null,
+    res: {
+      top: 313.59375,
+      bottom: 339.59375,
+      left: 404.21875,
+      right: 527.78125
+    },
+    sub: 358.59375
+  },
+  expected: {
+    sh: 430,
+    lamp: null,
+    res: {
+      top: 313.09375,
+      bottom: 339.09375,
+      left: 404.21875,
+      right: 527.78125
+    },
+    sub: 358.09375
+  },
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.16.0
+✖ tests\movecam.test.mjs (124867.7388ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 124876.067
+
+✖ failing tests:
+
+test at tests\movecam.test.mjs:1:1
+✖ tests\movecam.test.mjs (124867.7388ms)
+  'test failed'

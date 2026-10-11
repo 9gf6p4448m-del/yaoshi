@@ -1,0 +1,47 @@
+(node:68880) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/shung/wt/yaoshi/verify-1001/js/trait-fx/vocab.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\C:\Users\shung\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+語彙對齊 L12：docs\experiments\2026-09-11-fx-vocab.md ↔ js/trait-fx/vocab.js ↔ js/trait-fx/emblems.js
+  PASS  FX_PAL 三系四色與文件第 1 節逐格相同
+  PASS  BEAT 三級四段與文件第 2 節逐格相同
+  PASS  BEAT_FRAC 是比例不是毫秒（三級各三個切點、遞增、都 <1）
+  PASS  PHASE_GATE 的六個數字都出現在文件第 3 節
+  PASS  EMBLEM_OF 是 trId ↔ kind 的雙射，30 對
+  PASS  EMBLEM_OF 與文件第 4 節逐列相同（trId／系／kind）
+  PASS  FAC_VOCAB 是三系各一組白名單（動詞庫／道具家族／反應家族都非空）
+  PASS  MOVE_SPEC 三欄都非空，且取值落在該系白名單內（P1 ①②）
+  PASS  MOVE_SPEC 覆蓋 27 支招、不含三尊（P1 ③）
+  PASS  STANCE_VOCAB／REACT_AXIS／FAC_GROUND 三張表自身完整（沒有 undefined 可以讓「不同型」恆綠）
+  PASS  已轉正的招都登記了 stance，且取值在白名單內（§A9 ①）
+  PASS  施招姿態與受益／受招反應不同型（§A9 ②）
+  PASS  已轉正的招的編舞真的呼叫了 st.stance／st.groundMark（§A9 ③）
+  PASS  已轉正的招都登記了道具落點 anchor，取值在白名單內，而且編舞真的登記了至少一件（裁定①）
+  PASS  三系編舞與引擎裡不得把「橫向」寫成世界軸（覆審 r5 HIGH-A 的掃描）
+  PASS  ANCHOR_KIND 的六個取值與語彙檔 §A9 逐格相同（防「兩邊各一套」）
+  PASS  selfReact 是「唯一一支沒有第三方」的豁免，不得長成第二支（§A9 ② 的豁免守衛）
+  PASS  STANCE_VOCAB 的幅度與 STANCE_GATE 與語彙檔 §A9 逐格相同（防「兩邊各一套」）
+  PASS  還留著 V054 退路的招不得在 MOVE_SPEC 登記 stance（覆審 M9 的協調盲點）
+  PASS  emblems.js 的 kind 集合等於 EMBLEM_OF 的 kind 集合
+  PASS  每個 kind 的外框頂點 ≤24（ART_BIBLE §10.2 第 3 條）
+  PASS  ICON 四個欄位與文件第 5 節相同
+  PASS  ICON.sizeOf／flatSizeOf 是尺寸的單一事實來源（byKind 覆寫、其餘回預設）
+  PASS  ICON.markSizeOf 是印記尺寸的單一事實來源，且與文件第 5 節的 markByKind 表逐列相同
+  PASS  ICON.byKind／flatByKind 與文件第 5 節的覆寫表逐列相同
+        （分母：4 個編舞檔、82 處 scale 寫法、8 個徽記名字、5 處 st.iconScale；徽記 mesh 被直接縮放 0 處）
+  PASS  徽記世界尺寸不得有第二份來源（o.size 拒收 ＋ 編舞不得碰 scale／geometry／matrix／parent ＋ 不得 grow／add）
+  PASS  ICON._resolve 是三張尺寸表的共同出口（L3 canary 一次蓋三表，覆審 r3 N12）
+  PASS  DEPRECATED／RETIRED_BY_FAC 與文件第 6 節相同
+  PASS  vocab.js 自己不含 TODO／佔位
+  PASS  腳下語彙是 stain 的系別，本體色的相對亮度必須低於桌面（§B3「暗斑」）
+
+結果：30 綠 ／ 0 紅
+✔ tests\fxvocab.test.mjs (212.873ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 220.9894

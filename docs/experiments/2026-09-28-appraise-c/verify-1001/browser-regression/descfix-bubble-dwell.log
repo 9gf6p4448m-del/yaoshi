@@ -1,0 +1,19 @@
+A {"1":{"len":8,"gone":3806,"at3700":true,"at3900":false},"2":{"len":1,"gone":3509.199999988079,"at3700":false,"at3900":false},"3":{"len":30,"gone":6507.899999976158,"at3700":true,"at3900":true}}
+A-SKIP {"was":true,"ms":311.4000000357628}
+✔ A 停留時長：8 字＝3800ms（3700 仍在、3900 已收）、1 字＝3500、30 字＝6500、SKIP＝300 (14207.6972ms)
+B {"at2400":{"show":true,"text":"乙乙乙乙"},"at4300":{"show":true,"text":"乙乙乙乙"},"at5000":{"show":false}}
+✔ B 同席連說：舊計時器取消，第二句在舊計時器到期後（t=2.4s）仍在 (11008.5327ms)
+C {"immediate":{"show":true,"text":"丙丙丙丙丙"},"at1500":{"show":true,"text":"丙丙丙丙丙"},"expired":{"show":false,"text":""}}
+✔ C renderSeats() 後未到期的泡仍顯示同一文字；到期後重畫不補回 (10071.3799ms)
+D [{"id":1,"fs":14,"ws":"normal","l":542,"t":7,"r":742,"b":57,"w":844,"h":390,"show":true},{"id":2,"fs":14,"ws":"normal","l":177,"t":55.65625,"r":347,"b":120.21875,"w":844,"h":390,"show":true},{"id":3,"fs":14,"ws":"normal","l":497,"t":55.65625,"r":667,"b":120.21875,"w":844,"h":390,"show":true}]
+✔ D 字級≥14px、西／東泡可換行、844x390 三席長句泡都在視窗內 (6529.4065ms)
+G {"after":{"show":false,"text":""},"chapterOk":true,"afterChapter":{"show":false,"text":""}}
+✔ G 新局清泡：上一局的泡不會補到新局同座位（含 newGame 換章路徑） (8310.5325ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 50262.3194

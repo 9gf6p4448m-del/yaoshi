@@ -1,0 +1,12 @@
+▶ 光影 A+ 韌性：環境圖抓不到照常啟動；context 復原後環境圖與陰影都在
+  ✔ ① RoomEnvironment.js 被擋 ⇒ 3D 層照常啟動、A+ 開著但無環境圖、0 pageerror (2589.6902ms)
+  ✔ ② loseContext→restoreContext ⇒ 環境圖與陰影圖都重建 (8800.1159ms)
+✔ 光影 A+ 韌性：環境圖抓不到照常啟動；context 復原後環境圖與陰影都在 (12907.8688ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 13009.2156

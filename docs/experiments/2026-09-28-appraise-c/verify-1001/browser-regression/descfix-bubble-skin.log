@@ -1,0 +1,37 @@
+D1 {"qingmian":{"dr":"qingmian","bl":"rgb(95, 192, 160)","b4":"rgba(0, 0, 0, 0)","b4i":"linear-gradient(90deg, rgba(0, 0, 0, 0),","sh":"rgba(232, 200, 96, 0.16) 0px 0px 0px 1px inset, rgba(0, 0, 0"},"hongyi":{"dr":"hongyi","bl":"rgb(242, 120, 102)","b4":"rgba(0, 0, 0, 0)","b4i":"linear-gradient(90deg, rgba(0, 0, 0, 0),","sh":"rgba(232, 200, 96, 0.16) 0px 0px 0px 1px inset, rgba(0, 0, 0"},"duanshou":{"dr":"duanshou","bl":"rgb(201, 184, 150)","b4":"rgba(0, 0, 0, 0)","b4i":"none","sh":"rgba(232, 200, 96, 0.16) 0px 0px 0px 1px inset, rgba(0, 0, 0"},"shoujing":{"dr":"shoujing","bl":"rgb(230, 181, 74)","b4":"rgb(200, 50, 31)","b4i":"none","sh":"rgba(232, 200, 96, 0.16) 0px 0px 0px 1px inset, rgba(0, 0, 0"},"hunter":{"dr":"hunter","bl":"rgb(207, 154, 90)","b4":"rgba(0, 0, 0, 0)","b4i":"repeating-linear-gradient(45deg, rgb(217","sh":"rgba(232, 200, 96, 0.16) 0px 0px 0px 1px inset, rgba(0, 0, 0"},"xiaonv":{"dr":"xiaonv","bl":"rgb(220, 220, 210)","b4":"rgba(0, 0, 0, 0)","b4i":"linear-gradient(90deg, rgba(0, 0, 0, 0),","sh":"rgba(232, 200, 96, 0.16) 0px 0px 0px 1px inset, rgba(0, 0, 0"},"lvshan":{"dr":"lvshan","bl":"rgb(120, 174, 228)","b4":"rgb(200, 50, 31)","b4i":"none","sh":"rgba(232, 200, 96, 0.16) 0px 0px 0px 1px inset, rgba(0, 0, 0"},"zutou":{"dr":"zutou","bl":"rgb(167, 207, 85)","b4":"rgb(200, 50, 31)","b4i":"none","sh":"rgba(232, 200, 96, 0.16) 0px 0px 0px 1px inset, rgba(0, 0, 0"},"dangpu":{"dr":"dangpu","bl":"rgb(185, 150, 228)","b4":"rgba(0, 0, 0, 0)","b4i":"linear-gradient(90deg, rgba(0, 0, 0, 0),","sh":"rgba(232, 200, 96, 0.16) 0px 0px 0px 1px inset, rgba(0, 0, 0"},"luzhu":{"dr":"luzhu","bl":"rgb(240, 144, 74)","b4":"rgb(200, 50, 31)","b4i":"none","sh":"rgba(232, 200, 96, 0.16) 0px 0px 0px 1px inset, rgba(0, 0, 0"}}
+✔ D1 10 角色的泡都有 data-role；三系小飾存在且彼此不同、斷手書生無系別小飾、色邊各不同 (11206.7193ms)
+D2 {"steps":[{"name":"newGame#1","roles":["dangpu","shoujing","zutou"],"attrs":["dangpu","shoujing","zutou"]},{"name":"renderSeats","roles":["dangpu","shoujing","zutou"],"attrs":["dangpu","shoujing","zutou"]},{"name":"bubbleRestore","roles":["dangpu","shoujing","zutou"],"attrs":["dangpu","shoujing","zutou"]},{"name":"newGame#B","roles":["lvshan","hongyi","luzhu"],"attrs":["lvshan","hongyi","luzhu"]},{"name":"renderSeats#B","roles":["lvshan","hongyi","luzhu"],"attrs":["lvshan","hongyi","luzhu"]},{"name":"say+restore#B","roles":["lvshan","hongyi","luzhu"],"attrs":["lvshan","hongyi","luzhu"]},{"name":"chapter1","roles":["qingmian","luzhu","shoujing"],"attrs":["qingmian","luzhu","shoujing"]}],"seedB":2,"shownAfterRestore":[true,true,true],"chapterOk":true}
+✔ D2 data-role 隨「當下」座位角色：newGame 換角色後、renderSeats 重畫後、bubbleRestore 補回後 (6124.9225ms)
+D3 contrast table
+role	fg(rgba)	opacity	n	bg samples	min ratio	deco	overlapsText
+qingmian	243,230,204,1	1	2	59,42,28,1 / 40,27,17,1	11.08	yes	false
+hongyi	243,230,204,1	1	2	59,42,28,1 / 40,27,17,1	11.08	yes	false
+duanshou	243,230,204,1	1	2	59,42,28,1 / 40,27,17,1	11.08	none	false
+shoujing	243,230,204,1	1	2	59,42,28,1 / 40,27,17,1	11.08	yes	false
+hunter	243,230,204,1	1	2	59,42,28,1 / 40,27,17,1	11.08	yes	false
+xiaonv	243,230,204,1	1	2	59,42,28,1 / 40,27,17,1	11.08	yes	false
+lvshan	243,230,204,1	1	2	59,42,28,1 / 40,27,17,1	11.08	yes	false
+zutou	243,230,204,1	1	2	59,42,28,1 / 40,27,17,1	11.08	yes	false
+dangpu	243,230,204,1	1	2	59,42,28,1 / 40,27,17,1	11.08	yes	false
+luzhu	243,230,204,1	1	2	59,42,28,1 / 40,27,17,1	11.08	yes	false
+✔ D3 文字對比≥4.5（對木牌漸層兩端），系別小飾的盒子不蓋到文字區 (20212.3262ms)
+D4 qingmian seat 2 [[1,"lvshan",542,7,742,57],[2,"qingmian",177,56,347,120],[3,"luzhu",497,56,667,120]]
+D4 hongyi seat 2 [[1,"lvshan",542,7,742,57],[2,"hongyi",177,56,347,120],[3,"luzhu",497,56,667,120]]
+D4 duanshou seat 2 [[1,"lvshan",542,7,742,57],[2,"duanshou",177,56,347,120],[3,"hongyi",497,56,667,120]]
+D4 shoujing seat 2 [[1,"dangpu",542,7,742,57],[2,"shoujing",177,56,347,120],[3,"zutou",497,56,667,120]]
+D4 hunter seat 1 [[1,"hunter",542,5,742,59],[2,"xiaonv",177,56,347,120],[3,"lvshan",497,56,667,120]]
+D4 xiaonv seat 3 [[1,"shoujing",542,7,742,57],[2,"lvshan",177,56,347,120],[3,"xiaonv",497,56,667,120]]
+D4 lvshan seat 1 [[1,"lvshan",542,7,742,57],[2,"hongyi",177,56,347,120],[3,"luzhu",497,56,667,120]]
+D4 zutou seat 3 [[1,"dangpu",542,7,742,57],[2,"shoujing",177,56,347,120],[3,"zutou",497,56,667,120]]
+D4 dangpu seat 1 [[1,"dangpu",542,7,742,57],[2,"shoujing",177,56,347,120],[3,"zutou",497,56,667,120]]
+D4 luzhu seat 3 [[1,"lvshan",542,7,742,57],[2,"hongyi",177,56,347,120],[3,"luzhu",497,56,667,120]]
+✔ D4 844x390 北／西／東長句泡都在視窗內、字級≥14px（每個角色各驗並截圖） (21143.7775ms)
+✔ D7 真頁面 console 0 error（開局＋換局＋三席說話） (7104.9146ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 65900.8586
