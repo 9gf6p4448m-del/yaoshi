@@ -166,7 +166,7 @@
   background: var(--strip-bg); border: 1px solid var(--line-gold-soft); border-radius: var(--r-panel);
   color: var(--gold); font-size: 11px; line-height: 1.3; text-align: left; cursor: pointer; font-family: inherit;   /* v0.59.0（凍結 p2 #5）：11px、亮金；框線改金細線 */   /* 10px＝凍結下限；11px 時 SE 寬最長一句（「魔神仔的芭樂」＋規則夜）會折成兩行 */
 }
-#table.t3d #north .nsum .nsumArr { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); color: var(--gold); font-size: 11px; }
+#table.t3d #north .nsum .nsumArr { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); color: var(--gold); font-size: 14px; }
 #table.t3d #north.nopen .nsum .nsumArr { transform: translateY(-50%) rotate(180deg); }
 #table.t3d #north .nfull { display: none; }
 /* v0.59.9：展開面板要蓋過席位名牌（#table .seat z-index:19）與心願條；原 15 < 19，西／東席名牌畫在面板上面，字穿透交錯 */
