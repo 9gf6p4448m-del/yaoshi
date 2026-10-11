@@ -156,18 +156,21 @@ for (const size of [[844, 390], [667, 375]]) {
       const st = await page.evaluate(() => { const e = document.querySelector('.stakebar'); return e ? { collapsed: e.classList.contains('collapsed'), exp: e.getAttribute('aria-expanded'), text: e.textContent } : null; });
       assert.ok(st, '押寶夜沒有 .stakebar（前提不成立）');
       assert.equal(st.collapsed, true, '押寶面板預設不是收合'); assert.match(st.text, /押寶/);
-      /* 3D 拍品區頂端：lotNodes 各節點的世界包圍盒 8 角投影到螢幕，取 min top（實測數字） */
+      /* 修訂 1：收合高度 ≤32px 且 ≤ 同頁展開高度的一半；不蓋住 3D 卡位點（slotScreen）。原「底緣 ≤ 拍品區頂端」改為只記錄數字。 */
       const geo = await page.evaluate(() => {
-        const Y = window.__yaoshi3d, cam = Y.camera, nodes = Y.tray.lotNodes(), V = cam.position.constructor, t = new V();
-        let top = 1e9, n = 0;
-        for (const root of nodes) { root.updateWorldMatrix(true, true); root.traverse((o) => { if (!o.isMesh || !o.geometry) return; for (let p = o; p; p = p.parent) if (!p.visible) return; const g = o.geometry; if (!g.boundingBox) g.computeBoundingBox(); const b = g.boundingBox; for (let i = 0; i < 8; i++) { t.set(i & 1 ? b.max.x : b.min.x, i & 2 ? b.max.y : b.min.y, i & 4 ? b.max.z : b.min.z).applyMatrix4(o.matrixWorld).project(cam); if (t.z < -1 || t.z > 1) continue; top = Math.min(top, (1 - t.y) / 2 * innerHeight); n++; } }); }
-        const r = document.querySelector('.stakebar').getBoundingClientRect();
-        return { lotTop: top, pts: n, barBottom: r.bottom, barTop: r.top };
+        const r = document.querySelector('.stakebar').getBoundingClientRect(), Y = window.__yaoshi3d;
+        const slots = [0, 1, 2, 3].map((i) => Y.tray.slotScreen(i)).filter(Boolean);
+        return { barTop: r.top, barBottom: r.bottom, barLeft: r.left, barRight: r.right, h: r.height, slots };
       });
-      assert.ok(geo.pts > 0, '量不到 3D 拍品（前提不成立）');
-      assert.ok(geo.barBottom <= geo.lotTop + 0.5, `收合面板底緣 ${geo.barBottom.toFixed(1)} 仍蓋住拍品區頂端 ${geo.lotTop.toFixed(1)}（${JSON.stringify(geo)}）`);
+      assert.ok(geo.slots.length >= 1, '量不到 3D 卡位點（前提不成立）');
+      assert.ok(geo.h <= 32.01, `收合高度 ${geo.h.toFixed(2)}px > 32（${JSON.stringify({ barTop: geo.barTop, barBottom: geo.barBottom })}）`);
+      const covered = geo.slots.filter((p) => p.x >= geo.barLeft && p.x <= geo.barRight && p.y >= geo.barTop && p.y <= geo.barBottom);
+      assert.equal(covered.length, 0, '收合面板蓋住卡位點：' + JSON.stringify(covered));
+      console.log('M9 記錄', size.join('×'), JSON.stringify({ collapsedH: geo.h, barBottom: geo.barBottom }));
       await page.click('.stakebar.collapsed');
       await page.waitForTimeout(300);
+      const expandedH = await page.evaluate(() => document.querySelector('.stakebar').getBoundingClientRect().height);
+      assert.ok(geo.h * 2 <= expandedH + 0.01, `收合高 ${geo.h.toFixed(1)} 沒有 ≤ 展開高 ${expandedH.toFixed(1)} 的一半`);
       const open = await page.evaluate(() => ({ stepper: !!document.querySelector('.stakebar .stepper'), type: !!document.querySelector('.stakebar .typebtn'), col: !!document.querySelector('.stakebar .stakeCol'), amt: YB.amt }));
       assert.ok(open.stepper && open.type && open.col, '展開後缺控件：' + JSON.stringify(open));
       await page.evaluate(() => ybBump(1)); await page.waitForTimeout(200);
