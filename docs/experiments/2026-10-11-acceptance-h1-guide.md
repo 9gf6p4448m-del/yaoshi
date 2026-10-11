@@ -22,3 +22,15 @@
 
 版本：0.65.5 -> 0.65.9（VERSION、RELEASE_VERSION、theme.css?v、safe-area.css?v 四處＋VERSION_NOTE 開頭＋ui-hierarchy 測試斷言）。
 不動：窄籤（約 3643）與鑑賞頁首次提示（fix/h3-affordance）、卡片（fix/h2-cards）。
+
+## 修訂（加嚴）2026-10-12——驗收實測才發現的漏項，只加嚴、不降低任何原條件
+
+原條 1–8 一字未動。18d590d2 版實測（tests/tools/h1-hint-props-probe.mjs）發現兩個原條件沒涵蓋的退步，由協調者裁示補條（可逆、屬實作修正，不需使用者簽）：
+
+9. 鑑賞卷軸鏡子半徑：同一卷軸暫時隱藏 .asc-act 前後 appraiseLayout().r 差 <= 0.5px，涵蓋三尺寸、盯上頁與出價頁、所有 rail、所有拍品。18d590d2 在 667x375 railE slot 2（172.07→165.32）與 slot 3（187.46→179.54）紅。
+   實作改法：實體鈕併進「規則原文」那一列（.asc-ctl，左右並列），兩鈕同高（28／tight 22），不新增高度。
+   紅：按鈕獨立一列使鏡子變小。
+10. 提示與所有可見桌上道具（table-props 內每個 mesh 的螢幕外框，排除 prop-contact-shadows 貼花）面積交集＝0。18d590d2 的置中位置與 relic-qingmian（骰子）相交 417–771 px²。
+   實作改法：提示移到 #felt 左下角、max-width 116px（盯上頁句折兩行）。
+   紅：提示改回置中。
+11. 加嚴突變：m6 按鈕改回獨立一列（紅在條 9）、m7 提示位置改回置中（紅在條 10）。舊版 18d590d2 跑條 9／10 必須紅（9 紅在 667 railE）。
