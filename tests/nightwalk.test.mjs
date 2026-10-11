@@ -14,7 +14,6 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const TARGET = process.env.NW_TARGET || path.join(ROOT, 'index.html');
 const COPY = JSON.parse(fs.readFileSync(path.join(ROOT, 'docs/experiments/2026-09-25-n1-nightwalk/copy-r1.json'), 'utf8'));
 const BASE_SHA = '3a0d971';
-const BASE46_SHA = 'db281fa9'; /* 第 4–6 章卷基準（凍結檔 docs/experiments/2026-10-11-acceptance-n1-ch4-6.md） */
 const COPY2 = JSON.parse(fs.readFileSync(path.join(ROOT, 'docs/experiments/2026-10-11-n1-ch4-6/copy-r2.json'), 'utf8'));
 
 const memStore = () => { const m = new Map(); const calls = []; return { m, calls, getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => { calls.push(k); m.set(k, String(v)); } }; };
@@ -532,9 +531,13 @@ test('#7(46) 切換工具：另一版套到副本後逐字等於該版、改動�
 });
 
 /* ---------- #9(46) 範圍守衛：不動引擎 ---------- */
-test('#9(46) 相對 db281fa9：只動允許的檔案；index.html 只有 NIGHTWALK 陣列內的純新增', { skip: process.env.NW_TARGET ? 'NW_TARGET 突變體模式不驗' : (process.env.NW46_SCOPE === '1' ? false : '範圍守衛綁死 db281fa9，只在 NW46_SCOPE=1 時跑（合併後版本號／後續提交會讓它永遠紅；證據見 docs/experiments/2026-10-11-n1-ch4-6/scope-guard.txt）') }, () => {
+test('#9(46) 相對基準：只動允許的檔案；index.html 只有 NW-COPY-4-6 標記內的純新增（基準＝env NW46_BASE，否則 merge-base HEAD origin/main）', { skip: process.env.NW_TARGET ? 'NW_TARGET 突變體模式不驗' : false }, () => {
   const sh = (c) => execSync(c, { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 << 20 });
-  const files = new Set([...sh(`git diff --name-only ${BASE46_SHA}`).split('\n'), ...sh('git ls-files --others --exclude-standard').split('\n')].map((s) => s.trim()).filter(Boolean));
+  let BASE = (process.env.NW46_BASE || '').trim();
+  if (!BASE) { try { BASE = sh('git merge-base HEAD origin/main').trim(); } catch (e) { BASE = ''; } }
+  assert.ok(BASE, '範圍守衛未驗證：沒有 NW46_BASE，也算不出 merge-base HEAD origin/main（沒有 origin/main）——明確失敗，不靜默通過');
+  try { sh(`git cat-file -t ${BASE}`).trim() === "commit" || assert.fail("not commit"); } catch (e) { assert.fail(`範圍守衛未驗證：基準 ${BASE} 不是有效提交`); }
+  const files = new Set([...sh(`git diff --name-only ${BASE}`).split('\n'), ...sh('git ls-files --others --exclude-standard').split('\n')].map((s) => s.trim()).filter(Boolean));
   const allowed = [/^index\.html$/, /^tests\/nightwalk\.test\.mjs$/, /^tests\/tools\/(nw-|nightwalk46-)[\w-]*\.mjs$/, /^docs\//];
   for (const f of files) assert.ok(allowed.some((re) => re.test(f)), `不允許的改動檔案：${f}`);
   const lines = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8').split('\n');
@@ -543,11 +546,11 @@ test('#9(46) 相對 db281fa9：只動允許的檔案；index.html 只有 NIGHTWA
   assert.ok(start > 0 && close > start);
   const mb = lines.findIndex((l) => l.includes('/*NW-COPY-4-6 BEGIN*/')) + 1, me = lines.findIndex((l) => l.includes('/*NW-COPY-4-6 END*/')) + 1;
   assert.ok(mb > start && me > mb && me < close, '標記區間要在 NIGHTWALK 內');
-  const diff = sh(`git diff -U0 ${BASE46_SHA} -- index.html`);
+  const diff = sh(`git diff -U0 ${BASE} -- index.html`);
   const hunks = [...diff.matchAll(/^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/gm)];
   for (const h of hunks) {
     const oldN = h[2] === undefined ? 1 : Number(h[2]), c = Number(h[3]), d = h[4] === undefined ? 1 : Number(h[4]);
-    assert.equal(oldN, 0, `index.html 不得刪改既有行（舊行 ${h[1]} 起 ${oldN} 行）`);
+    assert.equal(oldN, 0, `index.html 不得刪改既有行（基準 ${BASE} 舊行 ${h[1]} 起 ${oldN} 行）`);
     assert.ok(c >= mb && c + d - 1 <= me, `hunk 新行 ${c}–${c + d - 1} 落在標記區間(${mb}–${me}) 之外`);
   }
   if (files.has('index.html')) assert.ok(hunks.length >= 1, '活性：有 hunk 才算驗到');
