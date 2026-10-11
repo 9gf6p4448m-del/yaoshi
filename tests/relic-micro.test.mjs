@@ -166,3 +166,17 @@ test('M9 setSeats 換角色與 dispose：子 geometry／material 皆 dispose、�
   assert.ok(seen2.length && seen2.every((s) => s.d), 'dispose 後子資源未釋放');
   a.props.dispose();
 });
+
+test('M3b（加嚴，凍結檔修訂 2）煙只在動作窗可見：窗外不可見且不透明度 0；30 秒內可見步數占比 ≤ 動作窗占比＋2%', () => {
+  const a = make(CUR), smokes = kids(a.group).filter((k) => k.name.includes('smoke')); let total = 0, vis = 0;
+  assert.equal(smokes.length, 2);
+  sim(a, 30, () => {
+    for (const s of smokes) {
+      total++;
+      if (s.visible) { vis++; assert.ok(s.material.opacity > 0, s.name + ' 可見但不透明度 0'); } else assert.equal(s.material.opacity, 0, s.name + ' 不可見時不透明度須為 0');
+    }
+  });
+  assert.ok(vis > 0, '煙從未出現');
+  assert.ok(vis / total <= 1.4 / 6 + 0.02, '煙可見占比 ' + (vis / total).toFixed(3));
+  a.props.dispose();
+});
