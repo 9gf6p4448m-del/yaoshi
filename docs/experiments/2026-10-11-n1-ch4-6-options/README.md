@@ -47,7 +47,7 @@
 | `tests/nightwalk.test.mjs:309` | `rules` 預期值寫死 3 筆，要加 3 筆 |
 | `tests/nightwalk.test.mjs:315` | `assert.equal(G.NIGHTWALK.length, 3)` 要改 6 |
 | `tests/nightwalk.test.mjs:262–272` | 章節開放預期 `[true,true,false]`、`[true,true,true]` 要擴成 6 筆 |
-| 版本四處 | `index.html:2388–2390`（以計畫書為準，我本卷未核實該行仍是版本字串；`:2388` 附近現為異事程式碼）、`tests/ui-hierarchy.test.mjs:25` |
+| 版本四處 | `index.html:2886`（`RELEASE_VERSION`）與 `VERSION`／`VERSION_NOTE`、`:1172` 起 css `?v=`、`tests/ui-hierarchy.test.mjs:25`（行號以開卷時 grep 為準） |
 | 版面 | 章節選單從 3 顆變 6 顆，凍結 #12（390×844、844×390 可捲）要重跑 |
 
 **需主 session 注意的凍結邊界**：N1 凍結檔 #8 的內容是「首 3 章」。把測試從 3 改 6 是**擴範圍**不是降標，但屬「動已訂驗收」，開卷時應另訂第 4–6 章凍結檔，而不是改舊條。`NW_CN` 到「十」夠用（`:9114`）；`index.html` 內沒有寫死章數（代理）。
@@ -125,4 +125,4 @@
 
 ## 7. 未驗證
 
-沒有實跑任何測試或遊戲；難度判斷來自 `ai` 欄位與文件，未試玩。表中標「代理」的行號我只抽查了 `nightwalkSeats`、各角 desc、`NIGHTWALK` 資料、`beginRoundCore`、測試 `:305–315`。版本字串行號 `:2388–2390` 沿用計畫書，我看到該處現為異事程式碼，開卷時須重 grep。
+沒有實跑任何測試或遊戲；難度判斷來自 `ai` 欄位與文件，未試玩。表中標「代理」的行號我只抽查了 `nightwalkSeats`、各角 desc、`NIGHTWALK` 資料、`beginRoundCore`、測試 `:305–315`。版本字串 `RELEASE_VERSION` 我 grep 到在 `:2886`；`VERSION`／`VERSION_NOTE` 行號未核。
