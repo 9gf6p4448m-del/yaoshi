@@ -29,7 +29,9 @@ const V = new URL(import.meta.url).search;
 /* 頂點色建構器與決定性亂數收斂在 scene-env（環境幾何的家），本檔不另抄一份。 */
 const { vcBuilder, seedRnd } = await import('./scene-env.js' + V);
 /* 信物出價小動作（純函式，無 three 依賴，node 測試可直接載入）。 */
-const { relicPose, RELIC_MOVE_MS } = await import('./relic-motion.js' + V);
+const { relicPose, RELIC_MOVE_MS, IDLE_KIND, idleProgress, beadSlide, smokePose } = await import('./relic-motion.js' + V);
+/** 信物空閒小動作（撥珠、冒煙）開關：網址 `?fx=0` 才關（與 light-fx 同一種解析）；關時一個子 Mesh 都不建＝v0.65.5。 */
+const microOn = () => { try { return new URLSearchParams((globalThis.location && globalThis.location.search) || '').get('fx') !== '0'; } catch (e) { return true; } };
 
 /** 道具常數表（**全部【試玩必調】**）。橫式／直式兩套座標，直式分支的鍵一律掛在 `.P` 底下。 */
 export const PROPS = {
@@ -237,20 +239,28 @@ const RELIC = {
     }
   },
   /* 當鋪・算盤＋當票：一把小算盤斜靠著一張捲起一角的當票 */
-  dangpu(b) {
+  /* part：undefined＝整件（基準外觀）；'body'＝去掉珠子的算盤＋當票；'a'／'b'＝前／後排珠子（空閒撥珠時換這三塊上場，見 setSeats）。 */
+  dangpu(b, part) {
     const fr = 0x4a2c14, bead = 0x2a1a10, pap = 0xd8caa4, ink = 0x241c14;
-    box(b, [0, 0.012, 0], [0.090, 0.006, 0.048], fr, 0x63401e); // 框
-    box(b, [0, 0.022, 0], [0.082, 0.004, 0.004], 0x2f1c0c); // 橫樑
-    for (let i = 0; i < 5; i++) {
-      const x = -0.064 + i * 0.032;
-      box(b, [x, 0.026, -0.026], [0.009, 0.008, 0.009], bead, 0x4a3020);
-      box(b, [x, 0.026, 0.024], [0.009, 0.008, 0.009], bead, 0x4a3020);
+    const rest = part === undefined || part === 'body', beads = part === undefined || part === 'a' || part === 'b';
+    if (rest) {
+      box(b, [0, 0.012, 0], [0.090, 0.006, 0.048], fr, 0x63401e); // 框
+      box(b, [0, 0.022, 0], [0.082, 0.004, 0.004], 0x2f1c0c); // 橫樑
     }
-    // 當票：一張斜插在算盤後面的紙，中間一道墨
-    const o = [0.088, 0, -0.016];
-    const q = (u, v, y) => rotY([o[0] + u * 0.052, y, o[2] + v * 0.034], -0.45, o);
-    b.quad(q(-1, -1, 0.002), q(1, -1, 0.030), q(1, 1, 0.030), q(-1, 1, 0.002), pap, pap, 0xbfae88, 0xbfae88);
-    b.quad(q(-0.25, -1, 0.0035), q(0.25, -1, 0.0315), q(0.25, 1, 0.0315), q(-0.25, 1, 0.0035), ink);
+    if (beads) {
+      for (let i = 0; i < 5; i++) {
+        const x = -0.064 + i * 0.032;
+        if (part !== 'b') box(b, [x, 0.026, -0.026], [0.009, 0.008, 0.009], bead, 0x4a3020);
+        if (part !== 'a') box(b, [x, 0.026, 0.024], [0.009, 0.008, 0.009], bead, 0x4a3020);
+      }
+    }
+    if (rest) {
+      // 當票：一張斜插在算盤後面的紙，中間一道墨
+      const o = [0.088, 0, -0.016];
+      const q = (u, v, y) => rotY([o[0] + u * 0.052, y, o[2] + v * 0.034], -0.45, o);
+      b.quad(q(-1, -1, 0.002), q(1, -1, 0.030), q(1, 1, 0.030), q(-1, 1, 0.002), pap, pap, 0xbfae88, 0xbfae88);
+      b.quad(q(-0.25, -1, 0.0035), q(0.25, -1, 0.0315), q(0.25, 1, 0.0315), q(-0.25, 1, 0.0035), ink);
+    }
   },
   /* 組頭・字花明牌：一塊立著的木牌，上頭三道墨字（字花的「明牌」） */
   zutou(b) {
@@ -368,6 +378,18 @@ export const RELIC_NAME = {
 };
 /** 對不上任何一個角色時的退路：一塊素木牌（不留空——空著會讓「這一席沒東西」與「壞掉」分不出來） */
 function relicFallback(b) { box(b, [0, 0.012, 0], [0.042, 0.012, 0.026], 0x4a3a28, 0x6b5438); }
+/** 信物材質參數（父 Mesh 與空閒換上場的分件共用同一份，外觀才會逐像素一致） */
+const relicMat = () => ({ side: THREE.DoubleSide, roughness: 0.86, metalness: 0.05, emissive: new THREE.Color(0x1f1a14) });
+/** 冒煙的香頭位置（信物本地座標，= 該信物最高那炷香的香頭頂）；煙從這裡升起，頂端不得超過 relicBoxes 的 top 餘量 0.03/k */
+const SMOKE_AT = { shoujing: [0, 0.157, 0.010], luzhu: [0.004, 0.159, -0.004] };
+const SMOKE_HALF = { w: 0.005, h: 0.006 };
+/** 一縷薄煙：兩片十字交叉的直立小片（4 tris）。 */
+function smokeGeometry() {
+  const { w, h } = SMOKE_HALF, g = new THREE.BufferGeometry();
+  const v = [-w, -h, 0, w, -h, 0, w, h, 0, -w, -h, 0, w, h, 0, -w, h, 0, 0, -h, -w, 0, -h, w, 0, h, w, 0, -h, -w, 0, h, w, 0, h, -w];
+  g.setAttribute('position', new THREE.Float32BufferAttribute(v, 3));
+  return g;
+}
 
 /**
  * 建立桌上道具層。
@@ -455,6 +477,60 @@ export function createTableProps(parent, opts = {}) {
   const tokRec = [0, 1, 2, 3].map((seat) => ({ seat, slot: -1, t: 0, bounce: 0, done: false, hit: false }));
   /** 四席信物：{ seat, role, mesh } */
   const relics = [null, null, null, null];
+  const micro = microOn(); // 空閒小動作（撥珠、冒煙）；?fx=0 ⇒ false ⇒ 不建任何子 Mesh
+  let idleClock = 0; // 空閒動作時鐘（秒，隨 update(dt) 累加，已含 ?handslow 縮放；不耗亂數）
+  function freeRelic(r) {
+    group.remove(r.mesh);
+    r.mesh.geometry.dispose(); r.mesh.material.dispose();
+    const m = r.micro; if (!m) return;
+    for (const q of m.meshes) { q.parent.remove(q); q.geometry.dispose(); q.material.dispose(); }
+    if (m.pivot) group.remove(m.pivot);
+  }
+  /** 依角色為某席信物建空閒小動作的分件（全部預設不可見；算盤的分件上場時父 Mesh 隱藏，兩邊畫的總三角形相同）。 */
+  function buildMicro(role, i, mesh) {
+    const kind = IDLE_KIND[role]; if (!kind) return null;
+    const m = { kind, on: false, meshes: [], pivot: null };
+    if (kind === 'beads') {
+      m.pivot = new THREE.Group(); m.pivot.name = 'relic-micro-' + i; m.pivot.visible = false;
+      for (const part of ['body', 'a', 'b']) {
+        const b = vcBuilder(); RELIC[role](b, part);
+        const q = b.build('relic-micro-' + i + (part === 'body' ? '-body' : '-beads-' + part), relicMat());
+        q.visible = false; m.pivot.add(q); m.meshes.push(q); m[part] = q;
+      }
+      group.add(m.pivot);
+    } else {
+      const q = new THREE.Mesh(smokeGeometry(), new THREE.MeshBasicMaterial({ color: 0xd9d4ca, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide, fog: false }));
+      q.name = 'relic-micro-' + i + '-smoke'; q.visible = false; q.frustumCulled = false;
+      q.position.set(...SMOKE_AT[role]);
+      mesh.add(q); m.meshes.push(q); m.smoke = q;
+    }
+    return m;
+  }
+  /** 每幀：空閒（沒有出價動作）且落在該席動作窗內才演；窗外一律歸零並隱藏。 */
+  function poseMicro(i) {
+    const r = relics[i], m = r && r.micro; if (!m) return;
+    const p = r.move >= 1 ? idleProgress(idleClock, i) : -1;
+    if (!(p > 0 && p < 1)) {
+      if (!m.on) return;
+      m.on = false; r.mesh.visible = true;
+      if (m.pivot) m.pivot.visible = false;
+      for (const q of m.meshes) { q.visible = false; q.position.x = 0; }
+      if (m.smoke) { m.smoke.material.opacity = 0; m.smoke.position.set(...SMOKE_AT[r.role]); m.smoke.scale.set(1, 1, 1); }
+      return;
+    }
+    m.on = true;
+    if (m.kind === 'beads') {
+      m.pivot.position.copy(r.mesh.position); m.pivot.rotation.copy(r.mesh.rotation); m.pivot.scale.copy(r.mesh.scale);
+      r.mesh.visible = false; m.pivot.visible = true;
+      const s = beadSlide(p);
+      m.body.visible = m.a.visible = m.b.visible = true;
+      m.a.position.x = s; m.b.position.x = -s;
+    } else {
+      const o = smokePose(p), at = SMOKE_AT[r.role];
+      m.smoke.visible = true; m.smoke.material.opacity = o.a;
+      m.smoke.position.set(at[0] + o.dx, at[1] + o.dy, at[2]); m.smoke.scale.set(o.sx, o.sy, o.sx);
+    }
+  }
   let seatRoles = [null, null, null, null];
   /** 木籌槽／木舌的外框（席位之手的地板之一；layoutTokens 每次重寫）。 */
   const rackBoxes = [];
@@ -638,11 +714,7 @@ export function createTableProps(parent, opts = {}) {
       for (const s of arr) { const i = s && s.id | 0; if (i >= 0 && i < 4) want[i] = (s && s.role) || null; }
       for (let i = 0; i < 4; i++) {
         if (want[i] === seatRoles[i] && relics[i]) continue;
-        if (relics[i]) {
-          group.remove(relics[i].mesh);
-          relics[i].mesh.geometry.dispose(); relics[i].mesh.material.dispose();
-          relics[i] = null;
-        }
+        if (relics[i]) { freeRelic(relics[i]); relics[i] = null; }
         seatRoles[i] = want[i];
         if (!want[i]) continue;
         const b = vcBuilder();
@@ -651,10 +723,10 @@ export function createTableProps(parent, opts = {}) {
            ——漏一個就是一片黑或一片不見。DoubleSide 之下 three 會依 `gl_FrontFacing` 自動翻法線，
            **看到哪一面就照那一面打光**，繞法寫錯不再是視覺缺陷。成本 0 draw call、0 三角形
            （同 `table-tray.js` 的 `tray-cloth`／`tray-curse` 已經在用的那條）。 */
-        const mesh = b.build('relic-' + want[i], { side: THREE.DoubleSide, roughness: 0.86, metalness: 0.05, emissive: new THREE.Color(0x1f1a14) });
+        const mesh = b.build('relic-' + want[i], relicMat());
         mesh.userData.tris = b.count() / 3;
         group.add(mesh);
-        relics[i] = { seat: i, role: want[i], mesh, move: 1 }; // move＝小動作進度（1＝閒置）
+        relics[i] = { seat: i, role: want[i], mesh, move: 1, micro: micro ? buildMicro(want[i], i, mesh) : null }; // move＝小動作進度（1＝閒置）
       }
       placeRelics();
     },
@@ -930,6 +1002,8 @@ export function createTableProps(parent, opts = {}) {
         r.move = Math.min(1, r.move + dt / RELIC_MOVE_MS);
         poseRelic(i);
       }
+      idleClock += dt;
+      for (let i = 0; i < 4; i++) poseMicro(i);
       if (live) { writeChips(); writeTokens(); }
     },
     dispose() {
@@ -941,8 +1015,7 @@ export function createTableProps(parent, opts = {}) {
       group.remove(contactShadows); shadowGeo.dispose(); shadowMat.dispose(); contactShadows.dispose();
       for (let i = 0; i < 4; i++) {
         if (!relics[i]) continue;
-        group.remove(relics[i].mesh);
-        relics[i].mesh.geometry.dispose(); relics[i].mesh.material.dispose();
+        freeRelic(relics[i]);
         relics[i] = null;
       }
       seatRoles = [null, null, null, null];
