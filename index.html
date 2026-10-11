@@ -1170,15 +1170,19 @@ h2{font-size:16px;color:var(--gold);margin:2px 0 8px}
 .heal{color:var(--green)} .dmg{color:var(--red)}
   /* v0.65.9 H1 引導（甲案）：夜數<=2 桌心常駐一行提示——absolute 疊在 #felt 底緣、不佔流（#felt 高度零餘裕）、不吃事件；
      只在掏空頁出現（setH1Phase 管；setHollow 每次都先清掉）。 */
-  #h1hint{display:none;position:absolute;left:50%;transform:translateX(-50%);bottom:2px;z-index:3;pointer-events:none;
-    max-width:60%;padding:1px 10px;border:1px solid var(--line-gold-soft);border-radius:10px;background:var(--strip-bg);
-    color:var(--gold);font-size:11px;line-height:1.35;white-space:nowrap;text-align:center}
+  /* 位置：#felt 左下角（桌上道具——骰子居中偏下、右側小人偶——都不在這裡；實測三尺寸與所有道具外框交集為 0）。
+     窄寬度（max 116px）讓盯上頁那句折成兩行，才不會橫跨到骰子。 */
+  #h1hint{display:none;position:absolute;left:4px;bottom:2px;z-index:3;pointer-events:none;
+    width:max-content;max-width:116px;padding:1px 8px;border:1px solid var(--line-gold-soft);border-radius:8px;background:var(--strip-bg);
+    color:var(--gold);font-size:11px;line-height:1.3;white-space:normal;text-align:left}
   #felt.hollow #h1hint.on{display:block}
   /* 盯上頁主鈕「不盯任何一件」＝次要（不蓋朱印、較矮、細字）；功能不變。屬性由 setH1Phase 設、setHollow 清。 */
   #table[data-h1="mark"] #mainbtn{height:36px;background:transparent;color:var(--ink);border:1px solid var(--line);box-shadow:none;font-weight:normal;font-size:13px}
   /* 鑑賞卷軸：出價／盯上實體鈕沿用 .asc-pick（實底朱紅＝主要入口）；規則原文改成無底、虛線底緣、尾端 ▾ 的小字鈕（M11） */
-  .asc-pick.asc-act{margin-left:auto;background:var(--asc-zhu);color:#f6e4c8;min-height:30px;padding:2px 10px}
-  .asc-tags .asc-act{flex:0 0 auto}
+  /* 出價／盯上鈕與「規則原文」鈕同一列（.asc-ctl）：兩者高度相同（28／tight 22），收合時那一列本來就在，不多佔高度 */
+  .asc-ctl{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .asc-pick.asc-act{margin-left:auto;flex:0 0 auto;background:var(--asc-zhu);color:#f6e4c8;min-height:28px;padding:0 10px}
+  .asc.tight .asc-act{min-height:22px;padding:0 8px}
   .asc-fold{background:none;border:0;border-bottom:1px dashed var(--asc-zhu);font-size:.92em}
   .asc-fold::after{content:" ▾";font-weight:700}
 </style>
@@ -3402,8 +3406,8 @@ function appraiseScrollHTML(it,side,i){
   return `<div class="asc ${side}"><div class="asc-rod top"></div><div class="asc-paper">`+
     `<div class="asc-strip"><div class="asc-nm">${apprEsc(it.n)}</div><div class="asc-seal">${apprEsc(fac)}</div></div>`+
     `<div class="asc-body">${plain?`<div class="asc-gain"><span class="asc-lab">${it.curse?"注意":"標下它"}</span>${apprEsc(plain)}</div>`:""}`+
-    `${(tags||act)?`<div class="asc-tags">${tags}${act}</div>`:""}${ascPickHTML(it,i)}${youH}`+
-    `<div class="asc-rules"><button type="button" class="asc-fold">✦ 規則原文 <b>0</b> 條・點開</button>${extra?`<div class="asc-extra">${apprEsc(extra)}</div>`:""}</div>`+
+    `${tags?`<div class="asc-tags">${tags}</div>`:""}${ascPickHTML(it,i)}${youH}`+
+    `<div class="asc-rules"><div class="asc-ctl"><button type="button" class="asc-fold">✦ 規則原文 <b>0</b> 條・點開</button>${act}</div>${extra?`<div class="asc-extra">${apprEsc(extra)}</div>`:""}</div>`+
     `</div></div><div class="asc-rod bot"></div></div>`;
 }
 /** 收卷：卡片放回原位（fillRails 重畫前、關閉、換件都走這裡）。 */

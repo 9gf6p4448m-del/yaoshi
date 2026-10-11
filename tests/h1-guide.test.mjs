@@ -31,7 +31,7 @@ function loadPlaywright() {
 }
 
 /* 頁內量測：提示、#felt 幾何（有／無提示各量一次）、與 3D 拍品／座位卡／主鈕的交集 */
-const MEAS = () => {
+const MEAS = async () => {
   const $ = (id) => document.getElementById(id);
   const R = (e) => { const r = e.getBoundingClientRect(); return { l: r.left, t: r.top, r: r.right, b: r.bottom, w: r.width, h: r.height }; };
   const h = $('h1hint');
@@ -50,8 +50,24 @@ const MEAS = () => {
     for (let i = 0; i < n; i++) { const b = Y3 && Y3.tray && Y3.tray.bboxScreen(i); if (b) hits.push({ what: 'lot' + i, area: inter(rect, { l: b.left, t: b.top, r: b.right, b: b.bottom }) }); }
     for (const id of ['westSeat', 'northSeat', 'eastSeat', 'mainbtn']) { const e = $(id); if (e) hits.push({ what: id, area: inter(rect, R(e)) }); }
   }
+  /* 修訂（加嚴）：提示與所有可見桌上道具（table-props 群組內每個 mesh 的螢幕外框，排除 prop-contact-shadows 貼花）面積交集＝0 */
+  let propHits = [], nProps = 0;
+  if (visible) {
+    const THREE = await import('three'); const Y = window.__yaoshi3d; const g = Y.scene.getObjectByName('table-props');
+    if (g) {
+      g.updateMatrixWorld(true);
+      g.traverse((o) => {
+        if (!(o.isMesh || o.isInstancedMesh)) return; let v = true; for (let p = o; p; p = p.parent) if (!p.visible) v = false; if (!v) return;
+        const nm = o.name || (o.parent && o.parent.name) || o.type; if (nm === 'prop-contact-shadows') return;
+        const box = new THREE.Box3().setFromObject(o); if (box.isEmpty()) return; nProps++;
+        let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; const t = new THREE.Vector3();
+        for (let i = 0; i < 8; i++) { t.set(i & 1 ? box.max.x : box.min.x, i & 2 ? box.max.y : box.min.y, i & 4 ? box.max.z : box.min.z).project(Y.camera); const px = (t.x * .5 + .5) * innerWidth, py = (1 - (t.y * .5 + .5)) * innerHeight; x0 = Math.min(x0, px); x1 = Math.max(x1, px); y0 = Math.min(y0, py); y1 = Math.max(y1, py); }
+        const a = inter(rect, { l: x0, t: y0, r: x1, b: y1 }); if (a > 0) propHits.push({ what: nm, area: a });
+      });
+    }
+  }
   const mb = $('mainbtn'), mcs = getComputedStyle(mb);
-  return { round: window.__yaoshi.S.round, visible, text, rect, withHint, withoutHint, hits, nLots: hits.filter((x) => x.what.startsWith('lot')).length,
+  return { propHits, nProps, round: window.__yaoshi.S.round, visible, text, rect, withHint, withoutHint, hits, nLots: hits.filter((x) => x.what.startsWith('lot')).length,
     main: { text: mb.textContent, bg: mcs.backgroundColor, color: mcs.color, h: R(mb).h, w: R(mb).w, weight: mcs.fontWeight, shadow: mcs.boxShadow } };
 };
 
@@ -88,6 +104,30 @@ async function driveRounds(page, vpKey) {
     }
   }
   return out;
+}
+
+/* 修訂（加嚴）：同一卷軸隱藏 .asc-act 前後 appraiseLayout().r 差 ≤0.5px——所有 rail、所有拍品 */
+async function mirrorProbe(page, phase) {
+  const cls = await driveToFirst(page, new Set([phase]), 6000);
+  if (!cls) return { err: `沒進到 ${phase} 頁` };
+  if (!(await waitTrayReady(page))) return { err: '3D 未就緒' };
+  await page.waitForTimeout(400);
+  const tabs = await page.evaluate(() => [...document.querySelectorAll('.railTabs button')].map((b) => ({ rail: b.closest('.rail').id, slot: Number(b.dataset.slot) })));
+  const rows = [];
+  for (const t of tabs) {
+    await page.evaluate(([r, s]) => railTabClick(r, s), [t.rail, t.slot]);
+    await page.waitForTimeout(2200);
+    rows.push({ ...t, ...(await page.evaluate(() => {
+      const el = document.querySelector('.asc'); if (!el) return { err: 'no asc' };
+      const act = el.querySelector('.asc-act'); if (!act) return { err: 'no act' };
+      const withR = appraiseLayout().r;
+      act.style.setProperty('display', 'none', 'important'); appraiseFitScroll();
+      const withoutR = appraiseLayout().r;
+      act.style.removeProperty('display'); appraiseFitScroll();
+      return { withR, withoutR };
+    })) });
+  }
+  return { rows };
 }
 
 const SNAP = () => {
@@ -161,6 +201,13 @@ before(async () => {
           d['click_' + phase + '_paper'] = info2.err ? { err: info2.err } : await clickOf(o2.page, 'paper', phase, info2);
         } finally { await o2.ctx.close().catch(() => {}); }
       }
+    }
+    for (const phase of ['mark', 'bid']) {
+      const o = await openGame(browser, PORT, ALL[k], 'solo', 3, { clock: false, destiny: DESTINY });
+      try {
+        if (phase === 'bid') { const c = await driveToFirst(o.page, new Set(['mark']), 6000); if (c) { await o.page.evaluate(() => pickMark(null)); for (let i = 0; i < 200 && (await scr(o.page)) !== 'bid'; i++) await o.page.waitForTimeout(20); await o.page.waitForTimeout(600); } }
+        d['mirror_' + phase] = await mirrorProbe(o.page, phase);
+      } finally { await o.ctx.close().catch(() => {}); }
     }
     DATA.set(k, d);
   }
@@ -240,5 +287,30 @@ test('5 盯上頁主鈕「不盯任何一件」是次要樣式；功能不變', 
     assert.ok(alpha(mk.main.bg) < 1 || lum(mk.main.bg) !== lum(bd.main.bg));
     assert.ok(alpha(mk.main.bg) < alpha(bd.main.bg) || Math.abs(lum(mk.main.bg) - lum(mk.main.color)) <= Math.abs(lum(bd.main.bg) - lum(bd.main.color)), `${k}：對比不低於出價頁主鈕`);
     assert.ok(d.rounds[1].bid, `${k}：pickMark(null) 後沒進到出價頁（功能被改）`);
+  });
+});
+
+test('6（加嚴）提示與所有可見桌上道具（不含接觸陰影貼花）外框交集面積＝0', () => {
+  each((k, d) => {
+    for (const r of [1, 2]) for (const ph of ['mark', 'bid']) {
+      const m = d.rounds[r][ph]; if (!m) continue;
+      assert.equal(m.visible, true, `${k} 夜${r} ${ph}：提示不可見`);
+      assert.ok(m.nProps >= 3, `${k} 夜${r} ${ph}：量不到桌上道具（${m.nProps}）`);
+      assert.deepEqual(m.propHits, [], `${k} 夜${r} ${ph}：提示與道具相交 ${JSON.stringify(m.propHits)}`);
+    }
+  });
+});
+
+test('7（加嚴）卷軸：隱藏 .asc-act 前後鏡子半徑差 ≤0.5px（三尺寸、所有 rail、所有拍品）', () => {
+  each((k, d) => {
+    for (const ph of ['mark', 'bid']) {
+      const m = d['mirror_' + ph];
+      assert.ok(m && !m.err, `${k} ${ph}：${m && m.err}`);
+      assert.ok(m.rows.length >= 4, `${k} ${ph}：窄籤不足 4 枚`);
+      for (const r of m.rows) {
+        assert.ok(!r.err, `${k} ${ph} ${r.rail}/${r.slot}：${r.err}`);
+        assert.ok(Math.abs(r.withR - r.withoutR) <= 0.5, `${k} ${ph} ${r.rail}/${r.slot}：鏡子半徑 ${r.withoutR} → ${r.withR}（差 ${(r.withoutR - r.withR).toFixed(2)}）`);
+      }
+    }
   });
 });
