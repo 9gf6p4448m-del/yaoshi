@@ -1,0 +1,116 @@
+{
+ "source": "index.html",
+ "sourceUnchanged": true,
+ "note": "基準已知紅「#1 常規局…3a0d971」在每個突變體上都會同樣紅，不計入 redAsExpected",
+ "results": [
+  {
+   "id": "M3-ch4-chainsOff",
+   "frozen": "#3",
+   "what": "第 4 章 rules.chains 改 false",
+   "exit": 1,
+   "failedTests": [
+    "#1 常規局：S 不多欄位；座位與亂數流與 3a0d971 相同（seeds 1–50、solo／hotseat）",
+    "#3(46) 第 4–6 章：主角／規則欄位正確；destinyEffectMode original、連鎖與天命皆開（注入六組連鎖皆生效）",
+    "#7(46) copy-r2.json：標「待簽」、兩版同結構不同文字；掛載版逐字等於 selected 版"
+   ],
+   "assertionMessages": [
+    "Expected values to be strictly deep-equal:"
+   ],
+   "redAsExpected": true
+  },
+  {
+   "id": "M4-openAll",
+   "frozen": "#4",
+   "what": "nwChapterOpen 恆回 true",
+   "exit": 1,
+   "failedTests": [
+    "#1 常規局：S 不多欄位；座位與亂數流與 3a0d971 相同（seeds 1–50、solo／hotseat）",
+    "#5 壞資料／讀寫丟例外：當空進度、不丟例外、選單只開第 1 章、可開局",
+    "#6 依序開放；?nwall=1 全開",
+    "#4(46) 第 4–6 章依序開放；選角恰排除該章主角"
+   ],
+   "assertionMessages": [
+    "Expected values to be strictly deep-equal:",
+    "{bad json"
+   ],
+   "redAsExpected": true
+  },
+  {
+   "id": "M5-bossHardcode",
+   "frozen": "#5",
+   "what": "nightwalkPass 把主角寫死成 qingmian",
+   "exit": 1,
+   "failedTests": [
+    "#1 常規局：S 不多欄位；座位與亂數流與 3a0d971 相同（seeds 1–50、solo／hotseat）",
+    "#5 過關寫入 {\"v\":1,\"cleared\":[…]}、讀回一致、重複通關不重複、未過關不寫",
+    "#5(46) 第 4–6 章：過關判定比對各章主角；過關才存、未過不寫、依序累積"
+   ],
+   "assertionMessages": [
+    "Expected values to be strictly deep-equal:",
+    "lvshan 壽命大 → 過"
+   ],
+   "redAsExpected": true
+  },
+  {
+   "id": "M6-ruleNights",
+   "frozen": "#6",
+   "what": "CFG.RULE_NIGHTS [3,7] → [3,8]",
+   "exit": 1,
+   "failedTests": [
+    "#1 常規局：S 不多欄位；座位與亂數流與 3a0d971 相同（seeds 1–50、solo／hotseat）",
+    "#6(46) 教學文字與引擎相符（夜數取自 CFG、名稱取自 NIGHTRULES／EVENTS；掛載版與 v1／v2 兩版皆驗）"
+   ],
+   "assertionMessages": [
+    "Expected values to be strictly deep-equal:",
+    "掛載版第4章 規則夜夜數 ≠ CFG.RULE_NIGHTS"
+   ],
+   "redAsExpected": true
+  },
+  {
+   "id": "M6-ruleName",
+   "frozen": "#6",
+   "what": "NIGHTRULES.luopo 改名",
+   "exit": 1,
+   "failedTests": [
+    "#1 常規局：S 不多欄位；座位與亂數流與 3a0d971 相同（seeds 1–50、solo／hotseat）",
+    "#6(46) 教學文字與引擎相符（夜數取自 CFG、名稱取自 NIGHTRULES／EVENTS；掛載版與 v1／v2 兩版皆驗）"
+   ],
+   "assertionMessages": [
+    "Expected values to be strictly deep-equal:",
+    "掛載版第4章 缺規則夜名稱「落魄日」"
+   ],
+   "redAsExpected": true
+  },
+  {
+   "id": "M6-eventNights",
+   "frozen": "#6",
+   "what": "CFG.EVENT_NIGHTS [4,8,11] → [4,8,12]",
+   "exit": 1,
+   "failedTests": [
+    "#1 常規局：S 不多欄位；座位與亂數流與 3a0d971 相同（seeds 1–50、solo／hotseat）",
+    "#6(46) 教學文字與引擎相符（夜數取自 CFG、名稱取自 NIGHTRULES／EVENTS；掛載版與 v1／v2 兩版皆驗）"
+   ],
+   "assertionMessages": [
+    "Expected values to be strictly deep-equal:",
+    "掛載版第6章 異事夜數 ≠ CFG.EVENT_NIGHTS"
+   ],
+   "redAsExpected": true
+  },
+  {
+   "id": "M6-shrineNights",
+   "frozen": "#6",
+   "what": "CFG.SHRINE_NIGHTS [5,8,11] → [5,8,12]",
+   "exit": 1,
+   "failedTests": [
+    "#1 常規局：S 不多欄位；座位與亂數流與 3a0d971 相同（seeds 1–50、solo／hotseat）",
+    "#6(46) 教學文字與引擎相符（夜數取自 CFG、名稱取自 NIGHTRULES／EVENTS；掛載版與 v1／v2 兩版皆驗）"
+   ],
+   "assertionMessages": [
+    "Expected values to be strictly deep-equal:",
+    "掛載版第6章 請神夜數 ≠ CFG.SHRINE_NIGHTS"
+   ],
+   "redAsExpected": true
+  }
+ ],
+ "allRed": true
+}
