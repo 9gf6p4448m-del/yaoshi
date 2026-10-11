@@ -3,6 +3,8 @@
 //   A  三個橫向視窗：#feltHead 高度 < 改前；預設心願標籤高度 ≤22px；#feltHead 內不新增第三列（列數≤2）。
 //   B  點標籤→完整文案可見且不截斷；展開前後 #feltHead／#felt 高度不變；再點／點別處／6 秒後皆收回。
 //   C  熱座交棒重畫（setFeltPrivateContext 連呼叫兩次）後 DOM 只剩一個 .wishbar、且是當前玩家的。
+//   G  標籤含 ▾、展開後為 ▴。H  出價頁自動展開一次（同一夜重畫不重複、熱座換人重新自動展開）。
+//   I  可點區 ≥32px（可見標籤上下各 8px 處 elementFromPoint 仍命中標籤）。J  自動展開不改 #feltHead／#felt 高度。
 // 對舊版跑同一支：YAOSHI_RENDER_ROOT=<舊版 worktree>（舊版應紅在 A／B 的行為斷言）。
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -43,7 +45,7 @@ async function withPage(fn) {
 }
 
 /* 進到「該夜有心願」的出價頁（盯上頁按 pickMark 進入）。 */
-async function toBidWithWish(page) {
+async function toBidWithWish(page, keepAuto = false) {
   await page.evaluate(() => { CFG.T = 1; window.__yaoshi.newGame('solo', 1, ['qingmian']); });
   await page.waitForSelector('#table.on');
   for (let i = 0; i < 30; i++) {
@@ -57,6 +59,8 @@ async function toBidWithWish(page) {
   await page.waitForTimeout(700);
   const has = await page.evaluate(() => !!document.querySelector('#feltHead .wishbar'));
   assert.ok(has, '出價頁 #feltHead 內應有心願條（seed 1、solo）');
+  /* 出價頁第一次渲染會自動展開 3.5 秒：A／B／C 要量「預設收合態」，先等它收回（keepAuto 給 H／J 看自動展開本身） */
+  if (!keepAuto) await page.waitForFunction(() => !document.querySelector('#feltHead .wishbar.open'), null, { timeout: 20000 }).catch(() => {});
 }
 
 const HEAD = `(() => {
@@ -149,12 +153,76 @@ test('C 熱座交棒重畫後只剩當前玩家的心願條', async () => {
   });
 });
 
-if (SHOT_DIR) test('截圖', async () => {
+test('G 標籤含 ▾、展開後為 ▴', async () => {
   await withPage(async (page) => {
     await toBidWithWish(page);
+    const arrow = () => page.evaluate(() => { const e = document.querySelector('#feltHead .wishbar .wishTag'); return e ? e.textContent : ''; });
+    assert.ok((await arrow()).includes('▾'), '收合態標籤應含 ▾（可展開提示）');
+    const [gx, gy] = await page.evaluate(() => { const r = document.querySelector('#feltHead .wishbar').getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; });
+    await page.mouse.click(gx, gy);
+    assert.ok((await arrow()).includes('▴'), '展開後標籤應為 ▴');
+    assert.ok(!(await arrow()).includes('▾'));
+  });
+});
+
+test('I 可點區 ≥32px（可見標籤上下 7px 處與外側擴張區都命中）', async () => {
+  await withPage(async (page) => {
+    await toBidWithWish(page);
+    const tapAt = async (dy) => { const c = await page.evaluate((dy) => { const r = document.querySelector('#feltHead .wishbar').getBoundingClientRect(); return [r.left + r.width / 2, dy < 0 ? r.top + dy : r.bottom + dy]; }, dy); return c; };
+    for (const [w, h] of VIEWPORTS) {
+      await page.setViewportSize({ width: w, height: h });
+      await page.waitForTimeout(400);
+      for (const dy of [-7, 7]) {
+        const [x, y] = await tapAt(dy);
+        const hit = await page.evaluate(([x, y]) => { const e = document.elementFromPoint(x, y); return !!(e && e.closest('.wishchip')); }, [x, y]);
+        assert.ok(hit, `${w}x${h} 可見標籤${dy < 0 ? '上' : '下'}方 7px 處應仍命中標籤（可點區 ≥32px）`);
+      }
+    }
     await page.setViewportSize({ width: 844, height: 390 });
-    await page.waitForTimeout(600);
+    await page.waitForTimeout(400);
+    const [x, y] = await tapAt(-6);
+    await page.mouse.click(x, y); // 點在可見標籤外的擴張區也要能展開
+    assert.ok(await page.evaluate(() => document.querySelector('#feltHead .wishbar').classList.contains('open')), '點擴張區應能展開');
+  });
+});
+
+test('H／J 出價頁自動展開一次、不改版面高度；同夜重畫不重複、熱座換人重新展開', async () => {
+  await withPage(async (page) => {
+    await toBidWithWish(page, true);
+    const st = () => page.evaluate(() => { const e = document.querySelector('#feltHead .wishbar'); return !!e && e.classList.contains('open') && e.querySelector('.wishFull').getBoundingClientRect().height > 0; });
+    assert.equal(await st(), true, '出價頁第一次渲染應自動展開');
+    const open = await page.evaluate(HEAD);
+    await page.waitForFunction(() => !document.querySelector('#feltHead .wishbar.open'), null, { timeout: 20000 });
+    const closed = await page.evaluate(HEAD);
+    assert.equal(open.headH, closed.headH, '自動展開不得改 #feltHead 高度');
+    assert.equal(open.feltH, closed.feltH, '自動展開不得改 #felt 高度');
+    const r = await page.evaluate(() => {
+      const ids = Object.keys(WISHES), P = window.__yaoshi.S.players, o = () => !!document.querySelector('#feltHead .wishbar.open');
+      P[0].wish = { id: ids[0] }; P[1].wish = { id: ids[1] };
+      const out = {};
+      setFeltPrivateContext(P[0], true, true); out.p0Redraw = o();
+      setFeltPrivateContext(P[1], true, true); out.p1First = o();
+      return out;
+    });
+    await page.waitForFunction(() => !document.querySelector('#feltHead .wishbar.open'), null, { timeout: 20000 }); // 新玩家的自動展開窗口過了
+    r.p1Redraw = await page.evaluate(() => { setFeltPrivateContext(window.__yaoshi.S.players[1], true, true); return !!document.querySelector('#feltHead .wishbar.open'); });
+    /* 自動展開途中被別處重畫（不帶 auto 旗標）：補回剩餘時間，不被重畫吃掉 */
+    r.midRedraw = await page.evaluate(async () => { const P = window.__yaoshi.S.players; P[2].wish = { id: Object.keys(WISHES)[2] }; setFeltPrivateContext(P[2], true, true);
+      await new Promise((x) => setTimeout(x, 400)); setFeltPrivateContext(P[2], true); return !!document.querySelector('#feltHead .wishbar.open'); });
+    assert.equal(r.p0Redraw, false, '同一夜同一玩家重畫不再自動展開');
+    assert.equal(r.p1First, true, '熱座換人要對新玩家重新自動展開');
+    assert.equal(r.p1Redraw, false, '新玩家同夜重畫也不重複');
+    assert.equal(r.midRedraw, true, '自動展開途中的重畫不得把它吃掉');
+  });
+});
+
+if (SHOT_DIR) test('截圖', async () => {
+  await withPage(async (page) => {
+    await toBidWithWish(page, true);
+    await page.setViewportSize({ width: 844, height: 390 });
     const base = path.join(SHOT_DIR, process.env.YAOSHI_SHOT_NAME || 'shot');
+    await page.screenshot({ path: base + '-auto.png' }); // 自動展開中（舊版＝尚無此行為，等同收合）
+    await page.waitForFunction(() => !document.querySelector('#feltHead .wishbar.open'), null, { timeout: 20000 });
     await page.screenshot({ path: base + '-collapsed.png' });
     const c = await page.evaluate(() => { const r = document.querySelector('#feltHead .wishbar').getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; });
     await page.mouse.click(c[0], c[1]);

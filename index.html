@@ -638,6 +638,10 @@ img.pic.state-dying{filter:brightness(.92)}
    #feltHead 在掏空態 pointer-events:none，標籤自己收事件。 */
 #feltHead .wishchip{position:relative;flex:0 0 auto;max-width:none;padding:1px 6px;line-height:12px;white-space:nowrap;cursor:pointer;pointer-events:auto}
 #feltHead .wishchip .wishFull{display:none}
+/* 可點提示 ▾／▴（字元與色沿用上方面板的 .nsumArr：金色 11px；其定位規則限定在 #north，這裡只取外觀）；
+   可點區以透明 ::before 上下各擴 9px（相對 padding box，含 1px 邊框後距邊框外緣 ≥8px；可見高度不變、不推版面），總高 ≥32px */
+#feltHead .wishchip .nsumArr{color:var(--gold);font-size:11px;margin-left:3px}
+#feltHead .wishchip::before{content:"";position:absolute;left:-4px;right:-4px;top:-9px;bottom:-9px}
 /* 窄橫向（桌心欄＜縮寫條＋標籤並排的寬度，如 667）：標籤只換視覺順序到月相格右邊，與月相同一列，縮寫條整句落第二列；
    DOM 順序與文字不動。放得下的視窗（844 起）維持月相／縮寫／標籤同一列。 */
 @media (orientation:landscape) and (max-width:760px){
@@ -3976,15 +3980,23 @@ function wishBarHTML(p,chip){
   if(!w) return "";
   const full=`🌒 今夜心願（僅你可見）：<b>${w.name}</b>｜${typeof w.desc==="function"?w.desc(p):w.desc}`;
   /* v0.65.6：3D 桌（hollow）預設只露一顆小標籤「🌒 心願名」，點開才浮出完整文案（絕對定位，不推版面） */
-  if(chip) return `<div class="wishbar wishchip" role="button" tabindex="0" aria-expanded="false"><span class="wishTag">🌒 ${w.name}</span><span class="wishFull">${full}</span></div>`;
+  if(chip) return `<div class="wishbar wishchip" role="button" tabindex="0" aria-expanded="false"><span class="wishTag">🌒 ${w.name}<span class="nsumArr" aria-hidden="true">▾</span></span><span class="wishFull">${full}</span></div>`;
   return `<div class="wishbar">${full}</div>`;
 }
 /* 心願標籤的展開／收回：單一 document 委派（節點會隨熱座交棒重建，不在節點上綁監聽）。
    點標籤切換、點別處收回、展開 6 秒後自動收回。 */
 let WISHCHIP_TIMER=0, WISHCHIP_BOUND=false;
+let WISHCHIP_AUTO={key:"",until:0};
+const WISHCHIP_SEEN=new Set(); /* 「第 N 夜・玩家 id」已自動展開過；newGame 清空 */
+function wishChipOpen(el,ms){
+  clearTimeout(WISHCHIP_TIMER);
+  el.classList.add("open"); el.setAttribute("aria-expanded","true");
+  const a=el.querySelector(".nsumArr"); if(a) a.textContent="▴";
+  WISHCHIP_TIMER=setTimeout(()=>wishChipClose(el),ms);
+}
 function wishChipClose(el){
   clearTimeout(WISHCHIP_TIMER); WISHCHIP_TIMER=0;
-  if(el){ el.classList.remove("open"); el.setAttribute("aria-expanded","false"); }
+  if(el){ el.classList.remove("open"); el.setAttribute("aria-expanded","false"); const a=el.querySelector(".nsumArr"); if(a) a.textContent="▾"; }
 }
 function wishChipBind(){
   if(WISHCHIP_BOUND) return; WISHCHIP_BOUND=true;
@@ -3995,8 +4007,7 @@ function wishChipBind(){
       if(hit===open) wishChipClose(hit);
       else{
         if(open) wishChipClose(open);
-        hit.classList.add("open"); hit.setAttribute("aria-expanded","true");
-        WISHCHIP_TIMER=setTimeout(()=>wishChipClose(hit),6000);
+        wishChipOpen(hit,6000);
       }
     }else if(open) wishChipClose(open);
   });
@@ -4004,10 +4015,19 @@ function wishChipBind(){
 /* 3D 拍賣桌的資訊層級：私有心願與公開夜況同在 #feltHead；舊平面桌維持原本 stage 位置。
    每次重畫都先移除舊節點，熱座交棒或重進出價頁不會殘留上一位玩家的秘密。 */
 function setFeltPrivateContext(p,hollow){
+  const auto=arguments[2]; /* 第三參數：出價頁 true＝首次渲染自動展開心願標籤（簽名維持兩參，測試以 regex 釘它） */
   const head=$("feltHead"); if(!head) return;
   head.querySelectorAll(".wishbar").forEach(el=>el.remove());
   wishChipClose(null);
-  if(hollow){ wishChipBind(); head.insertAdjacentHTML("beforeend",wishBarHTML(p,true)); }
+  if(hollow){
+    wishChipBind(); head.insertAdjacentHTML("beforeend",wishBarHTML(p,true));
+    /* 出價頁每夜每位玩家第一次渲染時自動展開 3.5 秒（讓新手看過全文、也知道可點）；同一夜重畫不重複，熱座換人重新來一次 */
+    const chip=head.querySelector(".wishchip"), key=`${S.round}:${p.id}`;
+    if(chip){
+      if(auto&&!WISHCHIP_SEEN.has(key)){ WISHCHIP_SEEN.add(key); WISHCHIP_AUTO={key,until:Date.now()+3500}; wishChipOpen(chip,3500); }
+      else if(WISHCHIP_AUTO.key===key&&Date.now()<WISHCHIP_AUTO.until) wishChipOpen(chip,WISHCHIP_AUTO.until-Date.now()); /* 自動展開途中被重畫（含別頁的重畫）：補回剩餘時間，不重新計 3.5 秒 */
+    }
+  }
 }
 /* ================= 盯上宣告（GAME_DESIGN §5.8）=================
    夜初（抽心願之後、異事之前）AI 依座位序各釘一件（耗 S.rng()），真人由 UI／策略的 mark() 決定；
@@ -4241,7 +4261,7 @@ function makeState(mode,seed,picks,privateDestinyDraws,destinyEffectMode="origin
   return S;
 }
 function newGame(mode,seed,picks,opts){
-  YB_COLLAPSED=false; CHAIN_SEEN.clear(); PUBLIC_REVEAL=null; PRIVATE_PHASE="none"; REVEAL_ANIMATING=false; NW_OPEN_SAID=false; NW_BUBBLE=null; bubClear();
+  YB_COLLAPSED=false; CHAIN_SEEN.clear(); WISHCHIP_SEEN.clear(); PUBLIC_REVEAL=null; PRIVATE_PHASE="none"; REVEAL_ANIMATING=false; NW_OPEN_SAID=false; NW_BUBBLE=null; bubClear();
   try{ if(opts&&opts.chapter!=null) makeState(mode,seed,picks,undefined,undefined,undefined,opts); else makeState(mode,seed,picks);}catch(e){
     if(e.message!=="secure destiny draw unavailable") throw e;
     const select=$("selectScr"),title=$("titleScr"),message=$("verLine");
@@ -7044,7 +7064,7 @@ function showMarket(){
     ${hollow?"":`<div id="market">${S.market.map((it,i)=>mcardHTML(it,i)).join("")}</div>`}`;
   if(newChains.length) setTimeout(()=>document.querySelectorAll("#table .chainAwaken").forEach(el=>el.remove()),1500);
   setHollow(hollow);
-  setFeltPrivateContext(ap,hollow);
+  setFeltPrivateContext(ap,hollow,true);
   if(hollow){
     fillRails(prev,shrinesHTML(),mcardHTML,{prev:`<span class="nob">🔮 明夜${pv.length?`「${pv[0].n}」`:"預告"}</span>${(rl&&!stake)?`<span class="nob">｜${rl.icon}${rl.name}</span>`:""}`});
     TRAY_PHASE="bid";
