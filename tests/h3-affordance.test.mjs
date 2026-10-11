@@ -130,7 +130,8 @@ for (const size of SIZES) {
     await withMarket(size, async (page) => {
       const before = { felt: await rectOf(page, '#felt'), tabs: await tabRects(page), badges: await page.evaluate(() => document.querySelectorAll('.tabbid,.tabmark').length) };
       assert.equal(before.badges, 0);
-      await page.evaluate(() => { myBids[0].amt = 3; showMarket(); });
+      /* 真實路徑：開出價視窗 → 改金額 → closeSheet（它只換單張卡、不重畫窄籤；用 showMarket 會掩蓋這個缺口） */
+      await page.evaluate(() => { openSheet(0); myBids[0].amt = 3; closeSheet(); });
       await page.waitForTimeout(300);
       const bid = await page.evaluate(() => [...document.querySelectorAll('.railTabs button')].map((b) => (b.querySelector('.tabbid') || {}).textContent || null));
       assert.equal(bid[0], '押 3', '槽 0 窄籤沒有「押 3」：' + JSON.stringify(bid));

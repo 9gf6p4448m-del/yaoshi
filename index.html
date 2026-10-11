@@ -3673,6 +3673,15 @@ function tabBidHTML(i){
   const mk=(typeof CFG!=="undefined"&&CFG.MARK_ON&&S.marks&&S.marks[ACTIVE]===i)?`<span class="tabmark" aria-label="我盯上這件">👁</span>`:"";
   return bid+mk;
 }
+/** 出價視窗關閉（closeSheet 只換單張卡、不重畫窄籤）時，就地更新該槽窄籤的「押 N」／👁，不動版面。 */
+function tabBidRefresh(i){
+  try{
+    const b=document.querySelector(`.railTabs button[data-slot="${i}"]`); if(!b) return;
+    b.querySelectorAll(".tabbid,.tabmark").forEach(e=>e.remove());
+    const t=document.createElement("template"); t.innerHTML=tabBidHTML(i);
+    b.insertBefore(t.content,b.querySelector(".tabArr"));
+  }catch(e){}
+}
 function railHTML(idxs,cardFn,id){
   const fn=cardFn||mcardHTML;
   const nav=`<div class="railTabs" aria-label="選擇要閱讀的法寶">${idxs.map(i=>`<button type="button" class="sys-${S.market[i].f}${TAB_SEEN.has(S.round+":"+i)?" seen":""}" data-slot="${i}" aria-expanded="false" onclick="railTabClick('${id}',${i})">${S.market[i].n}${tabPickHTML(i)}${tabBidHTML(i)}<span class="tabArr" aria-hidden="true">›</span></button>`).join('')}</div>`;
@@ -7343,6 +7352,7 @@ function closeSheet(){
   pushBid3d(ACTIVE,sheetIdx,myBids[sheetIdx]?myBids[sheetIdx].amt:0);
   const wrap=$("mc"+sheetIdx);
   if(wrap)wrap.outerHTML=mcardHTML(S.market[sheetIdx],sheetIdx);
+  tabBidRefresh(sheetIdx);
   updateBudget();
 }
 function updateBudget(){
