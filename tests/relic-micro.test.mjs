@@ -20,7 +20,8 @@ async function load(base) {
 }
 const CUR = await load(false), BASE = await load(true);
 
-const WORST = ['dangpu', 'shoujing', 'luzhu', 'zutou'];
+/* 修訂 5：北席（seat 1）不演小動作，所以把會動的三種角色放在 seat 0、2、3；seat 1 放 zutou（沒有小動作的角色）。 */
+const WORST = ['dangpu', 'zutou', 'shoujing', 'luzhu'];
 function make(create, { fx = true, roles = WORST, layout = 'L', slow } = {}) {
   globalThis.location = { search: fx ? '' : '?fx=0' };
   globalThis.YS_ANIM_SLOW = slow ? { hand: slow, grab: 1 } : undefined;
@@ -225,4 +226,23 @@ test('M15 動作窗中途換版面：下一次 update 後分件姿態與父件�
   assert.ok(pv.visible); a.props.setLayout(...LAYOUTS.P); a.props.update(DT);
   assert.ok(close([pv.position.toArray(), pv.scale.toArray(), [pv.rotation.y]], [parent.position.toArray(), parent.scale.toArray(), [parent.rotation.y]], 1e-12), '分件姿態與父件脫鉤');
   a.props.dispose();
+});
+
+test('M16（修訂 5）北席（seat 1）無小動作：任何角色放在 seat 1，都不建 relic-micro-1* 子 Mesh、父件姿態與基準逐值相等且永遠可見', () => {
+  for (const role of ['dangpu', 'shoujing', 'luzhu']) {
+    const roles = ['zutou', role, 'zutou', 'zutou'];
+    const a = make(CUR, { roles }), b = make(BASE, { roles });
+    assert.equal(kids(a.group).filter((k) => seatOf(k) === 1).length, 0, role + '：seat 1 不該有子 Mesh');
+    let seenVisible = 0, pmax = 0;
+    for (let i = 0; i < 60 * 24; i++) {
+      a.props.update(DT); b.props.update(DT);
+      for (const k of kids(a.group)) if (seatOf(k) === 1 && k.visible) seenVisible++;
+      const pa = pose(a.group), pb = pose(b.group);
+      for (let j = 0; j < pa.length; j++) for (let q = 0; q < pa[j].length; q++) pmax = Math.max(pmax, Math.abs(pa[j][q] - pb[j][q]));
+      assert.ok(relicMeshes(a.group).every((m) => m.visible), role + '：父信物不得被隱藏（第 ' + i + ' 步）');
+    }
+    assert.equal(seenVisible, 0, role + '：seat 1 有可見子 Mesh');
+    assert.equal(pmax, 0, role + '：父件姿態與基準不同');
+    a.props.dispose(); b.props.dispose();
+  }
 });

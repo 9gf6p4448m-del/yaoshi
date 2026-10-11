@@ -2,6 +2,7 @@
 // V-bead（珠位移 ≥4 CSS px）、V-smoke（煙螢幕包圍盒高 ≥14 CSS px）、V-smoke-alpha（峰值不透明度 ≥0.6）、
 // M6′（動作窗內子 Mesh 不與 UI 矩形、別席信物、3D 拍品相交）。844×390、DPR 2、真頁面、單一 chromium。
 // 四席角色輪轉 4 次，使每種角色都輪到每個座位；每次取樣一整個 6 秒週期。
+// 凍結檔修訂 5：北席（seat 1）不演小動作，V-bead／V-smoke 只量座位 0、2、3；北席必須完全沒有子 Mesh。
 // 舊版對照：YAOSHI_RENDER_ROOT=<舊樹> 跑同一份測試（須紅在行為斷言）。
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -88,13 +89,14 @@ async function measure() {
       const roles = BASE_ROLES.map((_, i) => BASE_ROLES[(i + rot) % 4]);
       await page.evaluate((rs) => { window.__yaoshi3d.tray.props.setSeats(rs.map((role, id) => ({ id, role }))); }, roles);
       await page.waitForTimeout(300);
-      const best = { beads: {}, smoke: {}, viol: [], samples: 0, detail: {} };
+      const best = { beads: {}, smoke: {}, viol: [], samples: 0, detail: {}, north: [] };
       const t0 = Date.now();
       while (Date.now() - t0 < SAMPLE_MS) {
         const v = await page.evaluate(`(${PROBE})(${JSON.stringify(roles)})`); best.samples++;
         for (const b of v.beads) best.beads[b.name + '@' + b.seat] = Math.max(best.beads[b.name + '@' + b.seat] || 0, b.d);
         for (const s of v.smoke) { const k = s.name + '@' + roles[s.seat]; const e = best.smoke[k] || (best.smoke[k] = { h: 0, op: 0 }); e.h = Math.max(e.h, s.h); e.op = Math.max(e.op, s.op); }
         for (const m of v.micro) {
+          if (m.seat === 1) best.north.push(m.name);
           for (const r of rects) if (hit(m, r)) { best.viol.push(`${m.name} × UI ${r.k}`); best.detail[`${m.name}|${r.k}`] = { m: [m.x0, m.y0, m.x1, m.y1].map(Math.round), ui: [r.x0, r.y0, r.x1, r.y1].map(Math.round), parent: v.relics.filter((q) => q.seat === m.seat).map((q) => [q.name, q.x0, q.y0, q.x1, q.y1].map((z) => typeof z === 'number' ? Math.round(z) : z)) }; }
           for (const q of v.relics) if (q.seat !== m.seat && hit(m, q)) best.viol.push(`${m.name} × 別席信物 ${q.name}`);
           for (const l of v.lots) if (hit(m, l)) best.viol.push(`${m.name} × 3D 拍品`);
@@ -110,22 +112,28 @@ async function measure() {
 const runs = await measure();
 const uniq = (a) => [...new Set(a)];
 
-test('V-bead 算盤動作窗內兩排珠子各自螢幕位移 ≥4 CSS px（四個座位各量）', () => {
+test('V-bead 算盤動作窗內兩排珠子各自螢幕位移 ≥4 CSS px（座位 0、2、3 各量）', () => {
   const rows = runs.flatMap((r) => Object.entries(r.beads));
-  assert.ok(rows.length >= 8, '量不到 4 席 × 2 排珠子（前提不成立）：' + JSON.stringify(rows));
+  assert.ok(rows.length >= 6, '量不到 3 席 × 2 排珠子（前提不成立）：' + JSON.stringify(rows));
   for (const [k, d] of rows) assert.ok(d >= 4, `${k} 位移 ${d.toFixed(2)}px < 4`);
 });
 
-test('V-smoke 煙在動作窗內螢幕包圍盒高度最大值 ≥14 CSS px（收驚婆、爐主各在四個座位量）', () => {
+test('V-smoke 煙在動作窗內螢幕包圍盒高度最大值 ≥14 CSS px（收驚婆、爐主各在座位 0、2、3 量）', () => {
   const rows = runs.flatMap((r) => Object.entries(r.smoke));
-  assert.ok(rows.length >= 8, '量不到 2 種煙 × 4 席（前提不成立）：' + JSON.stringify(rows));
+  assert.ok(rows.length >= 6, '量不到 2 種煙 × 3 席（前提不成立）：' + JSON.stringify(rows));
   for (const [k, e] of rows) assert.ok(e.h >= 14, `${k} 煙高 ${e.h.toFixed(2)}px < 14`);
 });
 
 test('V-smoke-alpha 真頁面煙峰值不透明度 ≥0.6', () => {
   const rows = runs.flatMap((r) => Object.entries(r.smoke));
-  assert.ok(rows.length >= 8);
+  assert.ok(rows.length >= 6);
   for (const [k, e] of rows) assert.ok(e.op >= 0.6, `${k} 峰值不透明度 ${e.op.toFixed(3)} < 0.6`);
+});
+
+test('北席（seat 1）整段取樣沒有任何可見子 Mesh（修訂 5）', () => {
+  assert.equal(runs.reduce((n, r) => n + r.samples, 0) > 100, true);
+  const seen = runs.flatMap((r) => r.north);
+  assert.equal(uniq(seen).length, 0, '北席出現子 Mesh：' + uniq(seen).join('、'));
 });
 
 test('M6′ 動作窗內子 Mesh 螢幕包圍盒不與 UI 矩形／別席信物／3D 拍品相交', () => {

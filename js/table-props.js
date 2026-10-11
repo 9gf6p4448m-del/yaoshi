@@ -477,6 +477,8 @@ export function createTableProps(parent, opts = {}) {
   const tokRec = [0, 1, 2, 3].map((seat) => ({ seat, slot: -1, t: 0, bounce: 0, done: false, hit: false }));
   /** 四席信物：{ seat, role, mesh } */
   const relics = [null, null, null, null];
+  /** 北席（seat 1）信物本來就壓在 headCompact／wishbar 之下，小動作一律不演（凍結檔修訂 5）。 */
+  const MICRO_SKIP_SEAT = 1;
   const micro = microOn(); // 空閒小動作（撥珠、冒煙）；?fx=0 ⇒ false ⇒ 不建任何子 Mesh
   let idleClock = 0; // 空閒動作時鐘（秒，隨 update(dt) 累加，已含 ?handslow 縮放；不耗亂數）
   function freeRelic(r) {
@@ -726,7 +728,7 @@ export function createTableProps(parent, opts = {}) {
         const mesh = b.build('relic-' + want[i], relicMat());
         mesh.userData.tris = b.count() / 3;
         group.add(mesh);
-        relics[i] = { seat: i, role: want[i], mesh, move: 1, micro: micro ? buildMicro(want[i], i, mesh) : null }; // move＝小動作進度（1＝閒置）
+        relics[i] = { seat: i, role: want[i], mesh, move: 1, micro: micro && i !== MICRO_SKIP_SEAT ? buildMicro(want[i], i, mesh) : null }; // move＝小動作進度（1＝閒置）
       }
       placeRelics();
     },
