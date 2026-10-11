@@ -33,3 +33,17 @@ tests/ui-hierarchy.test.mjs 的版本斷言一律 0.66.0；VERSION_NOTE 以「0.
 ⑦ 截圖存 D:/yaoshi-out/release-066/：844×390 夜 1 盯上頁、夜 1 出價頁、押寶夜出價頁、點開心願標籤、鑑賞頁首次提示、局末卡、異事卡各 1 張。
 
 未驗證（先聲明）：iPhone 真機一律未驗證。
+
+## 整合修訂 1（2026-10-12）——驗收實測才發現的跨分支漏項，只加嚴
+
+原條①–⑦一字未動（含②門檻）。整合首跑 relic-micro-visible M6′ 紅：relic-micro-2-body × #h1hint（props-micro × h1-guide 跨分支，
+兩分支各自都綠）。協調者裁示：只在整合分支調 #h1hint 位置／寬度（h1 分支的程式），屬加嚴，不需使用者簽。補條：
+
+⑧ #h1hint 與信物全面不相交：三尺寸 × 夜 1 盯上頁／出價頁 × 角色排列
+   {種子 3 自然排列；['dangpu','shoujing','luzhu','zutou'] 四席輪轉 4 次（含 dangpu 在座位 2），每排列連續取樣 6.6 秒（含動作窗的子 Mesh）；
+    全部角色每席各輪到一次的 10 組靜止排列}，
+   #h1hint 外框與 table-props 內每個可見 mesh（信物本體＋relic-micro 子 Mesh，排除 prop-contact-shadows 貼花）外框交集面積全為 0，
+   且與 3D 拍品外框、座位卡、主鈕交集為 0。工具：tests/tools/h1hint-relic-sweep.mjs（有任何交集 exit 1）。
+   改前實測（現行樣式）：844 盯上頁 dangpu@座位2 474px²、duanshou 886px²、luzhu 118px² 等；667 盯上頁 dangpu@座位0 329px²；932 盯上頁 duanshou 380px²；844 出價頁 duanshou 2.3px²。
+   同時須綠：h1-guide 全部（含條 6、條 7）、relic-micro-visible M6′。
+   紅：提示改回 844／932 盯上頁兩行（dangpu 座位 2 相交）；667 改成一行（橫跨座位 0 信物）。
