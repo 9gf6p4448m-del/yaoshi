@@ -445,6 +445,8 @@ function checkTeach(G, n, teach, label) {
     assert.equal(G.CFG.RULE_ON, true);
     assert.ok(all.includes('抽兩條') && G.CFG.RULE_NIGHTS.length === 2, `${label} 「抽兩條」要等於 RULE_NIGHTS 長度`);
     assert.ok(G.ROLES.lvshan.desc.includes('實付減半') && /只[付收]一半/.test(all), `${label} 法師買銷減半說法與角色說明不符`);
+    assert.ok(all.includes('只有法師一人出價'), `${label} 減半條件要寫成「只有法師一人出價」（對應 onBidSettle 的 nBids===1）`);
+    assert.ok(!all.includes('獨力'), `${label} 不得用歧義詞「獨力」`);
   } else if (n === 5) {
     assert.ok(all.includes('心願') && all.includes('盯上'), `${label} 要教心願與盯上`);
     assert.equal(G.CFG.MARK_ON, true); assert.equal(G.CFG.WISH_ON, true);
@@ -490,7 +492,8 @@ function fmtCheck(c, k) {
 
 test('#7(46) copy-r2.json：標「待簽」、兩版同結構不同文字；掛載版逐字等於 selected 版', () => {
   const G = load();
-  assert.equal(COPY2.status, '待簽');
+  assert.equal(COPY2.status, '已採 v1（使用者 /decide 代決 2026-10-11，可用 nw-copy-apply 切回 v2）');
+  assert.ok(!/逐字簽|已簽|簽字通過/.test(COPY2.status + COPY2.note.replace('不是使用者逐字簽過', '')), '不得宣稱使用者簽過');
   assert.ok(['v1', 'v2'].includes(COPY2.selected));
   assert.deepEqual(COPY2.chapters.map((c) => c.n), [4, 5, 6]);
   for (const ch of COPY2.chapters) {
