@@ -196,7 +196,13 @@ test('D2 data-role 隨「當下」座位角色：newGame 換角色後、renderSe
 // sRGB 相對亮度與對比
 const lum = ([r, g, b]) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
 const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
-const rgbs = (s) => [...s.matchAll(/rgba?\((\d+), (\d+), (\d+)/g)].map((m) => [+m[1], +m[2], +m[3]]);
+// 保留 alpha（第 4 元；rgb() 視為 1）——半透明文字色要先與底合成再算對比，否則 rgba(…,.25) 的字會被當成實色
+const rgbs = (s) => [...s.matchAll(/rgba?\((\d+(?:\.\d+)?), (\d+(?:\.\d+)?), (\d+(?:\.\d+)?)(?:, ([\d.]+))?\)/g)].map((m) => [+m[1], +m[2], +m[3], m[4] === undefined ? 1 : +m[4]]);
+const over = (top, bot) => { const a = top[3]; return [0, 1, 2].map((i) => top[i] * a + bot[i] * (1 - a)).concat(1); };
+const mix = (x, k, o) => [0, 1, 2].map((i) => x[i] * o + k[i] * (1 - o)).concat(1);
+// 泡後面的實際畫面未知：底色樣本半透明、或泡本身 opacity<1 時，對「最壞背景」黑與白各合成一次，取最小對比
+const KS = [[0, 0, 0, 1], [255, 255, 255, 1]];
+const effRatio = (fg, bg, op) => Math.min(...KS.map((K) => { const b = over(bg, K), t = over(fg, b); return ratio(mix(t, K, op), mix(b, K, op)); }));
 
 test('D3 文字對比≥4.5（對木牌漸層兩端），系別小飾的盒子不蓋到文字區', { timeout: 120000 }, async () => {
   await withPage(async (page) => {
@@ -204,10 +210,16 @@ test('D3 文字對比≥4.5（對木牌漸層兩端），系別小飾的盒子�
     const rows = [];
     for (const role of ROLES) {
       const f = found[role];
-      const m = await page.evaluate(({ f, SNAP }) => {
+      await page.evaluate(({ f }) => {
         window.__yaoshi.newGame('solo', f.seed, [f.pk]); SKIP = false;
-        say(f.id, '這是一句比較長的對白，用來檢查文字和小飾會不會互相蓋到。');
+      }, { f });
+      await page.waitForTimeout(700); // 同 D4：開局後的清泡／重畫先跑完，否則剛說的泡會被收掉（opacity 量到 0）
+      await page.evaluate(({ f }) => say(f.id, '這是一句比較長的對白，用來檢查文字和小飾會不會互相蓋到。'), { f });
+      // 等 .bubble 的 opacity 漸變（.25s）真的結束再量（首輪 3D 開局掉幀時固定 500ms 不夠，曾量到 0／0.05 的中途值），量的是顯示中的終值
+      await page.evaluate(async ({ f }) => { const b = document.getElementById('bub' + f.id); await Promise.all(b.getAnimations().map((a) => a.finished.catch(() => {}))); }, { f });
+      const m = await page.evaluate(({ f, SNAP }) => {
         const b = document.getElementById('bub' + f.id), s = eval(SNAP)(f.id);
+        s.opacity = parseFloat(getComputedStyle(b).opacity); s.show = b.classList.contains('show');
         const rg = document.createRange(); rg.selectNodeContents(b); const tr = [...rg.getClientRects()];
         const T = { l: Math.min(...tr.map((x) => x.left)), t: Math.min(...tr.map((x) => x.top)), r: Math.max(...tr.map((x) => x.right)), b: Math.max(...tr.map((x) => x.bottom)) };
         const br = b.getBoundingClientRect();
@@ -225,14 +237,15 @@ test('D3 文字對比≥4.5（對木牌漸層兩端），系別小飾的盒子�
       // 底色樣本＝漸層色標∪非透明的 background-color；樣本為空時 Math.min() 是 Infinity，斷言會恆真（空洞），所以下方另斷言樣本數≥1
       const fg = rgbs(m.s.color)[0];
       const stops = [...rgbs(m.s.bgImage), ...(/^rgba\(\d+, \d+, \d+, 0\)$|^transparent$/.test(m.s.bgColor) ? [] : rgbs(m.s.bgColor))];
-      const cr = stops.map((st) => ratio(fg, st));
+      const cr = stops.map((st) => effRatio(fg, st, m.s.opacity));
       const hit = m.deco && !(m.deco.r <= m.T.l || m.deco.l >= m.T.r || m.deco.b <= m.T.t || m.deco.t >= m.T.b);
-      rows.push({ role, fg: fg.join(','), n: stops.length, stops: stops.map((x) => x.join(',')).join(' / '), minRatio: stops.length ? Math.min(...cr).toFixed(2) : 'NaN', deco: m.deco ? 'yes' : 'none', overlapsText: !!hit });
+      rows.push({ role, show: m.s.show, fg: fg.join(','), op: m.s.opacity, n: stops.length, stops: stops.map((x) => x.join(',')).join(' / '), minRatio: stops.length ? Math.min(...cr).toFixed(2) : 'NaN', deco: m.deco ? 'yes' : 'none', overlapsText: !!hit });
     }
-    console.log('D3 contrast table\nrole\tfg\tn\tbg samples\tmin ratio\tdeco\toverlapsText\n' + rows.map((r) => [r.role, r.fg, r.n, r.stops, r.minRatio, r.deco, r.overlapsText].join('\t')).join('\n'));
+    console.log('D3 contrast table\nrole\tfg(rgba)\topacity\tn\tbg samples\tmin ratio\tdeco\toverlapsText\n' + rows.map((r) => [r.role, r.fg, r.op, r.n, r.stops, r.minRatio, r.deco, r.overlapsText].join('\t')).join('\n'));
     assert.equal(rows.length, ROLES.length, 'D3 應對 10 個角色各量一列');
     for (const r of rows) {
-      assert.ok(r.n >= 1, `${r.role} 取不到任何底色樣本（對比斷言會空洞成立）`);
+      assert.equal(r.show, true, `${r.role} 量測當下泡應在顯示中`);
+      assert.ok(r.n >= 1,`${r.role} 取不到任何底色樣本（對比斷言會空洞成立）`);
       assert.ok(Number.isFinite(+r.minRatio) && +r.minRatio >= 4.5, `${r.role} 文字對比 ${r.minRatio} < 4.5`);
       assert.equal(r.overlapsText, false, `${r.role} 小飾盒子不得蓋到文字`);
     }

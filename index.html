@@ -582,8 +582,6 @@ img.pic.state-dying{filter:brightness(.92)}
 .bubble[data-role=hongyi]::before,.bubble[data-role=xiaonv]::before,.bubble[data-role=dangpu]::before,.bubble[data-role=qingmian]::before{
   content:"";position:absolute;left:6px;right:10px;bottom:-2px;height:2px;border-radius:2px;
   background:linear-gradient(90deg,transparent,#7fd096 12%,transparent 26%,#7fd096 44%,#7fd096 50%,transparent 62%,#7fd096 82%,transparent)}
-/* 北席泡：框線／內距吃掉內容寬會多折一行、置中後頂出上緣——放寬並貼頂（與 A/B/C 同） */
-#table.t3d #north .bubble{max-width:min(220px,27vw);line-height:1.3;top:4px;transform:none}
 /* 對白氣泡被擋（2026-09-30 試玩回饋）：西／北座位在 DOM 裡排在 #felt 前面，同為 z-index:auto 的定位元素後者在上，
    氣泡（在座位層裡，z-index:9 只在座位自己的層內有效）整顆被 #felt／戰況面板／成交總覽蓋住（像素量測：西側可見 0.02、北側 0）。
    座位層抬到 #felt 之上、仍低於 #modal(20)／.rail.open(20)／#review(30)／.cutOverlay(48)；座位與 #felt 在格線上不重疊，
