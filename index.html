@@ -6809,14 +6809,16 @@ function renderEventInput(p,done){
   }else{
     EVAMT=0; EVCAP=ev.cap(p);
     $("stage").innerHTML=`<div class="stageCard" style="max-width:460px">${head}${who}${warn}
-      <div style="display:flex;gap:12px;align-items:center;justify-content:center;margin-top:12px">
+      ${cardActHTML(`<div style="display:flex;gap:12px;align-items:center;justify-content:center;margin-top:2px">
         <button class="bigbtn alt" style="width:52px" onclick="bumpEvent(-1)">−</button>
-        <div id="evAmt" style="font-size:26px;min-width:48px">0</div>
+        <div style="text-align:center"><div id="evAmt" style="font-size:26px;min-width:48px;line-height:1.1">0</div>
+          <div class="mut" style="font-size:11px">可出 0～${EVCAP}（不得傾盡壽命）</div></div>
         <button class="bigbtn alt" style="width:52px" onclick="bumpEvent(1)">＋</button>
       </div>
-      <div class="mut" style="font-size:11px;margin-top:4px">可出 0～${EVCAP}（不得傾盡壽命）</div>
-      ${cardActHTML(`<button class="bigbtn" style="margin-top:6px" onclick="confirmEventNum(${p.id})">封籤</button>
-      ${ev.allowPass?`<button class="bigbtn alt" style="margin-top:8px" onclick="passEvent(${p.id})">${ev.passLabel||"不參與"}</button>`:""}`)}</div>`;
+      <div style="display:flex;gap:8px;margin-top:6px">
+        <button class="bigbtn" style="flex:1" onclick="confirmEventNum(${p.id})">封籤</button>
+        ${ev.allowPass?`<button class="bigbtn alt" style="flex:1" onclick="passEvent(${p.id})">${ev.passLabel||"不參與"}</button>`:""}
+      </div>`)}</div>`;
   }
   cardMoreSync();
 }

@@ -79,7 +79,7 @@ before(async () => {
     /* 全部異事的輸入頁 */
     const evIds = await page.evaluate(() => Object.keys(EVENTS));
     for (const id of evIds) {
-      await page.evaluate((i) => { window.__yaoshi.newGame('solo', 1, ['qingmian']); startEventUI(EVENTS[i]); }, id);
+      await page.evaluate((i) => { window.__yaoshi.newGame('solo', 1, ['qingmian']); document.getElementById('mainbtn').textContent = '進入下一夜'; /* 重現前一夜夜末的主鈕字 */ startEventUI(EVENTS[i]); }, id);
       await measure(`event-${id}@${sz}`);
     }
     /* 局末卡（常規局）：先讓底列有出價摘要，再直接 endGame（我方壽命設 0，對應報告「大字 0」） */
