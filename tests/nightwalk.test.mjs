@@ -532,7 +532,7 @@ test('#7(46) 切換工具：另一版套到副本後逐字等於該版、改動�
 });
 
 /* ---------- #9(46) 範圍守衛：不動引擎 ---------- */
-test('#9(46) 相對 db281fa9：只動允許的檔案；index.html 只有 NIGHTWALK 陣列內的純新增', { skip: process.env.NW_TARGET ? 'NW_TARGET 突變體模式不驗' : false }, () => {
+test('#9(46) 相對 db281fa9：只動允許的檔案；index.html 只有 NIGHTWALK 陣列內的純新增', { skip: process.env.NW_TARGET ? 'NW_TARGET 突變體模式不驗' : (process.env.NW46_SCOPE === '1' ? false : '範圍守衛綁死 db281fa9，只在 NW46_SCOPE=1 時跑（合併後版本號／後續提交會讓它永遠紅；證據見 docs/experiments/2026-10-11-n1-ch4-6/scope-guard.txt）') }, () => {
   const sh = (c) => execSync(c, { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 << 20 });
   const files = new Set([...sh(`git diff --name-only ${BASE46_SHA}`).split('\n'), ...sh('git ls-files --others --exclude-standard').split('\n')].map((s) => s.trim()).filter(Boolean));
   const allowed = [/^index\.html$/, /^tests\/nightwalk\.test\.mjs$/, /^tests\/tools\/(nw-|nightwalk46-)[\w-]*\.mjs$/, /^docs\//];
@@ -541,12 +541,14 @@ test('#9(46) 相對 db281fa9：只動允許的檔案；index.html 只有 NIGHTWA
   const start = lines.findIndex((l) => l.startsWith('const NIGHTWALK=[')) + 1;
   const close = lines.findIndex((l, i) => i + 1 > start && l.replace(/\r$/, '') === '];') + 1;
   assert.ok(start > 0 && close > start);
+  const mb = lines.findIndex((l) => l.includes('/*NW-COPY-4-6 BEGIN*/')) + 1, me = lines.findIndex((l) => l.includes('/*NW-COPY-4-6 END*/')) + 1;
+  assert.ok(mb > start && me > mb && me < close, '標記區間要在 NIGHTWALK 內');
   const diff = sh(`git diff -U0 ${BASE46_SHA} -- index.html`);
   const hunks = [...diff.matchAll(/^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/gm)];
   for (const h of hunks) {
     const oldN = h[2] === undefined ? 1 : Number(h[2]), c = Number(h[3]), d = h[4] === undefined ? 1 : Number(h[4]);
     assert.equal(oldN, 0, `index.html 不得刪改既有行（舊行 ${h[1]} 起 ${oldN} 行）`);
-    assert.ok(c > start && c + d - 1 < close, `hunk 新行 ${c}–${c + d - 1} 落在 NIGHTWALK(${start}–${close}) 之外`);
+    assert.ok(c >= mb && c + d - 1 <= me, `hunk 新行 ${c}–${c + d - 1} 落在標記區間(${mb}–${me}) 之外`);
   }
   if (files.has('index.html')) assert.ok(hunks.length >= 1, '活性：有 hunk 才算驗到');
 });

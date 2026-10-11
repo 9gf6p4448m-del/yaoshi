@@ -23,7 +23,7 @@ export function render(copy, ver) {
 export function apply(src, ver, copy) {
   const eol = src.includes('\r\n') ? '\r\n' : '\n';
   const lines = src.split(eol);
-  const block = render(copy, ver).join(eol).split(eol);
+  const block = render(copy, ver).join('\n').split('\n'); /* render 內部以 \n 分行；統一拆開再用來源的換行符接，避免混用 CRLF／LF */
   const b = lines.findIndex((l) => l.includes(BEGIN)), e = lines.findIndex((l) => l.includes(END));
   if (b >= 0 && e > b) return [...lines.slice(0, b), ...block, ...lines.slice(e + 1)].join(eol);
   if (b >= 0 || e >= 0) throw new Error('標記不成對');

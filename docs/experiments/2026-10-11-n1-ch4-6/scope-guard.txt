@@ -1,0 +1,28 @@
+# #9 範圍守衛證據（NW46_SCOPE=1，相對 db281fa9）
+$ git diff --stat db281fa9 -- index.html
+ index.html | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
+$ git diff -U0 db281fa9 -- index.html | grep "^@@"
+@@ -9112,0 +9113,17 @@ const NIGHTWALK=[
+$ grep -n "NW-COPY-4-6\|^const NIGHTWALK=\[" index.html
+9097:const NIGHTWALK=[
+9113:  /*NW-COPY-4-6 BEGIN*/
+9129:  /*NW-COPY-4-6 END*/
+$ git diff --name-only db281fa9
+docs/experiments/2026-10-11-acceptance-n1-ch4-6.md
+docs/experiments/2026-10-11-n1-ch4-6-options/README.md
+docs/experiments/2026-10-11-n1-ch4-6/baseline-suite-nonbrowser-db281fa9.txt
+docs/experiments/2026-10-11-n1-ch4-6/copy-r2.json
+docs/experiments/2026-10-11-n1-ch4-6/key-facts.md
+docs/experiments/2026-10-11-n1-ch4-6/mutants.json
+docs/experiments/2026-10-11-n1-ch4-6/nonbrowser-test-list.txt
+docs/experiments/2026-10-11-n1-ch4-6/readers-material-r1.md
+docs/experiments/2026-10-11-n1-ch4-6/readers-r1-summary.md
+docs/experiments/2026-10-11-n1-ch4-6/suite-after-nonbrowser.txt
+index.html
+tests/nightwalk.test.mjs
+tests/tools/nw-copy-apply.mjs
+tests/tools/nw-mutants-46.mjs
+tests/tools/nw-probe-46.mjs
+$ NW46_SCOPE=1 node --test tests/nightwalk.test.mjs | grep "#9"
+✔ #9(46) 相對 db281fa9：只動允許的檔案；index.html 只有 NIGHTWALK 陣列內的純新增 (1388.454ms)
