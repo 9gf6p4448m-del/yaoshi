@@ -170,7 +170,7 @@ async function clickOf(page, which, phase, info) {
     for (let i = 0; i < 400; i++) { const c = await scr(page); if (c === 'bid') break; await page.evaluate(DRIVE_STEP).catch(() => {}); await page.waitForTimeout(10); }
     await page.waitForTimeout(200);
   } else {
-    await page.evaluate(() => { if (typeof bump === 'function') bump(1); });
+    await page.evaluate(() => { try { if (typeof bump === 'function') bump(1); } catch (e) { /* 鈕沒開出價視窗＝bump 無對象；留給斷言判（快照會與點紙面不同） */ } });
   }
   return { snap: await page.evaluate(SNAP) };
 }
