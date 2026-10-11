@@ -569,9 +569,9 @@ img.pic.state-dying{filter:brightness(.92)}
 .bubble[data-role=shoujing]{--rc:#e6b54a} .bubble[data-role=hunter]{--rc:#cf9a5a} .bubble[data-role=xiaonv]{--rc:#dcdcd2}
 .bubble[data-role=lvshan]{--rc:#78aee4} .bubble[data-role=zutou]{--rc:#a7cf55} .bubble[data-role=dangpu]{--rc:#b996e4}
 .bubble[data-role=luzhu]{--rc:#f0904a}
-/* 香火：右上角朱紅符印（金邊小方印，斜放），不佔文字區 */
+/* 香火：右上角朱紅符印（金邊小方印，斜放），不佔文字區（左右內距改 6px 後文字貼近右緣 3px，印往外挪 2px：right -5→-7） */
 .bubble[data-role=lvshan]::before,.bubble[data-role=shoujing]::before,.bubble[data-role=luzhu]::before,.bubble[data-role=zutou]::before{
-  content:"";position:absolute;top:-5px;right:-5px;width:9px;height:9px;background:#c8321f;border:1px solid #e8c860;transform:rotate(45deg);
+  content:"";position:absolute;top:-5px;right:-7px;width:9px;height:9px;background:#c8321f;border:1px solid #e8c860;transform:rotate(45deg);
   box-shadow:0 0 0 1px rgba(0,0,0,.55)}
 /* 祖靈：底緣竹節菱紋帶（骨色），內距往下讓 4px */
 .bubble[data-role=hunter]{padding-bottom:8px}
