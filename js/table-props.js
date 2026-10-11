@@ -380,7 +380,7 @@ export const RELIC_NAME = {
 function relicFallback(b) { box(b, [0, 0.012, 0], [0.042, 0.012, 0.026], 0x4a3a28, 0x6b5438); }
 /** 信物材質參數（父 Mesh 與空閒換上場的分件共用同一份，外觀才會逐像素一致） */
 const relicMat = () => ({ side: THREE.DoubleSide, roughness: 0.86, metalness: 0.05, emissive: new THREE.Color(0x1f1a14) });
-/** 冒煙的香頭位置（信物本地座標，= 該信物最高那炷香的香頭頂）；煙從這裡升起，頂端不得超過 relicBoxes 的 top 餘量 0.03/k */
+/** 冒煙的香頭位置（信物本地座標，= 該信物最高那炷香的香頭頂）；煙從這裡升起（修訂 4：煙可高過 relicBoxes top；手的避讓仍看 relicBoxes／relicObstacles，兩者與基準相等） */
 const SMOKE_AT = { shoujing: [0, 0.157, 0.010], luzhu: [0.004, 0.159, -0.004] };
 const SMOKE_HALF = { w: 0.005, h: 0.006 };
 /** 一縷薄煙：兩片十字交叉的直立小片（4 tris）。 */

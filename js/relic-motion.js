@@ -76,10 +76,10 @@ export function idleProgress(clock, seat) {
   const ph = p % IDLE_PERIOD;
   return ph < IDLE_ACTION ? ph / IDLE_ACTION : -1;
 }
-/** 撥珠：兩排珠子反向各滑三下（本地單位 x；最大約 0.009，珠距 0.032 的三成以內）。t∈(0,1) */
-export function beadSlide(t) { return 0.011 * Math.sin(t * PI * 3) * (1 - t); }
-/** 冒煙：一縷薄煙從香頭升起、變大、淡出。dy 本地單位（相對香頭）；sx／sy 縮放；a 不透明度。t∈(0,1) */
+/** 撥珠：兩排珠子反向各滑三下（本地單位 x；修訂 4 放大到肉眼看得出：峰值約 0.033，844×390 約 5–6 CSS px）。t∈(0,1) */
+export function beadSlide(t) { return 0.040 * Math.sin(t * PI * 3) * (1 - t); }
+/** 冒煙（修訂 4 放大：拉長成一縷可見的煙柱、峰值不透明度 0.8）：一縷薄煙從香頭升起、變大、淡出。dy 本地單位（相對香頭）；sx／sy 縮放；a 不透明度。t∈(0,1) */
 export function smokePose(t) {
   const a = sin(PI * t);
-  return { dy: 0.006 * t, dx: 0.002 * sin(t * PI * 2), sx: 0.7 + 0.5 * t, sy: 0.7 + 0.5 * t, a: 0.5 * a * a };
+  return { dy: 0.05 * t, dx: 0.004 * sin(t * PI * 2), sx: 1.2 + 1.8 * t, sy: 2.5 + 5.5 * t, a: 0.8 * a * a };
 }

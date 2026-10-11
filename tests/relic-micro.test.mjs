@@ -89,7 +89,7 @@ test('M4b dt=0 不演', () => {
   assert.equal(kids(a.group).filter((k) => k.visible).length, 0); a.props.dispose();
 });
 
-test('M5 動作確實有、精確回位：珠偏移 0.006–0.012、結束為 0；煙峰值 ≥0.25 且不可見時為 0', () => {
+test('M5 動作確實有、精確回位：珠偏移 ≥0.006（上限依修訂 4 取消）、結束為 0；煙峰值 ≥0.6（V-smoke-alpha，修訂 4）且不可見時為 0', () => {
   const a = make(CUR), rows = kids(a.group).filter((k) => k.name.includes('beads-'));
   assert.equal(rows.length, 2, '算盤應有兩排珠子 Mesh');
   const smokes = kids(a.group).filter((k) => k.name.includes('smoke')); assert.equal(smokes.length, 2, '收驚婆與爐主各一縷煙');
@@ -101,27 +101,18 @@ test('M5 動作確實有、精確回位：珠偏移 0.006–0.012、結束為 0�
     prevOn = on;
     for (const s of smokes) { peak = Math.max(peak, s.material.opacity); if (!s.visible && s.material.opacity !== 0) idleZero = false; }
   });
-  assert.ok(maxX >= 0.006 && maxX <= 0.012, 'maxX=' + maxX);
+  assert.ok(maxX >= 0.006, 'maxX=' + maxX);
   assert.ok(endsZero, '動作結束珠子未精確回位');
-  assert.ok(peak >= 0.25, 'peak=' + peak);
+  assert.ok(peak >= 0.6, 'peak=' + peak);
   assert.ok(idleZero, '煙不可見時不透明度應為 0');
   a.props.dispose();
 });
 
-test('M6 不增遮擋：子 Mesh 世界 AABB ⊆ relicBoxes；兩套版面 relicBoxes／relicObstacles 與基準相等', () => {
+test('M6(b) 兩套版面 relicBoxes／relicObstacles 與基準逐值相等（手的避讓不變；原 M6(a) 已由修訂 4 的 M6′ 取代，見 relic-micro-visible.test.mjs）', () => {
   for (const layout of ['L', 'P']) {
     const a = make(CUR, { layout }), b = make(BASE, { layout });
     assert.equal(JSON.stringify(a.props.relicBoxes()), JSON.stringify(b.props.relicBoxes()), layout + ' relicBoxes');
     assert.equal(JSON.stringify(a.props.relicObstacles()), JSON.stringify(b.props.relicObstacles()), layout + ' relicObstacles');
-    const boxes = a.props.relicBoxes(), box = new THREE.Box3(); let checked = 0; const E = 1e-9;
-    sim(a, 24, () => {
-      for (const k of kids(a.group).filter((q) => q.visible)) {
-        const B = boxes.find((x) => x.seat === seatOf(k)); box.setFromObject(k);
-        assert.ok(box.min.x >= B.x - B.hx - E && box.max.x <= B.x + B.hx + E && box.min.z >= B.z - B.hz - E && box.max.z <= B.z + B.hz + E && box.max.y <= B.top + E, `${layout} ${k.name} 超出 relicBoxes`);
-        checked++;
-      }
-    });
-    assert.ok(checked > 100, 'checked=' + checked);
     a.props.dispose(); b.props.dispose();
   }
 });
