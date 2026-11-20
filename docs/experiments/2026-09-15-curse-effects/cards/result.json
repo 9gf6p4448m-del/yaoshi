@@ -1,0 +1,86 @@
+{
+  "synthetic": true,
+  "baseline": false,
+  "baselineRef": null,
+  "errors": [],
+  "checks": [
+    {
+      "name": "visible cards fit rail",
+      "pass": true,
+      "details": [
+        {
+          "name": "祖靈之眼",
+          "top": 171.125,
+          "bottom": 255.875,
+          "parentBottom": 255.875,
+          "visible": true
+        },
+        {
+          "name": "縛靈鎖",
+          "top": 0,
+          "bottom": 0,
+          "parentBottom": 255.875,
+          "visible": false
+        },
+        {
+          "name": "破軍旗",
+          "top": 171.125,
+          "bottom": 255.875,
+          "parentBottom": 255.875,
+          "visible": true
+        },
+        {
+          "name": "香灰符",
+          "top": 0,
+          "bottom": 0,
+          "parentBottom": 255.875,
+          "visible": false
+        }
+      ]
+    },
+    {
+      "name": "page switches preserve marks, bids and game state",
+      "pass": true
+    },
+    {
+      "name": "second cards visible and first cards hidden",
+      "pass": true
+    },
+    {
+      "name": "same night redraw retains selected cards",
+      "pass": true
+    },
+    {
+      "name": "all page buttons have 44px touch height",
+      "pass": true
+    },
+    {
+      "name": "every market card fits across all moon phases",
+      "pass": true,
+      "details": {
+        "samples": 768,
+        "failures": [],
+        "tallest": {
+          "name": "飼鬼甕",
+          "round": 12,
+          "height": 104.75,
+          "bottom": 275.875,
+          "railBottom": 306,
+          "overflow": false
+        }
+      }
+    },
+    {
+      "name": "new night resets both pages",
+      "pass": true
+    },
+    {
+      "name": "visible card still opens bidding detail",
+      "pass": true
+    },
+    {
+      "name": "desktop shows four cards and no page buttons",
+      "pass": true
+    }
+  ]
+}
