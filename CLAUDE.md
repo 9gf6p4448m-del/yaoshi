@@ -1,7 +1,14 @@
 > **共用遊戲流程**：本專案照 `~/docs/harness/14-game-workflow.md` 走（Claude 實作、GPT 討論設計、Codex 獨立審查），本檔另有規定者不得比它鬆。
 > - 3D 和美術由 Codex 端的 GPT-6 Astra 主導（見 `AGENTS.md`），這就是 14 §2 的 GPT 角色。
 > - 核心規則和玩法的決策，照 14 §2 送 GPT（六欄格式，由製作人轉貼）。
-> - 改到規則或給別人玩之前，照 14 §3 送 Codex 審查。
+> - 規則面（定義見下方）有改動的版本，要給製作人以外的人玩、或結束這個階段之前，照 14 §3 送 Codex 審查。「給別人玩」沒辦法用機械方式檢查，靠人負責：部署回報要寫明這次部署給誰玩。注意推 `main` 本身就是部署：規則面有改動、還沒審的版本要推 `main`，必須符合 14 §3「只給製作人試玩的版本」四條件（含先 commit `docs/acceptance/` 驗收檔、首頁「未審」標籤、最多 2 次），tip commit 帶 `Codex-Review: skip - producer-playtest (<docs/acceptance/ 驗收檔路徑>)`（14 §6）。
+>
+> **14 §0.2 四項定義**（2026-11-21 依 14 過渡條款補寫，內容照 14 的預設值；要改須在 `DECISIONS.md` 寫明理由並經製作人同意）
+> - **規則面路徑**：repo 全部檔案，扣掉 `docs/`、`plans/`、根目錄的 `*.md`，以及 `assets/` 底下的美術與音訊素材（png、webp、jpg、jpeg、svg、glb、gltf、m4a、mp3、ogg、wav）。`index.html`、`js/`、`tests/`、`tools/`、`manifest.webmanifest`、`.gitignore`、`.gitattributes`，以及 `assets/` 裡的 json、css、js（數值表、設定、程式）都算規則面。查法（輸出為空＝規則面沒動；指令裡 `:(exclude,glob)*.md` 的 `*` 不跨目錄，只排除根目錄的 .md，所以 `tests/tools/README.md` 仍算規則面；`:(exclude)assets/*.png` 這類沒加 glob，`*` 會跨子目錄，涵蓋 `assets/items/` 等所有子資料夾。兩者 2026-11-21 用 `git ls-files` 實測過）：
+>   `git diff --name-only <基準>..<commit> -- . ':(exclude)docs/' ':(exclude)plans/' ':(exclude,glob)*.md' ':(exclude)assets/*.png' ':(exclude)assets/*.webp' ':(exclude)assets/*.jpg' ':(exclude)assets/*.jpeg' ':(exclude)assets/*.svg' ':(exclude)assets/*.glb' ':(exclude)assets/*.gltf' ':(exclude)assets/*.m4a' ':(exclude)assets/*.mp3' ':(exclude)assets/*.ogg' ':(exclude)assets/*.wav'`
+> - **階段**：一個版號（`index.html` 的 `RELEASE_VERSION`）。
+> - **部署目標**：推到 `main` 就算部署（GitHub Pages legacy 建置，main 根目錄）；推到其他分支不算。
+> - **LEDGER 路徑**：`docs/reviews/LEDGER.md`。目前的基準是 `bebb8fd9`（v0.66.0，「基準（流程生效前、未審）」列，只能當基準，不能當 `Codex-Review: <id>` 用）。之後照 14 §3 往前推：從 LEDGER 表尾往回找，取第一列「已完成（有 verdict）且 verdict 為 PASS」或「已完成、剩下的 CRITICAL／HIGH 已由製作人逐條簽准」的審查；只有 start 的列、未簽准的 FAIL 列跳過。
 
 **2026-10-01 雲端→本機接手最新入口**：[雲端接手包](docs/handoffs/2026-10-01-cloud-to-local.md)。main `f8bcd0cb`＝v0.59.3＋雲端 v0.59.2 鑑賞頁／面板 Y（#11(i) 已簽）＋押寶夜勾選、對白氣泡、燒香框三項熱修（Pages 成功）。待辦：補跑缺 `3a0d971` 的 2 項測試與三個量測、#8(b) 新量法正式數字、押寶面板窄畫面版面（待使用者裁定）。下方 09-30 舊入口以本節為準。
 
