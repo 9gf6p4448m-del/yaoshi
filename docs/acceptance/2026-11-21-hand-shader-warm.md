@@ -26,3 +26,12 @@ T 路徑的數字照實記錄，不另設門檻（測試走的就是 T 路徑，
 ## 執行中的更正紀錄（原文不刪）
 - 2026-11-21 條件 6 的「`--mutate` exit 1」是我寫錯：`tests/tools/trace-eq.mjs --mutate` 抓到差異時回 exit 0＋`"differs":true`＋「突變驗紅 ✅」（exit 1 是它內部對突變體比對的預期）。這一小項只驗工具本身抓得到引擎差異，與實作對錯無關，照字面無論實作如何都不可能過 ⇒ 依 02 §2.1 例外自行更正為「`differs:true` 且 verdict ✅」，事後回報。
 - 2026-11-21 版號不在本分支遞增：`tests/ui-hierarchy.test.mjs:25` 釘選 `RELEASE_VERSION="0.66.0"`，且要求 safe-area.css 的 `?v=` 等於版號；完整遞增要連動測試釘選與 `?v=`（先例 `73acc81c`），超出條件 7 的範圍，且下一版版號要等製作人 iPhone 試玩後才定。合併上線時照先例一次改齊。`index.html` 因此在本分支沒有改動（仍在條件 7 範圍內）。
+
+## 製作人 2026-11-21 逐條同意的修改（對話中以選項明確點頭，不是「照建議」）
+- **條件 1 改為只算手**：R 路徑 5 次，hand 程式 getProgramInfoLog post 最大值 ≤ 100ms；原文「longtask post 最大值 < 1000ms」作廢。
+  - 原標準錯在：它算的是出價頁之後所有長任務，包含與手無關、基準就有的 ghost_wisp（約 340ms）＋robe（約 320ms）首次編譯（基準 T-1 沒出手也有 971ms）；凍結時只留 29ms 餘裕。
+  - 為什麼現在才知道：最終驗證 R-1 量到 1005ms（手 0ms），之前 9 次都在 1000ms 以下。ghost_wisp／robe 另記為範圍外發現，未處理。
+- **wishchip 測試先等手的 shader 編完才開始**（`tests/wishchip.test.mjs` withPage，斷言一條都不動）。
+  - 原標準錯在：測試一開頁就開局，手模型和進出價頁幾乎同時載好，背景預編來不及，剩約 2.5 秒仍卡在出價頁；全套 15 個瀏覽器並行時更長，吃掉心願標籤 3.5 秒的自動展開窗口（K 在全套紅在 `:273`）。真人從標題到出價頁遠超過 3 秒。
+  - 為什麼現在才知道：單獨跑 10/10 綠，最終全套那一次才紅。
+- **條件 7 範圍擴充**：`tests/wishchip.test.mjs`（上條）；`tests/curse-cam-off.test.mjs` V3 埠 9761→9765（製作人同意）。順手修同型撞埠（只改預設埠、不動斷言）：`tests/h1-guide.test.mjs` 9767、`tests/h2-cards.test.mjs` 9769、`tests/h3-affordance.test.mjs` 9772、`tests/light-aplus-robust.test.mjs` 9747→9749。依據：全套並行時 curse-cam-off 紅在 ERR_CONNECTION_REFUSED×3，單跑 5/5 綠；9761 原本 5 支共用、9747 原本 2 支共用。
