@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SRV_ROOT = process.env.YAOSHI_RENDER_ROOT || ROOT;
-const PORT = Number(process.env.YAOSHI_H2_PORT || 9761);
+const PORT = Number(process.env.YAOSHI_H2_PORT || 9769);
 const SHOT_DIR = process.env.YAOSHI_SHOT_DIR || '';
 const SIZES = [[844, 390], [667, 375], [932, 430]];
 

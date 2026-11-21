@@ -219,6 +219,7 @@ function init() {
   };
   const tray = createTableTray(scene, camera, { outline: !TRAY_URL.lite, lite: TRAY_URL.lite, hands: TRAY_URL.hands, director, frameSubjects });
   tray.warmAppraise(renderer); // 丙案疊層兩支 shader 開頁就編好，第一次點籤不卡
+  tray.warmHands(renderer); // 手的 shader 等手載好就在背景編好，第一次出手不卡（D3D11 實測原本卡約 3.1 秒）
   document.addEventListener('ys:reveal-slot', e => {
     const slot = Number(e.detail?.slot);
     revealSlot = Number.isInteger(slot) && slot >= 0 && slot < 4 ? slot : -1;

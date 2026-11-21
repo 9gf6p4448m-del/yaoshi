@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url';
 const HERE = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
 const ROOT = path.resolve(process.env.CURSE_CAM_ROOT || HERE);
 const QS = ['', 'cam=0', 'cursecam=1', 'cam=0&cursecam=1'];
-const VPS = [['V3', 9761], ['V2', 9762]]; // 844×390、932×430
+const VPS = [['V3', 9765], ['V2', 9762]]; // 844×390、932×430
 const OUT = fs.mkdtempSync(path.join(os.tmpdir(), 'curse-cam-off-'));
 
 function probe(vp, port) {

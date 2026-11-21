@@ -17,7 +17,7 @@ import { driveToFirst, openGame, waitTrayReady, waitSettled, scr, DRIVE_STEP } f
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SRV_ROOT = process.env.YAOSHI_RENDER_ROOT || ROOT;
-const PORT = Number(process.env.H1_PORT || 9761);
+const PORT = Number(process.env.H1_PORT || 9767);
 const SHOT_DIR = process.env.YAOSHI_SHOT_DIR || '';
 const ALL = { A: { w: 844, h: 390, safe: [0, 0, 0, 0] }, B: { w: 667, h: 375, safe: [0, 0, 0, 0] }, C: { w: 932, h: 430, safe: [0, 0, 0, 0] } };
 const VPS = (process.env.H1_VPS || 'A,B,C').split(',');

@@ -40,6 +40,11 @@ async function withPage(fn) {
     const errs = []; page.on('pageerror', (e) => errs.push(String(e)));
     await page.goto(`http://127.0.0.1:${PORT}/index.html`);
     await page.waitForFunction(() => window.__yaoshi3d?.tray && window.__yaoshi, null, { timeout: 60000 });
+    /* 2026-11-21 製作人逐條同意（docs/acceptance/2026-11-21-hand-shader-warm.md 更正紀錄）：先等手載好、已建立的 shader 全部編完才開始。
+       手的 shader 開頁後在背景預編（js/table-tray.js warmHands）；真人從標題到出價頁遠超過它要的約 3 秒，本檔卻一開頁就開局——
+       不等的話，出價頁第一次出手會同步卡住數秒、吃掉心願標籤 3.5 秒的自動展開窗口（與心願標籤無關的環境卡頓，全套並行時更長）。
+       只改開始的時間點，斷言一條都不動；預編若被拿掉，這裡會立刻放行（手的程式還沒建立），出價頁照舊卡住、H／J／K 照舊紅。 */
+    await page.waitForFunction(() => { const Y = window.__yaoshi3d; return Y.tray.hands.loaded() && Y.renderer.info.programs.every((p) => p.isReady()); }, null, { timeout: 30000 });
     await fn(page, errs);
   } finally { await browser.close(); srv.kill(); }
 }

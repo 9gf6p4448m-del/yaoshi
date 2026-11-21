@@ -1499,6 +1499,14 @@ export function createTableTray(scene, camera, opts = {}) {
     },
     /** 開頁預先編譯疊層 shader（renderer.js init 呼叫一次）。 */
     warmAppraise(renderer) { getFx().warm(renderer); },
+    /** 開頁預先編譯手的 shader（renderer.js init 呼叫一次）：手平常收著不畫，原本到出價頁第一次出手才編，
+     *  ANGLE D3D11 實測主執行緒同步卡約 3.1 秒（2026-11-21，docs/acceptance/2026-11-21-hand-shader-warm.md）。
+     *  等手載好（材質已套上）後用 compileAsync 在背景編：燈光與霧取自整個場景、輸出目標＝螢幕，與牌桌直接 render 同一個版本。
+     *  編不過或手沒載到就算了，第一次出手時照舊再編（純演出不得拖垮牌桌）。 */
+    warmHands(renderer) {
+      if (!handsOn || !hands.group) return;
+      hands.ready().then(() => { if (hands.loaded()) return renderer.compileAsync(hands.group, camera, scene); }).catch(() => {});
+    },
     /** renderer.js 在畫完世界那一趟之後呼叫：疊層（壓暗＋鏡子＋符紙）→ 清深度 → 只畫焦點法寶那一層 → 火星。
      *  ★draw 計數★：renderer.info 預設每次 render() 開頭歸零，這裡暫時關掉 autoReset，讓這幾趟累加在世界那一趟
      *  之後——`renderer.info.render.calls` 讀到的才是這一幀真正的總數（凍結 #8／#11(e) 量的就是它）。 */
