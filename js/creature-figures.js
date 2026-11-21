@@ -122,22 +122,68 @@ const WATER = {
 // 再用 SkeletonUtils.clone 各自複製骨架（clone 會連 skeleton 一起重建，
 // 直接 object3D.clone() 會讓兩個實例共用同一副骨頭、動起來互相拉扯）。
 const glbCache = new Map();
-// 每份下載最後一次收到資料的時間（key＝loadGlb 回的 promise；載完或失敗就不再需要）。給 prefetchGlb 判斷「卡住」用。
-const glbProgressAt = new WeakMap();
-// 被 prefetchGlb 判定卡住而放手的 URL → 第幾次重抓。重抓要換網址（加 ?retry=N）：卡住的舊請求還掛著時，
-// 瀏覽器會把同一網址的新請求併進去一起等（Chromium 實測 8 秒內不發新請求），只移出快取等於沒重試。GLB 自包含，加查詢參數不影響內容。
-const glbRetry = new Map();
+/* 下載卡住的處理（Codex yaoshi-v0.66.1-r1 F3、r2 F1／F2）：所有消費端（托盤、夜戰、預載）共用同一個 promise，
+   所以「卡住就重抓」要做在這一層，重抓成功時已經接上這個 promise 的托盤格子才會跟著出現。
+   - 自己 fetch＋逐塊讀（拿得到每一塊資料的時間），讀完交給 GLTFLoader.parseAsync（0.158 有）。遊戲沒用 LoadingManager／THREE.Cache，
+     繞過 FileLoader 不影響別處。
+   - 連續 GLB_STALL_MS 沒收到任何資料＝卡住：中止舊請求（不跟新的搶頻寬），換網址 ?retry=N 再抓——不換網址的話，瀏覽器會把同網址的
+     新請求併進還掛著的舊請求一起等（Chromium 實測 8 秒內不發新請求）。GLB 自包含，加查詢參數不影響內容。最多 GLB_MAX_TRIES 次（含第一次）。
+   - HTTP 錯誤（404 等）與解析失敗照舊直接失敗、不重試；失敗的不留在快取（覆審 LOW：網路抖一次不該讓這隻整個 session 都載不到）。
+   glbState：promise → { lastData }＝最後一次真的收到資料的時間（給 prefetchGlb 決定何時放行下一批，不受重試重設影響）。 */
+const GLB_STALL_MS = 20000;
+const GLB_MAX_TRIES = 3;
+const glbState = new WeakMap();
 let loader = null;
+
+/** 下載一份 GLB 的位元組；每收到一塊資料呼叫 onData。signal 中止時 reject。 */
+async function fetchGlbBytes(u, signal, onData) {
+  const res = await fetch(u, signal ? { signal } : undefined);
+  if (!res.ok) throw new Error(`GLB HTTP ${res.status}：${u}`);
+  onData();
+  if (!res.body || typeof res.body.getReader !== 'function') return res.arrayBuffer();
+  const reader = res.body.getReader();
+  const parts = [];
+  let n = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    parts.push(value); n += value.byteLength; onData();
+  }
+  const buf = new Uint8Array(n);
+  let o = 0;
+  for (const c of parts) { buf.set(c, o); o += c.byteLength; }
+  return buf.buffer;
+}
 
 function loadGlb(url) {
   if (!glbCache.has(url)) {
     if (!loader) loader = new GLTFLoader();
-    let p = null;
-    const touch = () => { if (p) glbProgressAt.set(p, Date.now()); };
-    const n = glbRetry.get(url) || 0;
-    p = loader.loadAsync(n ? url + (url.includes('?') ? '&' : '?') + 'retry=' + n : url, touch);
-    touch();
-    // 失敗的不留在快取：網路抖一次不該讓這隻整個 session 都載不到（覆審 LOW）
+    const st = { lastData: Date.now() };
+    const p = new Promise((resolve, reject) => {
+      let settled = false, tries = 0, lastAt = Date.now(), timer = null, cur = null;
+      const finish = (ok, v) => {
+        if (settled) return;
+        settled = true; clearInterval(timer);
+        if (cur) cur.abort();
+        (ok ? resolve : reject)(v);
+      };
+      const start = () => {
+        if (cur) cur.abort(); // 換網址前先中止卡住的舊請求
+        const n = tries++;
+        const ctl = typeof AbortController === 'function' ? new AbortController() : null;
+        cur = ctl; lastAt = Date.now();
+        const u = n ? url + (url.includes('?') ? '&' : '?') + 'retry=' + n : url;
+        fetchGlbBytes(u, ctl && ctl.signal, () => { if (cur === ctl) { lastAt = st.lastData = Date.now(); } })
+          .then((buf) => loader.parseAsync(buf, THREE.LoaderUtils.extractUrlBase(url)))
+          .then((g) => finish(true, g), (e) => { if (ctl && ctl.signal.aborted && !settled) return; finish(false, e); });
+      };
+      start();
+      timer = setInterval(() => {
+        if (settled || Date.now() - lastAt <= GLB_STALL_MS) return;
+        if (tries < GLB_MAX_TRIES) start(); else finish(false, new Error('GLB 下載卡住（' + tries + ' 次）：' + url));
+      }, 1000);
+    });
+    glbState.set(p, st);
     p.catch(() => { if (glbCache.get(url) === p) glbCache.delete(url); });
     glbCache.set(url, p);
   }
@@ -162,26 +208,22 @@ export function glbCached(url) { return glbCache.has(url); }
 /**
  * 提前下載（2026-11-21，驗收 docs/acceptance/2026-11-21-lot-prefetch.md）：拍品一抽出來就把 GLB 抓進同一份 glbCache，
  * 出價頁 setItems／夜戰 clone 時直接拿快取。iPhone 慢網路下，原本要到出價頁才開始抓，一夜 3–4 件要等十幾到幾十秒。
- * 只下載＋解析，不 clone、不進場景、不上 GPU。失敗回 false（loadGlb 已把失敗的移出快取，之後正式載入會重抓）。
- * 卡住（Codex yaoshi-v0.66.1-r1 F3）：連續 stallMs 沒收到任何資料就當它停住了——移出快取（正式載入會重抓，不會一直等這份）
- * 並回 false，讓呼叫端的下一批預載能開始。看的是「多久沒進度」不是「總共多久」：慢網路下一件本來就可能抓幾十秒，不能誤殺。
+ * 只下載＋解析，不 clone、不進場景、不上 GPU。載到回 true、失敗回 false。
+ * 卡住時不讓呼叫端的下一批一直等（Codex r1 F3）：連續 stallMs 沒收到資料就先回 false 放行。看的是「多久沒收到資料」不是「總共多久」：
+ * 慢網路下一件本來就可能抓幾十秒，不能誤判。這一件本身不放棄——loadGlb 自己會換網址重抓，接在同一個 promise 上的托盤格子
+ * 重抓成功就會出現（r2 F1）。
  * @param {string} url
  * @param {number} [stallMs]
  * @returns {Promise<boolean>}
  */
-export function prefetchGlb(url, stallMs = 20000) {
+export function prefetchGlb(url, stallMs = GLB_STALL_MS) {
   const p = loadGlb(url);
+  const st = glbState.get(p);
   return new Promise((resolve) => {
     let timer = null;
     const finish = (ok) => { if (timer) clearInterval(timer); timer = null; resolve(ok); };
     p.then(() => finish(true), () => finish(false));
-    timer = setInterval(() => {
-      const last = glbProgressAt.get(p);
-      if (last !== undefined && Date.now() - last > stallMs) {
-        if (glbCache.get(url) === p) { glbCache.delete(url); glbRetry.set(url, (glbRetry.get(url) || 0) + 1); }
-        finish(false);
-      }
-    }, 1000);
+    timer = setInterval(() => { if (st && Date.now() - st.lastData > stallMs) finish(false); }, 1000);
   });
 }
 

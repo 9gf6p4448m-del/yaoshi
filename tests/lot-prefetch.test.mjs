@@ -56,7 +56,7 @@ test('拍品提前下載：慢線路下第 2 夜拍品推上桌 1 秒內全部�
       document.addEventListener('ys:market', (e) => {
         const d = (e && e.detail) || {}, r = Number(d.round) || 0;
         if (r > 0 && !(r in window.__pl.push)) {
-          window.__pl.push[r] = Date.now();
+          window.__pl.push[r] = performance.now(); // 單調時鐘（Codex r2 F4：系統校時不影響）
           window.__pl.keys[r] = (d.items || []).map((it) => (it && !it.curse ? it.key : null)).filter(Boolean).join(','); // 只比非詛咒品，空格不算
         }
       });
@@ -68,7 +68,7 @@ test('拍品提前下載：慢線路下第 2 夜拍品推上桌 1 秒內全部�
           if (it.map((s) => (s.key && !s.curse ? s.key : null)).filter(Boolean).join(',') !== P.keys[r]) continue; // 桌上還不是這一批
           const real = it.filter((s) => s.key && !s.curse);
           P.real[r] = real.length;
-          if (real.length > 0 && real.every((s) => s.ready && s.visible)) P.ready[r] = Date.now();
+          if (real.length > 0 && real.every((s) => s.ready && s.visible)) P.ready[r] = performance.now();
         }
       }, 50);
     });
@@ -96,7 +96,7 @@ test('拍品提前下載：慢線路下第 2 夜拍品推上桌 1 秒內全部�
     assert.ok(pl.real[2] > 0, `第 2 夜沒有非詛咒拍品，測試沒行使到預載（real=${pl.real[2]}）`);
     assert.ok(2 in pl.ready, '第 2 夜拍品 30 秒內都沒到齊');
     const wait = pl.ready[2] - pl.push[2];
-    assert.ok(wait <= 1000, `第 2 夜拍品推上桌後等了 ${wait}ms 才全部就緒（上限 1000ms）`);
+    assert.ok(wait >= 0 && wait <= 1000, `第 2 夜拍品推上桌後等了 ${Math.round(wait)}ms 才全部就緒（有效區間 0–1000ms）`);
     assert.deepEqual(errs, []);
   } finally { await browser.close(); srv.kill(); }
 });
