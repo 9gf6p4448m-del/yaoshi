@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>妖市拍品診斷</title>
+<!--
+  2026-11-21 診斷頁（不是遊戲的一部分；docs/ 不算規則面）。
+  用途：製作人 iPhone 上「請神入座」收掉後牌桌四件法寶都沒出來，桌機 Chromium／WebKit 都重現不了，
+  iPhone 又不能接 Windows 遠端偵錯。這頁把遊戲整頁包在 iframe 裡照常玩，到出價頁按「診斷」，
+  直接讀遊戲內部狀態（拍品每格 ready／visible、shader 編譯失敗、GPU 上限、模型檔下載與重建時的真正錯誤），
+  按「複製」貼回給 Claude。網址參數會原封傳給遊戲（例：lots.html?fx=0）。
+  table-tray.js 的拍品載入失敗分支會把錯誤吞掉（ready=true、visible 維持 false、不留訊息），
+  所以這頁另外用遊戲自己的 makeCreatureFigure 重建一次，才拿得到錯誤原文。
+-->
+<style>
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  #g { position: fixed; left: 0; top: 0; width: 100%; height: 100%; border: 0; }
+  #dbtn { position: fixed; z-index: 10; left: calc(env(safe-area-inset-left) + 6px); top: 58%;
+    font: 600 13px system-ui, sans-serif; color: #111; background: #ffd24a; border: 0; border-radius: 14px;
+    padding: 6px 10px; opacity: .85; }
+  #panel { position: fixed; z-index: 11; left: 8px; right: 8px; top: 8px; bottom: 8px; display: none;
+    flex-direction: column; gap: 6px; background: #161616; color: #eee; border: 1px solid #555; border-radius: 8px;
+    padding: 8px; font: 13px system-ui, sans-serif; }
+  #out { flex: 1; width: 100%; box-sizing: border-box; font: 11px ui-monospace, Menlo, monospace; color: #cfc; background: #000; }
+  #panel .row { display: flex; gap: 8px; }
+  #panel button { font: 600 14px system-ui, sans-serif; padding: 8px 14px; border-radius: 8px; border: 0; }
+  #copy { background: #ffd24a; color: #111; }
+  #close { background: #444; color: #eee; }
+</style>
+</head>
+<body>
+<iframe id="g" allow="autoplay; fullscreen"></iframe>
+<button id="dbtn" type="button">診斷</button>
+<div id="panel">
+  <div id="msg">收集中…</div>
+  <textarea id="out" readonly></textarea>
+  <div class="row"><button id="copy" type="button">複製</button><button id="close" type="button">關閉</button></div>
+</div>
+<script>
+(function () {
+  var g = document.getElementById('g');
+  var T0 = Date.now();
+  var log = [];      // 遊戲頁的 console.error／warn、未捕捉錯誤
+  var timeline = []; // 「請神入座」遮罩的出現、文字變化、收掉
+  function ts() { return ((Date.now() - T0) / 1000).toFixed(1); }
+  function push(kind, args) {
+    var s = '';
+    try { s = Array.prototype.map.call(args, function (a) { return a && a.stack ? String(a.stack) : (typeof a === 'object' ? JSON.stringify(a) : String(a)); }).join(' '); } catch (e) { s = String(args && args[0]); }
+    if (log.length < 60) log.push(ts() + ' ' + kind + ' ' + s.slice(0, 400));
+  }
+  // 遊戲頁一換成新的 window 就掛上記錄（越早越好，拍品載入發生在開局之後，一定來得及）
+  var hooked = null, lastLoad = null;
+  setInterval(function () {
+    var w = g.contentWindow;
+    try {
+      if (w && w !== hooked && /index\.html/.test(w.location.href)) {
+        hooked = w;
+        ['error', 'warn'].forEach(function (k) {
+          var orig = w.console[k];
+          w.console[k] = function () { push(k, arguments); return orig.apply(w.console, arguments); };
+        });
+        w.addEventListener('error', function (e) { push('onerror', [e.message + ' @' + e.filename + ':' + e.lineno]); });
+        w.addEventListener('unhandledrejection', function (e) { push('unhandled', [e.reason]); });
+      }
+      if (hooked) {
+        var tl = hooked.document.getElementById('trayLoad');
+        var cur = tl && tl.offsetParent ? tl.innerText.replace(/\s+/g, ' ').trim() : '';
+        if (cur !== lastLoad) { timeline.push(ts() + ' ' + (cur || (lastLoad === null ? '(沒有遮罩)' : '(遮罩收掉)'))); lastLoad = cur; }
+      }
+    } catch (e) { /* 換頁中 */ }
+  }, 100);
+  g.src = '../../index.html' + location.search;
+
+  function shown(o) { for (var n = o; n; n = n.parent) if (!n.visible) return false; return true; }
+
+  async function collect() {
+    var w = g.contentWindow, d = { t: new Date().toISOString(), sinceOpen: ts(), ua: navigator.userAgent, q: location.search };
+    try { d.ver = w.eval('typeof RELEASE_VERSION !== "undefined" ? RELEASE_VERSION : null'); } catch (e) { d.ver = 'err ' + e; }
+    d.screen = [w.innerWidth, w.innerHeight, w.devicePixelRatio];
+    d.htmlClass = w.document.documentElement.className;
+    try { var S = w.__yaoshi && w.__yaoshi.S; d.round = S ? S.round : null; d.market = S && S.market ? S.market.map(function (it) { return it.ab || it.m || it.id || null; }) : null; } catch (e) { d.market = 'err ' + e; }
+    var Y = w.__yaoshi3d;
+    d.has3d = !!Y;
+    if (Y) {
+      try {
+        var r = Y.renderer, gl = r.getContext();
+        d.gl = { ver: gl.getParameter(gl.VERSION), name: Y.glName, lost: gl.isContextLost(),
+          maxTex: gl.getParameter(gl.MAX_TEXTURE_SIZE), varyings: gl.getParameter(gl.MAX_VARYING_VECTORS),
+          vUni: gl.getParameter(gl.MAX_VERTEX_UNIFORM_VECTORS), fUni: gl.getParameter(gl.MAX_FRAGMENT_UNIFORM_VECTORS),
+          tex: gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS), vTex: gl.getParameter(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS) };
+        var progs = r.info.programs || [];
+        d.info = { programs: progs.length, geo: r.info.memory.geometries, tex: r.info.memory.textures, calls: r.info.render.calls };
+        d.badPrograms = progs.filter(function (p) { return p.diagnostics && !p.diagnostics.runnable; }).map(function (p) {
+          var D = p.diagnostics;
+          return { name: p.name, prog: String(D.programLog || '').slice(0, 300),
+            vs: String(D.vertexShader && D.vertexShader.log || '').slice(0, 300), fs: String(D.fragmentShader && D.fragmentShader.log || '').slice(0, 300) };
+        });
+      } catch (e) { d.glErr = String(e); }
+      try { d.light = Y.lightFx && Y.lightFx.stats ? Y.lightFx.stats() : null; } catch (e) { d.light = 'err ' + e; }
+      var T = Y.tray;
+      if (T) {
+        try {
+          d.tray = { groupVisible: T.group ? T.group.visible : null, readyCount: T.readyCount ? T.readyCount() : null, mode: T.mode ? T.mode() : null };
+          d.items = T.items ? T.items().map(function (s) { return { slot: s.slot, key: s.key, curse: s.curse, ready: s.ready, visible: s.visible, apprHide: s.apprHide, glb: s.glb }; }) : null;
+          d.lots = T.lotNodes().map(function (n) {
+            n.updateWorldMatrix(true, true);
+            var m = 0, v = 0, layers = {};
+            n.traverse(function (o) { if (o.isMesh) { m++; if (shown(o)) v++; layers[o.layers.mask] = 1; } });
+            var e = n.matrixWorld.elements;
+            return { meshes: m, shown: v, pos: [e[12], e[13], e[14]].map(function (x) { return Math.round(x * 1000) / 1000; }), scale: n.scale.x, layers: Object.keys(layers) };
+          });
+        } catch (e) { d.trayErr = String(e); }
+      }
+    }
+    // 拍品模型檔：直接下載一次（狀態碼、大小、開頭是不是 glTF）
+    var keys = (d.items || []).filter(function (s) { return s.key && !s.curse; }).map(function (s) { return s.key; });
+    if (!keys.length && Array.isArray(d.market)) keys = d.market.filter(Boolean);
+    d.glbFetch = [];
+    var mod = null;
+    // 模組要在遊戲頁自己的環境載（相對路徑、importmap 才對，也才是遊戲正在用的同一份模組）：塞一段 module script 進去
+    try {
+      if (!w.__diagCF) {
+        var sc = w.document.createElement('script');
+        sc.type = 'module';
+        sc.textContent = "import * as TH from 'three'; import * as M from './js/creature-figures.js'; window.__diagTHREE = TH; window.__diagCF = M;";
+        w.document.head.appendChild(sc);
+      }
+      for (var wait = 0; wait < 100 && !w.__diagCF; wait++) await new Promise(function (r) { setTimeout(r, 100); });
+      mod = w.__diagCF || null;
+      if (!mod) d.modErr = '10 秒內載不到 js/creature-figures.js';
+    } catch (e) { d.modErr = String(e); }
+    // 畫出來了沒：同一個鏡頭畫兩次（這件在／這件藏起來）比像素差。模型「設成可見」不等於 GPU 真的畫出來，
+    // 這一項量的是使用者看到的那件事。數字＝差異像素數（取樣解析度見 drawnOf）；0＝這件在畫面上沒有任何像素。
+    try {
+      var TH = w.__diagTHREE, YY = w.__yaoshi3d;
+      if (TH && YY && YY.tray) {
+        var R = YY.renderer, cv = R.domElement, W = 256, H = Math.max(64, Math.round(256 * cv.height / cv.width));
+        var rt = new TH.WebGLRenderTarget(W, H), b0 = new Uint8Array(W * H * 4), b1 = new Uint8Array(W * H * 4), prev = R.getRenderTarget();
+        var snap = function (b) { R.setRenderTarget(rt); R.render(YY.scene, YY.camera); R.readRenderTargetPixels(rt, 0, 0, W, H, b); };
+        snap(b0);
+        d.drawn = YY.tray.lotNodes().map(function (n) {
+          var v = n.visible; n.visible = false; snap(b1); n.visible = v;
+          var c = 0;
+          for (var p = 0; p < b0.length; p += 4) if (Math.abs(b0[p] - b1[p]) + Math.abs(b0[p + 1] - b1[p + 1]) + Math.abs(b0[p + 2] - b1[p + 2]) > 24) c++;
+          return c;
+        });
+        R.setRenderTarget(prev); rt.dispose(); d.drawnOf = W + 'x' + H;
+      }
+    } catch (e) { d.drawnErr = String(e); }
+    for (var i = 0; i < keys.length; i++) {
+      var url = mod ? mod.creatureGlbUrl(keys[i]) : ('assets/creatures/' + keys[i] + '.glb');
+      var t0 = performance.now();
+      try {
+        var res = await w.fetch(url, { cache: 'no-store' });
+        var buf = await res.arrayBuffer();
+        var b = new Uint8Array(buf.slice(0, 4));
+        d.glbFetch.push({ url: url, st: res.status, type: res.headers.get('content-type'), bytes: buf.byteLength, magic: String.fromCharCode(b[0], b[1], b[2], b[3]), ms: Math.round(performance.now() - t0) });
+      } catch (e) { d.glbFetch.push({ url: url, err: String(e) }); }
+    }
+    // 用遊戲自己的 makeCreatureFigure 重建一次：遊戲的失敗分支會吞錯誤，這裡把錯誤原文拿出來（逾時 15 秒）
+    d.rebuild = [];
+    if (mod) {
+      for (var j = 0; j < keys.length; j++) {
+        var k = keys[j], t1 = performance.now();
+        try {
+          var f = mod.makeCreatureFigure({ glbUrl: mod.creatureGlbUrl(k), ab: k, groundFx: 'none' });
+          var out = await Promise.race([f.loaded().then(function () { return 'ok'; }), new Promise(function (res) { setTimeout(function () { res('timeout15s'); }, 15000); })]);
+          var cnt = 0; f.group.traverse(function (o) { if (o.isMesh) cnt++; });
+          d.rebuild.push({ key: k, result: out, meshes: cnt, ms: Math.round(performance.now() - t1) });
+          if (f.dispose) try { f.dispose(); } catch (e) { /* 只是診斷 */ }
+        } catch (e) {
+          d.rebuild.push({ key: k, error: String(e && e.message || e), stack: String(e && e.stack || '').slice(0, 600), ms: Math.round(performance.now() - t1) });
+        }
+      }
+    }
+    d.trayLoadTimeline = timeline.slice(-20);
+    d.consoleLog = log;
+    return d;
+  }
+
+  var panel = document.getElementById('panel'), out = document.getElementById('out'), msg = document.getElementById('msg');
+  document.getElementById('dbtn').addEventListener('click', async function () {
+    panel.style.display = 'flex'; msg.textContent = '收集中…（最多約 1 分鐘）'; out.value = '';
+    try { out.value = JSON.stringify(await collect()); msg.textContent = '收好了，按「複製」再貼給 Claude'; }
+    catch (e) { out.value = 'collect 失敗：' + (e && e.stack || e) + '\n' + JSON.stringify({ timeline: timeline, log: log }); msg.textContent = '收集時出錯，也一樣按「複製」貼給 Claude'; }
+  });
+  document.getElementById('copy').addEventListener('click', async function () {
+    try { await navigator.clipboard.writeText(out.value); msg.textContent = '已複製'; }
+    catch (e) { out.removeAttribute('readonly'); out.focus(); out.select(); try { document.execCommand('copy'); msg.textContent = '已複製'; } catch (e2) { msg.textContent = '自動複製失敗：請長按文字框全選後複製'; } out.setAttribute('readonly', ''); }
+  });
+  document.getElementById('close').addEventListener('click', function () { panel.style.display = 'none'; });
+})();
+</script>
+</body>
+</html>
