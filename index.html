@@ -3838,6 +3838,11 @@ function market3dItems(){
    純讀取：不耗亂數、不寫任何賽局欄位——與 market3dItems 同一條紀律。
    ★為什麼夾在 ys:market 裡而不另開事件★：信物要換的時機（開了新的一局、換了座位）
    一定伴隨著一次 showMarket／showMarkUI，多開一個事件只是多一條要記得派的路。 */
+/* 拍品提前下載（2026-11-21，驗收 docs/acceptance/2026-11-21-lot-prefetch.md）：每夜開始（beginRound）就把今夜＋明夜的
+   拍品鍵交給 3D 層先抓模型，不等出價頁 pushMarket3d——iPhone 慢網路下原本要等十幾到幾十秒。鍵的取法與 market3dItems 相同
+   （it.ab||it.m；詛咒品沒有模型）。純讀取：不耗亂數、不寫任何賽局欄位（trace 與基準逐位元組相等）。 */
+function prefetchKeys(list){ return (Array.isArray(list)?list:[]).map(it=>it&&!it.curse?(it.ab||it.m||null):null).filter(Boolean); }
+function prefetch3d(){ if(typeof S==="undefined"||!S) return; fx3d("ys:prefetch",{now:prefetchKeys(S.market),next:prefetchKeys(S.nextMarket),round:S.round}); }
 function market3dSeats(){
   return (S&&S.players?S.players:[]).map(p=>({ id:p.id, role:p.roleId||null, alive:!!p.alive }));
 }
@@ -6419,6 +6424,7 @@ function ys3dJournal(name,d){
   }else if(name==="ys:bid") J.bids[(d.seat|0)+":"+(d.slot|0)]={seq:++J.seq,detail:d};
   else if(name==="ys:mark") J.marks[d.seat|0]={seq:++J.seq,detail:d};
   else if(name==="ys:reveal-result"){ if(d.slot!==undefined&&d.slot!==null) J.results[d.slot|0]={seq:++J.seq,detail:d}; }
+  else if(name==="ys:prefetch") J.prefetch={seq:++J.seq,detail:d}; /* 2026-11-21 拍品提前下載：只留最新一份（開局多半比 renderer 早派） */
   else if(name==="ys:duel") J.vis={seq:++J.seq,visible:false};
   else if(name==="ys:duel-end") J.vis={seq:++J.seq,visible:true};
 }
@@ -6921,6 +6927,7 @@ function openHelp(){
 }
 function beginRound(){
   fx3d("ys:table"); /* 新的一夜：鏡頭回到牌桌俯視機位（局末拉遠後也靠這裡復位） */
+  prefetch3d();     /* 今夜＋明夜拍品的模型先在背景下載（第 1 夜在教學頁之前就開始） */
   bgm("market");    /* 牌桌層：盯上／出價／開標全程同一首，夜與夜之間不重頭播 */
   if(S.round===1&&!introSeen()){ showIntro(beginRoundCore); return; }
   beginRoundCore();

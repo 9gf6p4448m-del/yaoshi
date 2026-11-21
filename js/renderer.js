@@ -18,7 +18,7 @@ const { createCharacterBillboards } = await import('./characters-billboard.js' +
 const { createPlayerBridge } = await import('./bridge-players.js' + V);
 const { createCameraDirector } = await import('./camera-director.js' + V);
 const { createDuelFigures, makeLayeredFigure } = await import('./duel-figures.js' + V);
-const { makeCreatureFigure, creatureGlbUrl, createFigureLightRig, attachFactionFx, FACTION_RIM, createOutlineWarmup, setOutlineCrowd, MAIN_OUTLINE } = await import('./creature-figures.js' + V);
+const { makeCreatureFigure, creatureGlbUrl, createFigureLightRig, attachFactionFx, FACTION_RIM, createOutlineWarmup, setOutlineCrowd, MAIN_OUTLINE, prefetchGlb } = await import('./creature-figures.js' + V);
 const { createTraitFx } = await import('./trait-fx.js' + V);
 const { createTableTray, TRAY } = await import('./table-tray.js' + V);
 const { fitSubject } = await import('./table-framing.js' + V);
@@ -267,6 +267,17 @@ function init() {
   document.addEventListener('ys:fx-trait-cancel', () => { tray.props.finish(); tray.finishGrabs(); tray.hands.finish(); }); // v0.60.0：進行中的抓取演出也直接到終態
   document.addEventListener('ys:duel', () => tray.setVisible(false));
   document.addEventListener('ys:duel-end', () => tray.setVisible(true));
+  /* 拍品提前下載（2026-11-21）：每夜開始（beginRound）index.html 派 `ys:prefetch` {now:今夜拍品鍵, next:明夜拍品鍵}。
+     先把今夜的全抓完才抓明夜——同一條網路上同時抓會拖慢今夜（驗收條件 3）。同一個 URL 由 glbCache 去重，不會抓兩次。
+     不看 TRAY_URL：夜戰的紙紮妖用同一批 GLB，桌上不擺也用得到。`?prefetch=0` 關閉＝回到出價頁才抓（對照用）。 */
+  const PREFETCH_ON = (() => { try { return new URLSearchParams(location.search || '').get('prefetch') !== '0'; } catch (e) { return true; } })();
+  const onPrefetch = (d) => {
+    if (!PREFETCH_ON) return;
+    const urls = (a) => (Array.isArray(a) ? a : []).filter(Boolean).map((k) => creatureGlbUrl(k));
+    const now = urls(d.now), next = urls(d.next);
+    Promise.all(now.map(prefetchGlb)).then(() => Promise.all(next.map(prefetchGlb))).catch(() => {});
+  };
+  document.addEventListener('ys:prefetch', (e) => onPrefetch((e && e.detail) || {}));
   /* ★補播（v0.59.10）★：上面這幾個 listener 要等整條 import 鏈（約 28 個模組）跑完才註冊，renderer 比開局晚到時
      index.html 的 fx3d 早就派過 `ys:market`／`ys:bid`／`ys:mark`／`ys:reveal-result`（一次性事件、無人接）——
      桌面全黑、錢與令牌也不在，要等下一次 `ys:market` 才補上（慢網下 45 秒內從未出現）。
@@ -279,6 +290,7 @@ function init() {
     if (J && regSeq > 0) {
       const missed = (x) => x && x.seq <= regSeq;
       try {
+        if (missed(J.prefetch)) onPrefetch(J.prefetch.detail); // 開局就派的預載多半比 renderer 早；先補它，下面 onMarket 的 setItems 才接得上同一份下載
         if (missed(J.market)) onMarket(J.market.detail);
         const rest = [];
         for (const k in J.bids) if (missed(J.bids[k])) rest.push([J.bids[k].seq, () => onBid(J.bids[k].detail)]);

@@ -150,6 +150,14 @@ export function cloneSkinnedGlb(url) {
 }
 /** 治具出口（只讀）：這個 URL 是否已在 GLB 快取裡（證明席位之手與紙紮妖共用同一份 glbCache）。 */
 export function glbCached(url) { return glbCache.has(url); }
+/**
+ * 提前下載（2026-11-21，驗收 docs/acceptance/2026-11-21-lot-prefetch.md）：拍品一抽出來就把 GLB 抓進同一份 glbCache，
+ * 出價頁 setItems／夜戰 clone 時直接拿快取。iPhone 慢網路下，原本要到出價頁才開始抓，一夜 3–4 件要等十幾到幾十秒。
+ * 只下載＋解析，不 clone、不進場景、不上 GPU。失敗回 false（loadGlb 已把失敗的移出快取，之後正式載入會重抓）。
+ * @param {string} url
+ * @returns {Promise<boolean>}
+ */
+export function prefetchGlb(url) { return loadGlb(url).then(() => true, () => false); }
 
 /* ── 邊光 ＋ dissolve 的 shader 注入 ─────────────────────────────────────────
  * 不換材質、不寫第二支 pass：直接在 MeshStandardMaterial 的既有 shader 尾巴
