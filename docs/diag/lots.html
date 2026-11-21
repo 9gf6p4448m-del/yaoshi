@@ -51,11 +51,17 @@
   }
   // 遊戲頁一換成新的 window 就掛上記錄（越早越好，拍品載入發生在開局之後，一定來得及）
   var hooked = null, lastLoad = null;
+  // v2（同日）：iPhone 第一次回報顯示拍品是「還在載」不是「載失敗」，要分清慢在網路還是主執行緒忙、最後會不會出現：
+  // itemsTl＝每格 ready／visible 的變化時間軸；stalls＝本頁計時器被卡住的間隔（iframe 與本頁同一條主執行緒）
+  var itemsTl = [], stalls = [], lastSig = null, lastTick = Date.now();
   setInterval(function () {
+    var now = Date.now(), gap = now - lastTick; lastTick = now;
+    if (gap > 400 && stalls.length < 80) stalls.push(ts() + ' ' + gap + 'ms');
     var w = g.contentWindow;
     try {
       if (w && w !== hooked && /index\.html/.test(w.location.href)) {
         hooked = w;
+        try { w.performance.setResourceTimingBufferSize(2000); } catch (e) { /* 舊版沒有也沒關係 */ }
         ['error', 'warn'].forEach(function (k) {
           var orig = w.console[k];
           w.console[k] = function () { push(k, arguments); return orig.apply(w.console, arguments); };
@@ -67,6 +73,11 @@
         var tl = hooked.document.getElementById('trayLoad');
         var cur = tl && tl.offsetParent ? tl.innerText.replace(/\s+/g, ' ').trim() : '';
         if (cur !== lastLoad) { timeline.push(ts() + ' ' + (cur || (lastLoad === null ? '(沒有遮罩)' : '(遮罩收掉)'))); lastLoad = cur; }
+        var YT = hooked.__yaoshi3d && hooked.__yaoshi3d.tray;
+        if (YT && YT.items) {
+          var sig = YT.items().map(function (s) { return (s.key || '咒') + ':' + (s.ready ? 'R' : '-') + (s.visible ? 'V' : '-'); }).join(' ');
+          if (sig !== lastSig) { if (itemsTl.length < 80) itemsTl.push(ts() + ' ' + sig); lastSig = sig; }
+        }
       }
     } catch (e) { /* 換頁中 */ }
   }, 100);
@@ -113,9 +124,18 @@
         } catch (e) { d.trayErr = String(e); }
       }
     }
-    // 拍品模型檔：直接下載一次（狀態碼、大小、開頭是不是 glTF）
-    var keys = (d.items || []).filter(function (s) { return s.key && !s.curse; }).map(function (s) { return s.key; });
-    if (!keys.length && Array.isArray(d.market)) keys = d.market.filter(Boolean);
+    // 網路實際花的時間（瀏覽器網路層量的，不受主執行緒卡住影響）：at＝開始時刻（同本頁秒數）、wait＝等第一個位元組、dl＝下載本體
+    try {
+      var P = w.performance, origin = P.timeOrigin || (Date.now() - P.now());
+      d.res = P.getEntriesByType('resource').filter(function (e) { return /\.glb/.test(e.name) || e.duration > 1500; }).map(function (e) {
+        return { n: e.name.split('/').pop().split('?')[0], at: Math.round((origin + e.startTime - T0) / 100) / 10, dur: Math.round(e.duration),
+          wait: Math.round(e.responseStart - e.startTime), dl: Math.round(e.responseEnd - e.responseStart),
+          kb: Math.round((e.encodedBodySize || e.transferSize || 0) / 1024), dkb: Math.round((e.decodedBodySize || 0) / 1024), p: e.nextHopProtocol };
+      }).slice(0, 60);
+    } catch (e) { d.resErr = String(e); }
+    // 拍品模型檔：只對還沒好的那幾件直接下載一次（狀態碼、大小、開頭是不是 glTF）
+    var keys = (d.items || []).filter(function (s) { return s.key && !s.curse && !(s.ready && s.visible); }).map(function (s) { return s.key; });
+    if (!d.items && Array.isArray(d.market)) keys = d.market.filter(Boolean);
     d.glbFetch = [];
     var mod = null;
     // 模組要在遊戲頁自己的環境載（相對路徑、importmap 才對，也才是遊戲正在用的同一份模組）：塞一段 module script 進去
@@ -175,6 +195,8 @@
       }
     }
     d.trayLoadTimeline = timeline.slice(-20);
+    d.itemsTimeline = itemsTl.slice(-40);
+    d.stalls = stalls.slice(-40);
     d.consoleLog = log;
     return d;
   }
