@@ -17,3 +17,4 @@
 - 2026-11-21｜14 過渡條款｜§0.2 四項照 14 預設值寫進 CLAUDE.md 開頭；LEDGER 建在 docs/reviews/LEDGER.md，基準＝bebb8fd9（v0.66.0，流程生效前、未審）｜14 生效後第一次推 main 之前必須補上｜可逆（改定義須製作人同意）｜結果：待製作人過目
 - 2026-11-21｜v0.66.1 內容｜併 perf/hand-shader-warm（出價頁手 shader 開頁背景預編）＋perf/lot-prefetch（拍品模型每夜開始就背景下載今夜＋明夜）成一個版號、送審一次｜製作人 iPhone 試玩 v0.66.0：出價頁法寶等十幾到幾十秒才出現（診斷頁 docs/diag/lots.html 兩次實測：慢在網路 13–70KB/s，不是載入失敗）；兩項都是純效能、結算不變｜可逆｜GPT：略過（純技術：下載與著色程式編譯時機，不改玩法語意）｜結果：待 Codex＋iPhone 試玩
 - 2026-11-21｜Codex 審查 schema 與要求範本｜在 v0.66.1 階段開工後補寫 docs/reviews/schema/review.schema.json 與 docs/reviews/templates/review-request.md，欄位照 14 §3（FA 的範本不在桌機）｜製作人同意（對話中「照建議」，選項 A）；14 §3 要求階段開工前 commit，本階段是例外，下個階段起照規定｜可逆｜GPT：略過（工具／流程）｜結果：待第一次送審
+- 2026-11-22｜Codex yaoshi-v0.66.1-r1（FAIL，H2／M4）處置｜六項全修（預載世代號、卡住放手換網址重抓、手 shader 安全預編、測試計時、預編回歸測試、版本說明措辭），送第 2 輪｜兩項 HIGH 都在真實路徑重現（舊局明夜被抓 2 件；context 恢復丟 TypeError），修後探針與測試新綠舊紅｜可逆｜GPT：略過（純技術）｜結果：待 r2；已知限制「請求完全卡住時當夜那一格仍空著」記在 docs/acceptance/2026-11-21-lot-prefetch.md

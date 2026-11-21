@@ -35,3 +35,7 @@ T 路徑的數字照實記錄，不另設門檻（測試走的就是 T 路徑，
   - 原標準錯在：測試一開頁就開局，手模型和進出價頁幾乎同時載好，背景預編來不及，剩約 2.5 秒仍卡在出價頁；全套 15 個瀏覽器並行時更長，吃掉心願標籤 3.5 秒的自動展開窗口（K 在全套紅在 `:273`）。真人從標題到出價頁遠超過 3 秒。
   - 為什麼現在才知道：單獨跑 10/10 綠，最終全套那一次才紅。
 - **條件 7 範圍擴充**：`tests/wishchip.test.mjs`（上條）；`tests/curse-cam-off.test.mjs` V3 埠 9761→9765（製作人同意）。順手修同型撞埠（只改預設埠、不動斷言）：`tests/h1-guide.test.mjs` 9767、`tests/h2-cards.test.mjs` 9769、`tests/h3-affordance.test.mjs` 9772、`tests/light-aplus-robust.test.mjs` 9747→9749。依據：全套並行時 curse-cam-off 紅在 ERR_CONNECTION_REFUSED×3，單跑 5/5 綠；9761 原本 5 支共用、9747 原本 2 支共用。
+
+## Codex yaoshi-v0.66.1-r1 之後的修正與重驗（2026-11-22，原文不刪）
+- F2：`warmHands` 改用 `compileQuietly`（`js/table-tray.js`，three 0.158 `compileAsync` 的安全版），context 恢復後再背景編一次；F5：新增 `tests/hand-warm-context.test.mjs`（A：第一次出手前手的材質已有程式；B：context 遺失恢復時不丟例外且重編）。f2ff1ad7 紅在 B（`TypeError ... reading 'isReady'`），main 紅在 A（0/1），新版綠。範圍因此多一支測試檔，門檻都沒動。
+- 換成 `compileQuietly` 後以 probe5 重量 R 路徑 5 次：條件 1 手程式 post 最大 0ms ×5；條件 3 longtask pre 最大 441–870ms（≤1167）；條件 4 開局前已有手程式、出價頁後 1 支 ×5；pageerror 0。
