@@ -42,3 +42,8 @@
 - 量測工具 `tmp/prefetch-loop/run.mjs` 同步改成同樣的嚴格計時後重量（條件 1–5，新版）：`n1Lead` 215–256ms、`n2Wait` 198–229ms（先前量到的 0ms 是輪詢補記造成，Codex F4 指出）、`order` 5/5 true、`dup` 5/5 空、pageerror 0；`?prefetch=0` 6851／9782ms。
 - 邊界探針 `tmp/prefetch-loop/f1f3.mjs`：F1 新版舊局明夜 0 請求（f2ff1ad7 有 2 件）；F3 新版明夜 20.1 秒開始、卡住那件以 `?retry=1` 重抓並載到（f2ff1ad7 明夜 40 秒內不開始、只 1 次請求）。
 - **已知限制（不在 F3 範圍，修正前就是這樣）**：模型請求完全卡住時，當夜托盤那一格仍空著——托盤接的是卡住的那份下載，出價頁不一定再推一次拍品。下一夜或之後的正式載入會重抓。
+
+## Codex yaoshi-v0.66.1-r2 之後的修正（2026-11-22，原文不刪）
+- r2 F1（HIGH，＝上一節的「已知限制」）：Codex 判為明確 bug——重抓成功、模型已在快取，接著卡住請求的那一格仍空著。改法（commit 563ba1af）：`loadGlb` 自己 fetch＋逐塊讀＋`GLTFLoader.parseAsync`，連續 20 秒沒資料就中止舊請求、以 `?retry=N` 重抓（最多 3 次），托盤／夜戰／預載共用同一個 promise。**上一節的已知限制因此撤銷。**
+- 探針 `tmp/prefetch-loop/f1f3.mjs`：F3 新版——明夜 20.1 秒開始、舊請求 `net::ERR_ABORTED`、`?retry=1` 重抓、卡住那一格進出價頁 4.1 秒後出現；f2ff1ad7 60 秒內不出現。f404（新舊版同）：404 只請求 1 次不重試、那一格空著、其餘照常。F1 新版仍過。
+- r2 F2（MEDIUM）重抓前中止舊請求；r2 F4（MEDIUM）測試改 `performance.now()`、有效區間 0–1000ms；r2 F3（MEDIUM）版本說明加註桌機實測——無擴充功能裝置首次出手耗時未量，連同 r1 F5 的 superficially_fixed 一起留階段末交製作人簽。
