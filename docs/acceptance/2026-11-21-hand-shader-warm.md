@@ -39,3 +39,4 @@ T 路徑的數字照實記錄，不另設門檻（測試走的就是 T 路徑，
 ## Codex yaoshi-v0.66.1-r1 之後的修正與重驗（2026-11-22，原文不刪）
 - F2：`warmHands` 改用 `compileQuietly`（`js/table-tray.js`，three 0.158 `compileAsync` 的安全版），context 恢復後再背景編一次；F5：新增 `tests/hand-warm-context.test.mjs`（A：第一次出手前手的材質已有程式；B：context 遺失恢復時不丟例外且重編）。f2ff1ad7 紅在 B（`TypeError ... reading 'isReady'`），main 紅在 A（0/1），新版綠。範圍因此多一支測試檔，門檻都沒動。
 - 換成 `compileQuietly` 後以 probe5 重量 R 路徑 5 次：條件 1 手程式 post 最大 0ms ×5；條件 3 longtask pre 最大 441–870ms（≤1167）；條件 4 開局前已有手程式、出價頁後 1 支 ×5；pageerror 0。
+- 2026-11-22 共用載入器改寫（563ba1af、29975875，手的 GLB 也走它）後重量 probe5 R 路徑 5 次：條件 1 手程式 post 最大 0ms ×5；條件 3 longtask pre 最大 845–896ms；條件 4 開局前已有手程式、出價頁後 1 支 ×5。hand-warm-context 測試綠。
