@@ -469,6 +469,34 @@ function makeCursePile(seed, kind = null) {
 }
 
 /**
+ * `renderer.compileAsync` 的安全版（Codex yaoshi-v0.66.1-r1 F2）。three 0.158 的 compileAsync 在 setTimeout 裡輪詢
+ * `properties.get(material).currentProgram.isReady()`，用的是建 renderer 時閉包裡那一份 properties；WebGL context 遺失後恢復，
+ * initGLContext 會換一份新的 properties，舊輪詢讀到 currentProgram＝undefined，在計時器裡丟出沒人接的 TypeError。
+ * 這裡照同樣兩步（compile 起編＋輪詢 isReady；有 KHR_parallel_shader_compile 時 isReady 不阻塞，沒有時 three 直接回 true），
+ * 但每次輪詢都重讀 `renderer.properties`、context 遺失就停、程式不見了就當這顆不用等。回傳的 Promise 只會 resolve（true＝編好）。
+ * @returns {Promise<boolean>}
+ */
+function compileQuietly(renderer, obj, camera, scene) {
+  return new Promise((resolve) => {
+    let mats;
+    try { mats = renderer.compile(obj, camera, scene); } catch (e) { resolve(false); return; }
+    const gl = renderer.getContext();
+    const check = () => {
+      try {
+        if (gl.isContextLost()) { resolve(false); return; }
+        for (const m of mats) {
+          const p = renderer.properties.get(m).currentProgram;
+          if (!p || p.isReady()) mats.delete(m);
+        }
+        if (mats.size === 0) { resolve(true); return; }
+      } catch (e) { resolve(false); return; }
+      setTimeout(check, 10);
+    };
+    setTimeout(check, 10);
+  });
+}
+
+/**
  * 建立桌心托盤。
  * @param scene  THREE.Scene（本函式自己把 group 加進去）
  * @param camera 牌桌相機（hitTest／slotScreen 要它算投影）
@@ -1501,11 +1529,15 @@ export function createTableTray(scene, camera, opts = {}) {
     warmAppraise(renderer) { getFx().warm(renderer); },
     /** 開頁預先編譯手的 shader（renderer.js init 呼叫一次）：手平常收著不畫，原本到出價頁第一次出手才編，
      *  ANGLE D3D11 實測主執行緒同步卡約 3.1 秒（2026-11-21，docs/acceptance/2026-11-21-hand-shader-warm.md）。
-     *  等手載好（材質已套上）後用 compileAsync 在背景編：燈光與霧取自整個場景、輸出目標＝螢幕，與牌桌直接 render 同一個版本。
+     *  等手載好（材質已套上）後用 compileQuietly（compileAsync 的安全版，見檔內）在背景編：燈光與霧取自整個場景、輸出目標＝螢幕，與牌桌直接 render 同一個版本。
      *  編不過或手沒載到就算了，第一次出手時照舊再編（純演出不得拖垮牌桌）。 */
     warmHands(renderer) {
       if (!handsOn || !hands.group) return;
-      hands.ready().then(() => { if (hands.loaded()) return renderer.compileAsync(hands.group, camera, scene); }).catch(() => {});
+      const warm = () => hands.ready().then(() => { if (hands.loaded()) return compileQuietly(renderer, hands.group, camera, scene); }).catch(() => {});
+      warm();
+      // WebGL context 遺失又恢復（iOS 切背景會遇到）：新 context 裡手的程式全沒了，恢復後再背景編一次（Codex yaoshi-v0.66.1-r1 F2）。
+      // three 自己的 restored 處理在建 renderer 時就註冊，先跑；這裡排到下一個 task 保險。
+      renderer.domElement.addEventListener('webglcontextrestored', () => { setTimeout(warm, 0); });
     },
     /** renderer.js 在畫完世界那一趟之後呼叫：疊層（壓暗＋鏡子＋符紙）→ 清深度 → 只畫焦點法寶那一層 → 火星。
      *  ★draw 計數★：renderer.info 預設每次 render() 開頭歸零，這裡暫時關掉 autoReset，讓這幾趟累加在世界那一趟

@@ -271,11 +271,18 @@ function init() {
      先把今夜的全抓完才抓明夜——同一條網路上同時抓會拖慢今夜（驗收條件 3）。同一個 URL 由 glbCache 去重，不會抓兩次。
      不看 TRAY_URL：夜戰的紙紮妖用同一批 GLB，桌上不擺也用得到。`?prefetch=0` 關閉＝回到出價頁才抓（對照用）。 */
   const PREFETCH_ON = (() => { try { return new URLSearchParams(location.search || '').get('prefetch') !== '0'; } catch (e) { return true; } })();
+  /* 世代號（Codex yaoshi-v0.66.1-r1 F1）：同一分頁重開新局（或換夜）時，上一份預載的「明夜」批次還沒開始的就作廢——
+     不然舊局今夜抓完後才啟動的舊局明夜，會跟新局眼前要用的模型搶頻寬。已經在抓的請求無法取消，留在共用快取裡。
+     prefetchGlb 自己會處理「卡住」（太久沒收到資料就放手，F3），今夜批次不會永遠擋住明夜。 */
+  let prefetchGen = 0;
   const onPrefetch = (d) => {
     if (!PREFETCH_ON) return;
+    const gen = ++prefetchGen;
     const urls = (a) => (Array.isArray(a) ? a : []).filter(Boolean).map((k) => creatureGlbUrl(k));
     const now = urls(d.now), next = urls(d.next);
-    Promise.all(now.map(prefetchGlb)).then(() => Promise.all(next.map(prefetchGlb))).catch(() => {});
+    Promise.all(now.map((u) => prefetchGlb(u)))
+      .then(() => { if (gen === prefetchGen) return Promise.all(next.map((u) => prefetchGlb(u))); })
+      .catch(() => {});
   };
   document.addEventListener('ys:prefetch', (e) => onPrefetch((e && e.detail) || {}));
   /* ★補播（v0.59.10）★：上面這幾個 listener 要等整條 import 鏈（約 28 個模組）跑完才註冊，renderer 比開局晚到時

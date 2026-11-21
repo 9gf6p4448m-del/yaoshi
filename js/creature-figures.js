@@ -122,12 +122,21 @@ const WATER = {
 // 再用 SkeletonUtils.clone 各自複製骨架（clone 會連 skeleton 一起重建，
 // 直接 object3D.clone() 會讓兩個實例共用同一副骨頭、動起來互相拉扯）。
 const glbCache = new Map();
+// 每份下載最後一次收到資料的時間（key＝loadGlb 回的 promise；載完或失敗就不再需要）。給 prefetchGlb 判斷「卡住」用。
+const glbProgressAt = new WeakMap();
+// 被 prefetchGlb 判定卡住而放手的 URL → 第幾次重抓。重抓要換網址（加 ?retry=N）：卡住的舊請求還掛著時，
+// 瀏覽器會把同一網址的新請求併進去一起等（Chromium 實測 8 秒內不發新請求），只移出快取等於沒重試。GLB 自包含，加查詢參數不影響內容。
+const glbRetry = new Map();
 let loader = null;
 
 function loadGlb(url) {
   if (!glbCache.has(url)) {
     if (!loader) loader = new GLTFLoader();
-    const p = loader.loadAsync(url);
+    let p = null;
+    const touch = () => { if (p) glbProgressAt.set(p, Date.now()); };
+    const n = glbRetry.get(url) || 0;
+    p = loader.loadAsync(n ? url + (url.includes('?') ? '&' : '?') + 'retry=' + n : url, touch);
+    touch();
     // 失敗的不留在快取：網路抖一次不該讓這隻整個 session 都載不到（覆審 LOW）
     p.catch(() => { if (glbCache.get(url) === p) glbCache.delete(url); });
     glbCache.set(url, p);
@@ -154,10 +163,27 @@ export function glbCached(url) { return glbCache.has(url); }
  * 提前下載（2026-11-21，驗收 docs/acceptance/2026-11-21-lot-prefetch.md）：拍品一抽出來就把 GLB 抓進同一份 glbCache，
  * 出價頁 setItems／夜戰 clone 時直接拿快取。iPhone 慢網路下，原本要到出價頁才開始抓，一夜 3–4 件要等十幾到幾十秒。
  * 只下載＋解析，不 clone、不進場景、不上 GPU。失敗回 false（loadGlb 已把失敗的移出快取，之後正式載入會重抓）。
+ * 卡住（Codex yaoshi-v0.66.1-r1 F3）：連續 stallMs 沒收到任何資料就當它停住了——移出快取（正式載入會重抓，不會一直等這份）
+ * 並回 false，讓呼叫端的下一批預載能開始。看的是「多久沒進度」不是「總共多久」：慢網路下一件本來就可能抓幾十秒，不能誤殺。
  * @param {string} url
+ * @param {number} [stallMs]
  * @returns {Promise<boolean>}
  */
-export function prefetchGlb(url) { return loadGlb(url).then(() => true, () => false); }
+export function prefetchGlb(url, stallMs = 20000) {
+  const p = loadGlb(url);
+  return new Promise((resolve) => {
+    let timer = null;
+    const finish = (ok) => { if (timer) clearInterval(timer); timer = null; resolve(ok); };
+    p.then(() => finish(true), () => finish(false));
+    timer = setInterval(() => {
+      const last = glbProgressAt.get(p);
+      if (last !== undefined && Date.now() - last > stallMs) {
+        if (glbCache.get(url) === p) { glbCache.delete(url); glbRetry.set(url, (glbRetry.get(url) || 0) + 1); }
+        finish(false);
+      }
+    }, 1000);
+  });
+}
 
 /* ── 邊光 ＋ dissolve 的 shader 注入 ─────────────────────────────────────────
  * 不換材質、不寫第二支 pass：直接在 MeshStandardMaterial 的既有 shader 尾巴

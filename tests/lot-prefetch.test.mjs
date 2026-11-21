@@ -48,19 +48,29 @@ test('拍品提前下載：慢線路下第 2 夜拍品推上桌 1 秒內全部�
       await new Promise((r) => setTimeout(r, end - t));
       await route.fulfill({ status: 200, contentType: 'model/gltf-binary', body });
     });
-    // 頁內記錄器：每 100ms 記一次「哪一夜的拍品推上桌了」與「該夜非詛咒品是否全部 ready 且 visible」
+    // 頁內記錄器（Codex yaoshi-v0.66.1-r1 F4）：起點在 `ys:market` 派出的當下由 listener 記（不靠輪詢補記，
+    // 輪詢被長任務拖住時起點終點會一起晚、把數秒等待算成 0）；同時記下這一批的拍品鍵。終點由 50ms 輪詢記，
+    // 而且要桌上的拍品鍵已換成這一批才算——輪詢晚到只會讓等待變長（保守），不會變短。
     await ctx.addInitScript(() => {
-      window.__pl = { push: {}, ready: {}, real: {} };
-      setInterval(() => {
-        const J = window.__ys3dJournal, Y = window.__yaoshi3d;
-        const r = J && J.market && J.market.detail ? J.market.detail.round : -1;
-        if (r > 0 && !(r in window.__pl.push)) window.__pl.push[r] = Date.now();
-        if (r > 0 && Y && Y.tray && Y.tray.items && !(r in window.__pl.ready)) {
-          const real = Y.tray.items().filter((s) => s.key && !s.curse);
-          window.__pl.real[r] = real.length;
-          if (real.length > 0 && real.every((s) => s.ready && s.visible)) window.__pl.ready[r] = Date.now();
+      window.__pl = { push: {}, keys: {}, ready: {}, real: {} };
+      document.addEventListener('ys:market', (e) => {
+        const d = (e && e.detail) || {}, r = Number(d.round) || 0;
+        if (r > 0 && !(r in window.__pl.push)) {
+          window.__pl.push[r] = Date.now();
+          window.__pl.keys[r] = (d.items || []).map((it) => (it && !it.curse ? it.key : null)).filter(Boolean).join(','); // 只比非詛咒品，空格不算
         }
-      }, 100);
+      });
+      setInterval(() => {
+        const Y = window.__yaoshi3d, P = window.__pl;
+        for (const r of Object.keys(P.push)) {
+          if (r in P.ready || !(Y && Y.tray && Y.tray.items)) continue;
+          const it = Y.tray.items();
+          if (it.map((s) => (s.key && !s.curse ? s.key : null)).filter(Boolean).join(',') !== P.keys[r]) continue; // 桌上還不是這一批
+          const real = it.filter((s) => s.key && !s.curse);
+          P.real[r] = real.length;
+          if (real.length > 0 && real.every((s) => s.ready && s.visible)) P.ready[r] = Date.now();
+        }
+      }, 50);
     });
     const page = await ctx.newPage();
     page.on('pageerror', (e) => errs.push(String(e).slice(0, 200)));
