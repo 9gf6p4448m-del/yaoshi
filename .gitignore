@@ -11,3 +11,5 @@ legend-drive.json
 COMMITMSG.txt
 # 量測用的樹副本與中間產物（r6 LOW-6：以前只靠「記得不要 git add -A」，改成機械擋）
 scratchpad/
+# Codex 審查的原始 stdout 只留本機（可能夾帶本機環境資訊；14 §3）
+docs/reviews/**/*.stdout.log

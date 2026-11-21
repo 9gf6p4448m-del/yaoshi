@@ -1,0 +1,172 @@
+{
+  "description": "2026-11-21 依 ~/docs/harness/14-game-workflow.md §3 的欄位寫成（FA 的 review.schema.json 不在桌機，製作人同意改寫妖市版；見 DECISIONS 2026-11-21）。所有欄位都必填，給 codex exec --output-schema 用。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "review_id",
+    "verdict",
+    "summary",
+    "counts",
+    "findings",
+    "prior_findings",
+    "coverage"
+  ],
+  "properties": {
+    "review_id": {
+      "type": "string",
+      "description": "yaoshi-<階段>-r<輪次>，例 yaoshi-v0.66.1-r1"
+    },
+    "verdict": {
+      "type": "string",
+      "enum": [
+        "PASS",
+        "FAIL"
+      ],
+      "description": "還有任何 CRITICAL 或 HIGH 未解＝FAIL"
+    },
+    "summary": {
+      "type": "string",
+      "description": "第一行必須是 `review-id: <review_id>`，之後用繁體中文寫結論"
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "critical",
+        "high",
+        "medium",
+        "low"
+      ],
+      "properties": {
+        "critical": {
+          "type": "integer"
+        },
+        "high": {
+          "type": "integer"
+        },
+        "medium": {
+          "type": "integer"
+        },
+        "low": {
+          "type": "integer"
+        }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "severity",
+          "file",
+          "line",
+          "title",
+          "detail",
+          "failure_scenario",
+          "fix_hint"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "本輪內唯一，例 F1"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "CRITICAL",
+              "HIGH",
+              "MEDIUM",
+              "LOW"
+            ]
+          },
+          "file": {
+            "type": "string"
+          },
+          "line": {
+            "type": "integer",
+            "description": "1 起算；整檔層級的問題填 0"
+          },
+          "title": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "string"
+          },
+          "failure_scenario": {
+            "type": "string",
+            "description": "具體的輸入／狀態／操作順序 → 會出什麼錯"
+          },
+          "fix_hint": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "prior_findings": {
+      "type": "array",
+      "description": "第 2 輪起逐條覆核上一輪的 finding；第 1 輪給空陣列",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "status",
+          "note"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "fixed",
+              "superficially_fixed",
+              "not_fixed"
+            ],
+            "description": "真的修好／表面修好／沒修到"
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "coverage": {
+      "type": "array",
+      "description": "每一項都要列出；沒檢查的 checked=false 並在 note 寫原因",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "item",
+          "checked",
+          "note"
+        ],
+        "properties": {
+          "item": {
+            "type": "string",
+            "enum": [
+              "engine-determinism",
+              "layer-contract",
+              "async-loading",
+              "failure-paths",
+              "mobile-safari",
+              "version-and-cache",
+              "tests-discriminating",
+              "scope"
+            ]
+          },
+          "checked": {
+            "type": "boolean"
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
