@@ -1,0 +1,116 @@
+{
+  "review_id": "yaoshi-v0.66.1-r1",
+  "verdict": "FAIL",
+  "summary": "review-id: yaoshi-v0.66.1-r1\n有 2 項 HIGH：舊局的預載可在新局開始後插隊，WebGL context 恢復也可能讓手部預編譯拋出未捕捉例外。另有 4 項 MEDIUM，涉及下載逾時、驗收適用範圍與測試誤判。唯讀 Node 探針重現了預載插隊、下載不結束時後續工作無法啟動，以及計時誤判。版號與快取鍵測試 3 項通過。本輪未跑瀏覽器、iPhone 實機或基準版對照。全域流程文件受讀取權限限制，範圍比對依快照內的專案文件與驗收紀錄。",
+  "counts": {
+    "critical": 0,
+    "high": 2,
+    "medium": 4,
+    "low": 0
+  },
+  "findings": [
+    {
+      "id": "F1",
+      "severity": "HIGH",
+      "file": "js/renderer.js",
+      "line": 278,
+      "title": "舊局的明夜預載會在新局的今夜下載期間啟動",
+      "detail": "每次事件都建立獨立的 Promise 鏈。今夜下載完成後，回呼會直接啟動當初記下的明夜批次，完全不核對這是不是最新的夜或局。以快照中的 handler 和可控制完成順序的 Promise 重現，舊局明夜請求確實在新局今夜尚未完成時啟動。GLB 快取只能合併相同 URL。",
+      "failure_scenario": "舊局今夜的模型還在下載時，在同一分頁重開且新局抽到不同拍品。新局開始下載今夜模型後，舊局今夜的最後一個請求完成，隨即啟動舊局明夜的模型，與新局眼前要顯示的模型爭用頻寬。",
+      "fix_hint": "用最新一個預載事件的序號管理排程，並在啟動明夜批次前重驗序號，捨棄已過期且尚未啟動的請求。"
+    },
+    {
+      "id": "F2",
+      "severity": "HIGH",
+      "file": "js/table-tray.js",
+      "line": 1508,
+      "title": "WebGL context 在預編譯期間恢復時可拋出未捕捉例外",
+      "detail": "（推測）Three.js r158 恢復 context 時會重建材質屬性快取。若手部編譯仍在輪詢，舊輪詢的計時器會從新快取讀取尚未重建的 currentProgram，直接呼叫 isReady()。例外發生在稍後的計時器回呼，外層 Promise 的 catch 接不到。[Three.js r158 的 context 恢復與編譯輪詢實作](https://raw.githubusercontent.com/mrdoob/three.js/r158/src/renderers/WebGLRenderer.js)",
+      "failure_scenario": "手載好後開始預編譯，GPU 尚未完成時 WebGL context 遺失並恢復。手仍收著，恢復後還沒畫過手。舊輪詢先醒來，讀到未定義的 currentProgram，拋出 TypeError，該次預編譯也無法完成。",
+      "fix_hint": "把預編譯與 context 世代綁定，使用可在 context 遺失時取消的輪詢，並在恢復後重新預編譯。"
+    },
+    {
+      "id": "F3",
+      "severity": "MEDIUM",
+      "file": "js/creature-figures.js",
+      "line": 130,
+      "title": "一件模型的請求長時間未結束，就會卡住整批明夜預載",
+      "detail": "載入快取會在請求失敗時刪掉項目，但缺少應用程式層的逾時處理。只要今夜有一個 Promise 持續未完成，明夜的 Promise.all 後續回呼就不會執行。正式上桌若要同一個 URL，也會共用正在等待的 Promise。唯讀探針確認了未完成的請求會阻斷後續批次，實際等待長度由瀏覽器和網路決定。",
+      "failure_scenario": "第 1 夜有一件 GLB 在收到部分資料後停住，其他模型已到齊，甚至有另一件已回報 404。停住的模型使第 2 夜預載始終無法開始。玩家進入第 2 夜後，才從零開始載入需要的模型。",
+      "fix_hint": "為共用載入設置可取消的逾時並清理逾時的快取項目，讓排程可以繼續，正式載入也能重試。"
+    },
+    {
+      "id": "F4",
+      "severity": "MEDIUM",
+      "file": "tests/lot-prefetch.test.mjs",
+      "line": 57,
+      "title": "輪詢同時補記起點和終點，可把數秒等待算成零",
+      "detail": "測試在每 100ms 的同一輪詢中，第一次觀察到新夜時才記錄上桌時間，再檢查模型是否就緒。以快照中的記錄器注入可控時鐘，重現市場在 0ms 派出、模型在 2600ms 才就緒，但第一次可執行的輪詢在 2600ms 將兩個時間都記成 2600ms。測試也只比對夜數與托盤當下的旗標，沒有核對拍品是否對應該次市場事件。",
+      "failure_scenario": "第 2 夜市場事件已派出，但長任務或背景節流延後輪詢。當計時器再執行時，模型已經就緒，測試便得到 0ms，錯誤通過 1000ms 門檻。",
+      "fix_hint": "在收到 ys:market 當下記下單調時鐘與拍品清單，等該批對應拍品就緒後才記錄終點。"
+    },
+    {
+      "id": "F5",
+      "severity": "MEDIUM",
+      "file": "tests/wishchip.test.mjs",
+      "line": 47,
+      "title": "心願測試的等待條件無法證明手部 shader 已預編譯",
+      "detail": "（推測）等待條件沒要求手部程式存在。移除 warmHands 後，手模型仍可完成載入，只要已存在的其他程式都回報 ready，條件就會通過。Three.js r158 在沒有 KHR_parallel_shader_compile 時也會直接回報 ready，首次使用仍可能卡頓。因此通過這個等待條件與心願斷言，無法證明手部預編譯在快速進場或缺少擴充的裝置上生效。[Three.js r158 的程式就緒判定](https://raw.githubusercontent.com/mrdoob/three.js/r158/src/renderers/webgl/WebGLProgram.js)",
+      "failure_scenario": "在缺少該擴充功能的裝置上，手部模型剛載好，等待條件就放行。第一次出手仍可能遇到同步編譯停頓，但測試沒有量測這段停頓。",
+      "fix_hint": "保留已核准的心願測試等待，另外用專項回歸確認手部程式在第一次出手前已建立，並直接量測首次出手的停頓。"
+    },
+    {
+      "id": "F6",
+      "severity": "MEDIUM",
+      "file": "index.html",
+      "line": 2951,
+      "title": "發布說明把固定等待時間下的驗收門檻寫成所有第 2 夜的保證",
+      "detail": "（推測）驗收在約 32KB/s 的壓縮後等效速度下，給第 1 夜 45 秒停留時間。持久回歸測試則使用更快的假線路，且等 renderer 就緒後才開局。驗收文件記載的 iPhone 實測低至 13KB/s。實作會等今夜整批載完才啟動明夜批次，玩家可以在預載完成前進到第 2 夜，冷啟動時也必須先等 renderer 接手事件。",
+      "failure_scenario": "iPhone 處在實測低速端，冷啟動後快速略過教學並推進第 1 夜。進入第 2 夜時，預載尚未完成，玩家仍得等拍品出現，與「第 2 夜起法寶直接就在桌上」不符。",
+      "fix_hint": "在發布說明註明第 2 夜仍取決於實際下載速度與第 1 夜停留時間，並在驗收補測低速、冷啟動及快速換夜。"
+    }
+  ],
+  "prior_findings": [],
+  "coverage": [
+    {
+      "item": "engine-determinism",
+      "checked": true,
+      "note": "追查開局、換夜與 headless 迴圈。新增橋接只讀取拍品鍵與夜數。唯讀探針移除 window 與 document 後直接呼叫橋接，未拋例外，也未改動輸入。缺少基準版，未比對逐位元組 trace。"
+    },
+    {
+      "item": "layer-contract",
+      "checked": true,
+      "note": "新增的 3D 路徑只消費事件資料。靜態核對 listener 與日誌補播同一同步區段的序號邊界，晚到補最新預載事件、早到走即時 listener。事件只處理一次仍可能留下過期下載鏈，見 F1。"
+    },
+    {
+      "item": "async-loading",
+      "checked": true,
+      "note": "查核共用 Promise 快取、同格替換的成功回呼守衛、換夜與同頁重開。唯讀探針重現舊批插隊。成功解析的 GLB 會保留至頁面生命週期結束，新增預載會提早占用記憶體，未量測 iPhone 峰值。"
+    },
+    {
+      "item": "failure-paths",
+      "checked": true,
+      "note": "查核 404、解析拒絕、長時間未完成、context 恢復及 URL 開關。404 與解析拒絕會清快取。未完成情境以 Promise 替身重現。context 恢復與 URL 開關僅靜態核對。"
+    },
+    {
+      "item": "mobile-safari",
+      "checked": true,
+      "note": "靜態查核缺少 requestIdleCallback、慢網路、背景分頁、記憶體及 context 恢復。新增預載與預編不依賴 requestIdleCallback。未驗證目標 iPhone 的擴充支援、Apple GPU 編譯耗時或背景恢復行為。"
+    },
+    {
+      "item": "version-and-cache",
+      "checked": true,
+      "note": "VERSION、RELEASE_VERSION、兩份 CSS 查詢鍵及測試釘選一致。renderer 和相關模組接力同一查詢字串。版號與快取鍵測試 3 項通過，未驗證線上部署與既有分頁的更新狀態。"
+    },
+    {
+      "item": "tests-discriminating",
+      "checked": true,
+      "note": "固定種子的兩夜非詛咒品互異，第 2 夜約 2.87 MB，在測試速率下冷抓約 7 秒。以唯讀探針重現計時假綠。檢查了心願測試新增等待與既有斷言，未跑瀏覽器或基準版，紅綠結果及 GPU 行為仍待實驗。"
+    },
+    {
+      "item": "scope",
+      "checked": true,
+      "note": "差異未見截斷。兩項效能變更、測試埠、心願測試等待與合併版號可對應驗收及決策紀錄。.gitignore 是另外一項流程變更，快照的審查帳明列首次送審前要加入該規則。"
+    }
+  ]
+}
