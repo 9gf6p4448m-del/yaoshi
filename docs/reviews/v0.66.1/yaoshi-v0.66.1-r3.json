@@ -1,0 +1,137 @@
+{
+  "review_id": "yaoshi-v0.66.1-r3",
+  "verdict": "FAIL",
+  "summary": "review-id: yaoshi-v0.66.1-r3\n共用載入器已修正「重抓成功但原托盤格收不到模型」的問題。第三輪仍有一項高嚴重度缺陷：一件拍品卡住時，其他 GLB 的下載進度會同時壓住該件重試和明夜預載。唯讀探針確認兩者可在 60 秒後仍未完成。版本與無頭戰報測試共五項通過。審查依據為附送的差異、79af5f85 唯讀快照及驗收紀錄，未執行瀏覽器測試、iPhone 實測或基準版逐位元組比對。依第三輪流程，未解的 HIGH 交製作人裁定。",
+  "counts": {
+    "critical": 0,
+    "high": 1,
+    "medium": 5,
+    "low": 0
+  },
+  "findings": [
+    {
+      "id": "F1",
+      "severity": "HIGH",
+      "file": "js/creature-figures.js",
+      "line": 145,
+      "title": "其他 GLB 持續有進度時，卡住的拍品無法重試，也擋住明夜預載",
+      "detail": "正式載入的重試與預載批次的放行共用全域閒置條件。只要任何 GLB 在最近 15 秒有資料，已停住超過 20 秒的請求也不會重試或放行下一批。唯讀探針讓一件請求停住、其他 GLB 每 10 秒回資料，60 秒後托盤與預載兩個 Promise 均未完成。其他下載安靜 16 秒後，才觸發重試並讓托盤收到模型。",
+      "failure_scenario": "第 1 夜某件法寶收到部分位元組後停住，同批大檔與其他模型仍間歇進資料。玩家進出價頁後，12 秒的載入提示先關閉，該格仍空著；若在下載安靜前換夜，明夜批次也尚未開始預載。",
+      "fix_hint": "區分等待首塊資料的排隊請求與傳輸中途停住的請求，對後者單獨限時，並讓明夜批次有獨立且有限的等待時間。"
+    },
+    {
+      "id": "F2",
+      "severity": "MEDIUM",
+      "file": "js/creature-figures.js",
+      "line": 187,
+      "title": "下載完成後仍用下載逾時計時，解析過慢會重抓整個模型",
+      "detail": "收到完整位元組後直接呼叫 parseAsync，但下載計時器要等解析完成才清掉。AbortController 管的是下載，已開始的解析仍可繼續，舊解析成功時也沒核對是否已被新嘗試取代。唯讀探針讓下載成功、解析維持等待，21 秒後觀察到同一模型被下載及解析第二次。實際 Safari 解析耗時未量測。",
+      "failure_scenario": "模型已下載完成，解析的非同步工作延遲超過 20 秒，且其他 GLB 也已安靜。下一次計時檢查啟動 retry=1，兩次解析可同時留在進行中，增加流量和記憶體占用。",
+      "fix_hint": "收到完整位元組後結束下載逾時計時，為解析另設生命週期，並只接受仍有效的嘗試結果。"
+    },
+    {
+      "id": "F3",
+      "severity": "MEDIUM",
+      "file": "js/table-tray.js",
+      "line": 993,
+      "title": "舊模型載入失敗會把已換貨的格子標成就緒",
+      "detail": "成功回呼有比對格子目前的模型與拍品鍵，失敗回呼直接寫入 s.ready。這條既有路徑現在也會被新載入器用完重試次數後觸發。唯讀探針先換格再拒絕舊請求，確認新格會回報 ready=true、visible=false。index.html 第 3856 行以 readyCount 判定是否收掉入座提示。",
+      "failure_scenario": "玩家快速重開新局，舊局第一格的載入此時才失敗；新局第一格還在下載，其餘格已完成。舊回呼把新格算成就緒，入座提示會在新模型出現前收掉。",
+      "fix_hint": "在失敗回呼加上與成功回呼相同的模型身分及拍品鍵檢查。"
+    },
+    {
+      "id": "F4",
+      "severity": "MEDIUM",
+      "file": "tests/hand-warm-context.test.mjs",
+      "line": 36,
+      "title": "手部測試仍無法驗證快速入局的首次出手卡頓",
+      "detail": "（推測）回歸測試數的是 currentProgram，沒有觸發或計量實際首次出手。Three.js r158 缺少 KHR_parallel_shader_compile 時會直接把程式視為就緒，首次使用仍可能阻塞。驗收檔第 24 行把快速入局交給心願測試把關，但該測試第 47 行現在會先等待手載入及程式就緒。發布說明已標明桌機實測、手機尚未實測。[Three.js r158 WebGLProgram 原始碼](https://raw.githubusercontent.com/mrdoob/three.js/r158/src/renderers/webgl/WebGLProgram.js)",
+      "failure_scenario": "在缺少該擴充功能的裝置上，玩家在手部 GLB 剛載好時快速進入出價頁。首頁的程式存在斷言可以通過，心願測試也可在等待後通過，但玩家第一次出手仍可能遇到阻塞。",
+      "fix_hint": "沿真實快速入局流程量測首次出手，涵蓋缺少平行編譯擴充功能的配置。"
+    },
+    {
+      "id": "F5",
+      "severity": "MEDIUM",
+      "file": "js/creature-figures.js",
+      "line": 144,
+      "title": "系統校時會改變正式載入的逾時與重試判定",
+      "detail": "回歸測試已改用單調時鐘，正式載入器仍用 Date.now() 記錄起點和進度。唯讀探針將時鐘往回調兩分鐘，經過 60 秒的計時檢查仍未重試；向前跳時鐘後，同一路徑立即中止並重抓。",
+      "failure_scenario": "手部或拍品載入停住後，玩家切回分頁時系統時鐘已往回調。實際等候超過 20 秒，載入器仍按調整後的時間計算，拖延重試與明夜批次放行。",
+      "fix_hint": "用同一個單調時鐘記錄每次嘗試與所有下載的進度，並加上系統校時的回歸案例。"
+    },
+    {
+      "id": "F6",
+      "severity": "MEDIUM",
+      "file": "docs/acceptance/2026-11-21-lot-prefetch.md",
+      "line": 20,
+      "title": "驗收只比開始順序，驗不出明夜下載拖慢今夜",
+      "detail": "（推測）條件 3 的 order 只比較請求開始時間。今夜全部先開始、明夜隨即開始且與今夜一起占用頻寬，仍會得到 true。回歸測試第 46–52 行又由治具排定串行完成，並在最後只檢查第 2 夜就緒時間，缺少今夜進度受競爭影響的斷言。",
+      "failure_scenario": "將排程突變成今夜的請求一發出就立刻啟動明夜。開始順序仍正確，在治具的串行線路和 20 秒停留下，第 2 夜也可能準時；真實共享頻寬下，兩批卻可能同時傳輸並延後今夜模型到齊。",
+      "fix_hint": "正常線路下核對今夜下載完成才啟動明夜，並另用分段傳輸測試驗證卡住時的放行與重試。"
+    }
+  ],
+  "prior_findings": [
+    {
+      "id": "F1",
+      "status": "fixed",
+      "note": "js/creature-figures.js:168–200 將重試留在同一個快取 Promise 內。唯讀探針確認一旦觸發重抓並成功，原先等待的消費端會收到結果。全域進度延後重試是本輪 F1 的缺陷。"
+    },
+    {
+      "id": "F2",
+      "status": "fixed",
+      "note": "js/creature-figures.js:149–150、181–186 將 AbortSignal 傳給 fetch，並在重抓前中止舊請求。唯讀探針驗證先中止再重抓，驗收檔第 48、50 行也記有 Chromium 的取消結果。解析階段重抓另列為本輪 F2。"
+    },
+    {
+      "id": "F3",
+      "status": "superficially_fixed",
+      "note": "index.html:2951 已把發布說明限定為桌機實測，tests/hand-warm-context.test.mjs:36、61 仍只檢查程式存在。快速入局及缺少擴充功能時的首次出手耗時仍缺量測，見本輪 F4。"
+    },
+    {
+      "id": "F4",
+      "status": "fixed",
+      "note": "tests/lot-prefetch.test.mjs:61、72 統一以 performance.now() 取時間，第 98 行要求差值介於 0 與 1000ms。"
+    }
+  ],
+  "coverage": [
+    {
+      "item": "engine-determinism",
+      "checked": true,
+      "note": "核對 UI 夜初與無頭迴圈。新路徑僅讀取拍品鍵和夜數，未發現賽局寫入或亂數消耗。無 window／document 的探針通過，無頭戰報兩項通過。缺少基準檔，逐位元組相等僅有驗收紀錄。"
+    },
+    {
+      "item": "layer-contract",
+      "checked": true,
+      "note": "核對 ys:prefetch 的事件資料、最新日誌及 listener 註冊後立即補播的順序。3D 端只消費事件資料，早到即時接收與晚到補播的判斷依靜態呼叫鏈，未跑瀏覽器。"
+    },
+    {
+      "item": "async-loading",
+      "checked": true,
+      "note": "核對 URL 去重、舊世代明夜批次、換格成功與失敗、成功快取的頁面生命週期。探針確認單件卡住、下載後等解析及舊拒絕回呼三種路徑。快取按有限模型清單增長，實際手機記憶體峰值未量測。"
+    },
+    {
+      "item": "failure-paths",
+      "checked": true,
+      "note": "核對 404、網路拒絕、解析錯誤、逾時、context 遺失恢復及三種開關。逾時與中止用唯讀探針驗證，404 參照驗收紀錄，WebGL 和 URL 開關屬靜態推論。"
+    },
+    {
+      "item": "mobile-safari",
+      "checked": true,
+      "note": "靜態核對串流及 arrayBuffer 後備路徑、預編未依賴 requestIdleCallback、背景暫停、記憶體和缺少平行編譯擴充功能的情境。未實測 iPhone／Apple GPU 的下載、繪製或 context 恢復。"
+    },
+    {
+      "item": "version-and-cache",
+      "checked": true,
+      "note": "VERSION、RELEASE_VERSION、兩個 CSS 快取鍵及測試釘選均為 0.66.1，3D 模組沿用同一查詢字串。版號與介面檢查三項通過，舊入口快取的更新提示依靜態程式核對，未驗證部署送達。"
+    },
+    {
+      "item": "tests-discriminating",
+      "checked": true,
+      "note": "核對兩支新測試的真頁觸發、有效斷言、船運頻寬替身及心願測試新增等待。驗收檔有舊紅新綠紀錄；本輪未重跑瀏覽器或基準版。首次出手耗時和明夜啟動對今夜的影響仍缺可區分的斷言。"
+    },
+    {
+      "item": "scope",
+      "checked": true,
+      "note": "依 CLAUDE.md 第 7 行核對所附規則面差異。版號與快取鍵屬合版，測試埠與心願等待有驗收修訂紀錄，stdout 忽略規則屬共用流程。共用載入器的行為改動也影響夜戰、席位之手及關閉預載的路徑，範圍已在修訂紀錄揭露。"
+    }
+  ]
+}
