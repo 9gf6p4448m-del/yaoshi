@@ -17,6 +17,9 @@
 //   X 加上下界、新增 Y（r3 F7）：解析逾時要在解析開始後 43–50 秒收尾；解析 40 秒後才完成的那件要上桌。
 //   Codex yaoshi-v0.66.3-r1 後：R（r1 F1）原下載收過本體後停住、約第 35 秒恢復，重抓已送達但 16 秒後才回 404 → 不得中止會恢復的原下載，那格要出現；
 //   C2（r1 F1）同 C 但頁面回報 h2 → 不讓出連線（只有 HTTP/1.1 且進行中的 GLB 請求超過 6 個才讓出）；C 加活性「頁面走 HTTP/1.x」。
+//   Codex yaoshi-v0.66.3-r2 後：M（r2 F1）五件原請求佔五條連線（這件收過本體後停住、約第 35 秒恢復，另四件斷續有資料），這件的重抓佔第六條、
+//   16 秒後才回 404，之後別件排隊 → 不得因為「別件在排隊」中止這件會恢復的原下載，那格要出現；
+//   W 加嚴（r2 F2）：第 2–4 次預載派發當下，不得有人對 bell 的共用下載承諾掛 then（catch／finally／Promise.all 也經過 then）。
 // 時間一律用伺服器端（Node）的時鐘量，頁內校時影響不到量測。
 // 舊版對照：YAOSHI_RENDER_ROOT=<舊樹> 跑同一份測試。
 import assert from 'node:assert/strict';
@@ -364,6 +367,59 @@ test('GLB 載入器：卡住重抓、解析另計、單調時鐘、托盤失敗�
       } finally { await ctx.close(); }
     });
 
+    await sub('M', 'M：五件原請求佔五條連線（這件收過本體後停住、約第 35 秒恢復，另四件斷續有資料）、這件的重抓佔第六條且 16 秒後才回 404、之後別件排隊 → 不中止會恢復的原下載，那格在第一次請求後 45 秒內出現', async () => {
+      const errs = [];
+      const { ctx, page } = await openGame(browser, S, errs);
+      try {
+        const order = []; let bFile = null;
+        S.decide = (f, q) => { if (!order.includes(f)) order.push(f); if (order.indexOf(f) === 0) return q ? LATE404 : LONGPAUSE; return f === bFile ? NORMAL : TRICKLE; };
+        await page.evaluate(() => window.__yaoshi.newGame('solo', 1, ['qingmian']));
+        const pf = await prefetchOf(page);
+        assert.ok(pf && pf.now && pf.now.length >= 1, '開局沒派今夜預載');
+        const nowFiles = [...new Set(pf.now.map(fileOf))], nextFiles = new Set(pf.next.map(fileOf));
+        assert.ok(nowFiles.length <= 5, `今夜 ${nowFiles.length} 件，超過 5 件，布不出「五件原請求＋這件的重抓＝6 條」`);
+        // 另外補幾件（斷續有資料、一直傳不完）湊滿 5 份原請求；再留一件 B（正常線路）之後派來排隊。用預載事件派：換了世代，明夜批次不會開始
+        const pool = fs.readdirSync(path.join(SRV_ROOT, 'assets/creatures')).filter((f) => f.endsWith('.glb') && !/^hand/.test(f) && f !== 'tiger.glb'
+          && !nowFiles.includes(f) && !nextFiles.has(f)).sort();
+        const extra = pool.slice(0, 5 - nowFiles.length).map((f) => f.replace(/\.glb$/, ''));
+        bFile = pool[5 - nowFiles.length];
+        await page.evaluate((now) => document.dispatchEvent(new CustomEvent('ys:prefetch', { detail: { now, next: [] } })), [...pf.now, ...extra]);
+        assert.equal(await toRound1(page), 1, '沒走到第 1 夜拍品上桌');
+        const proto = await page.evaluate(() => performance.getEntriesByType('navigation')[0].nextHopProtocol);
+        const a = await until(() => S.log.find((r) => r.kind === 'pause'), 10000);
+        assert.ok(a, '情境沒布好（長停頓那件沒被請求）');
+        const key = pf.now.find((k) => fileOf(k) === a.f);
+        assert.ok(key, `長停頓那件（${a.f}）不是今夜拍品`);
+        // 這件的重抓送到伺服器 2 秒後，派一件新的預載（B）：6 條連線都被佔著，B 只能排隊
+        const r1 = await until(() => S.log.find((r) => r.f === a.f && /retry=1/.test(r.q)), Math.max(0, a.t + 30000 - S.now()), 100);
+        await until(() => r1 && S.now() >= r1.t + 2000, 5000, 100);
+        const tB = S.now();
+        await page.evaluate((k) => document.dispatchEvent(new CustomEvent('ys:prefetch', { detail: { now: [k], next: [] } })), bFile.replace(/\.glb$/, ''));
+        const slot = await untilBy(S, async () => { const s = await slotOf(page, key); return s && s.ready && s.visible ? s : null; }, a.t + 45000, 250);
+        await until(() => S.log.some((r) => r.f === bFile) && S.log.some((r) => r.f === a.f && r.q && r.end !== null), Math.max(0, a.t + 60000 - S.now()), 250);
+        const b = S.log.find((r) => r.f === bFile);
+        const hist = (f) => S.log.filter((r) => r.f === f).map((r) => (r.q || '-') + '@' + r.t + (r.headersAt !== null ? 'H' + r.headersAt : '') + (r.aborted !== null ? '✗' + r.aborted : '') + (r.end !== null ? '✓' + r.end : '')).join(' ');
+        const resumePlan = a.pauseAt + LONGPAUSE.pause;
+        const openAt = (t) => S.log.filter((r) => r.t <= t && (r.end === null || r.end > t) && (r.aborted === null || r.aborted > t));
+        // 活性（只看布置，不看結果）：HTTP/1.x；原下載先收過本體才停；重抓真的送到伺服器、佔的是第 6 條（當下另有 5 份請求開著）、
+        // 預定恢復時已等標頭超過 10 秒；B 在預定恢復前 10 秒以上派出、而且真的排過隊（派出 5 秒後才到伺服器）；另四件到預定恢復時都還開著
+        assert.match(proto, /^http\/1/i, `頁面不是走 HTTP/1.x（${proto}），沒行使到每主機 6 條連線上限`);
+        assert.ok(a.pauseAt !== null && a.bytes > 0, `原下載沒有先收到部分本體就停（bytes=${a.bytes}）`);
+        assert.ok(r1, `沒有重抓（${hist(a.f)}）`);
+        const others = openAt(r1.t).filter((r) => r !== r1);
+        assert.equal(others.length, 5, `重抓送到伺服器時另有 ${others.length} 份請求開著（要 5 份：重抓佔第 6 條）：${others.map((r) => r.f + (r.q || '')).join(' ')}`);
+        assert.ok(resumePlan - r1.t > 10000 && (r1.headersAt === null || r1.headersAt > resumePlan), `預定恢復（${resumePlan}ms）時重抓（${r1.t}ms 送出、標頭 ${r1.headersAt}ms）沒有等標頭超過 10 秒：${hist(a.f)}`);
+        assert.ok(resumePlan - tB > 10000, `B 在 ${tB}ms 才派出，離預定恢復（${resumePlan}ms）不到 10 秒`);
+        assert.ok(b && b.t - tB > 5000, `B（${bFile}）派出（${tB}ms）後 ${b ? b.t - tB + 'ms 就' : '一直沒'}到伺服器，沒行使到「別件在排隊」`);
+        const trk = S.log.filter((r) => r.kind === 'trickle' && !r.q);
+        assert.ok(trk.length === 4 && trk.every((r) => r.aborted === null || r.aborted > resumePlan), `斷續有資料的另四件沒有一直佔著連線到預定恢復：${trk.map((r) => r.f + '[' + hist(r.f) + ']').join(' ')}`);
+        // 行為
+        assert.ok(a.aborted === null || a.aborted >= resumePlan, `別件排隊時，會恢復的原下載在預定恢復（${resumePlan}ms）前就被中止（${a.aborted}ms）：${hist(a.f)}`);
+        assert.ok(slot, `第一次請求後 45 秒內那格（${key}）沒有就緒且看得到：${hist(a.f)}`);
+        assert.deepEqual(errs, []);
+      } finally { await ctx.close(); }
+    });
+
     await sub('H', 'H：40 秒才回標頭、之後沒有本體、別件斷續有資料 → 仍在第一次請求後 43–50 秒重抓（排隊上限從請求開始算，不被標頭重設）', async () => {
       const errs = [];
       const { ctx, page } = await openGame(browser, S, errs);
@@ -558,11 +614,28 @@ test('GLB 載入器：卡住重抓、解析另計、單調時鐘、托盤失敗�
       try {
         const url = 'assets/creatures/bell.glb';
         S.decide = (f) => (f === 'bell.glb' ? TRICKLE : NORMAL); // 每 10 秒 2KB：一直在動、不算卡住，也下載不完
-        const fire = () => page.evaluate(() => document.dispatchEvent(new CustomEvent('ys:prefetch', { detail: { now: ['bell'], next: [] } })));
-        for (let i = 0; i < 4; i++) { await fire(); await sleep(1000); }
+        // 派發當下（同步執行預載處理）才計數：window.__thenCnt.on
+        const fire = () => page.evaluate(() => { const c = window.__thenCnt; if (c) c.on = true; try { document.dispatchEvent(new CustomEvent('ys:prefetch', { detail: { now: ['bell'], next: [] } })); } finally { if (c) c.on = false; } });
+        await fire(); await sleep(1000);
+        // r2 F2：第 1 次預載已建好 bell 的共用下載承諾；之後 3 次派發當下，數對它呼叫 then 的次數（catch／finally／Promise.all 都經過 then）
+        const hasShared = await page.evaluate(async (u) => {
+          const s = [...document.scripts].find((x) => /\/js\/renderer\.js(\?|$)/.test(x.src));
+          const m = await import(new URL('creature-figures.js' + new URL(s.src).search, s.src).href);
+          const p = typeof m.glbShared === 'function' ? m.glbShared(u) : null;
+          const c = window.__thenCnt = { on: false, all: 0, shared: 0 };
+          const orig = window.__thenOrig = Promise.prototype.then;
+          Promise.prototype.then = function (...a) { if (c.on) { c.all++; if (p && this === p) c.shared++; } return orig.apply(this, a); };
+          return !!p;
+        }, url);
+        for (let i = 1; i < 4; i++) { await fire(); await sleep(1000); }
+        const tc = await page.evaluate(() => { Promise.prototype.then = window.__thenOrig; const c = window.__thenCnt; window.__thenCnt = null; return c; });
         const lastAt = S.now();
         const w4 = await cf(page, 'glbWaiters', url);
         assert.equal(w4, 1, `連續 4 次預載後 bell 的共用下載上還掛著 ${w4} 個等待者（只該留最新一批的 1 個）`);
+        // 活性：bell 的共用下載承諾在；計數真的開著（派發當下預載處理自己的 Promise.all／race 有經過 then）
+        assert.ok(hasShared, '拿不到 bell 的共用下載承諾（治具出口 glbShared）');
+        assert.ok(tc.all > 0, `第 2–4 次預載派發當下沒有任何 then 呼叫（${JSON.stringify(tc)}），計數沒行使到`);
+        assert.equal(tc.shared, 0, `第 2–4 次預載派發當下對 bell 的共用下載承諾掛了 ${tc.shared} 次 then（取消後這些回呼拆不掉，會隨換夜累積）`);
         const w0 = await untilBy(S, async () => ((await cf(page, 'glbWaiters', url)) === 0 ? true : null), lastAt + 50000, 500);
         const bells = S.log.filter((r) => r.f === 'bell.glb');
         // 活性：整段期間 bell 只有一份共用下載、一直在傳（沒下載完、沒被判卡住重抓、沒被中止）

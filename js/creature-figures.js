@@ -278,6 +278,8 @@ export function cloneSkinnedGlb(url) {
 export function glbCached(url) { return glbCache.has(url); }
 /** 治具出口（只讀，v0.66.3 Codex yaoshi-v0.66.2-r3 F2）：這個 URL 目前的共用下載上還掛著幾個預載等待者（不在快取＝0）。 */
 export function glbWaiters(url) { const p = glbCache.get(url); const st = p && glbState.get(p); return st ? st.waiters.size : 0; }
+/** 治具出口（v0.66.3，Codex yaoshi-v0.66.3-r2 F2）：這個 URL 目前的共用下載承諾（不在快取＝null）。只給測試數「有沒有人對它掛 then」；遊戲程式不要用。 */
+export function glbShared(url) { return glbCache.get(url) || null; }
 /**
  * 提前下載（2026-11-21，驗收 docs/acceptance/2026-11-21-lot-prefetch.md）：拍品一抽出來就把 GLB 抓進同一份 glbCache，
  * 出價頁 setItems／夜戰 clone 時直接拿快取。iPhone 慢網路下，原本要到出價頁才開始抓，一夜 3–4 件要等十幾到幾十秒。
