@@ -103,3 +103,33 @@
 5. **補量（M-5）**：glb-loader 的 K 對 89f52efa、M 對 ea8fc377、P 對 541eab03，CPU 與顯示卡各 1 次，6 次都紅在同一條行為斷言（「會恢復的原下載在預定恢復前就被中止」「已收的位元組丟掉」；`tmp/v0664/gl7a-summary.txt`）。修訂一把 K 寫成「預審模擬的壞寫法」不準：K 紅在 89f52efa、M 紅在 ea8fc377、P 紅在 541eab03，都是可直接跑的 commit。
 6. sfx-wiring「同種子每次局不同，CPU 就是這樣」：4 筆 CPU 裡只有 1 筆是現行產品，另 3 筆是壞版本（不播揭盅、受咒、封標——這三種只改聲音呼叫、仍照抽亂數）。
 7. 不處理（記錄）：`const { chromium: c } = pw; c.connect(ws)`、省略副檔名的 require、測試以外腳本把路徑寫在別行；工具檔多行寫啟動參數會被誤擋（換成一行即可）。
+
+## 執行中的修訂（三）（2026-11-23，冷讀第 3 輪之後；原文不刪。⚠ 第 1 點是放寬，併 main 前和修訂一第 1 點、修訂二第 1 點一起請製作人同意）
+冷讀第 3 輪（另一個沒有對話史的 opus，審 75b6e61b）：前一輪 11 條＝9 真的修好、2 表面修好（M-1、M-7）、0 沒修到；新 CRITICAL 0、新 HIGH 0。三輪額度用完，以下都不到 HIGH。逐條：
+
+1. **掃描測試有一處比凍結版寬，修訂一第 2 點沒講（N-3）。** 凍結版對「被測試載入的模組」是有啟動字樣就紅；修訂一之後，測試以外的腳本自己帶 d3d11 就放行。冷讀實測：同一行帶三個旗標的啟動加進 `appraise-c-lib.mjs`，7d7a30aa 紅、75b6e61b 綠。修訂一把它寫在「加嚴」底下，不對，這是放寬。
+   - 原標準錯在：凍結版只跟測試的 import，跟檔範圍補到子程序之後，`tests/tools` 裡原本就自己帶 d3d11 的腳本（例：curse-cam-probe）會全部被擋，而它們本來就走顯示卡。
+   - 為什麼現在才知道：凍結時沒有跟子程序，基準版掃不到這些腳本。
+   - `connect` 只認 `chromium.connect` 這類（修訂一第 2 點已寫理由）同樣是收窄，一併列入請製作人同意的清單。
+2. 修訂二的更正：
+   - 第 1 點①「實際只有 gpu-5 是較重負載」漏了 cpu-1（L-1）：兩輪負載約 05:35:56、05:40:49 起，cpu-1（105ms）與 gpu-5（743ms）都落在各輪前 40 秒。補上之後更支持 lot-prefetch 留在 CPU。
+   - 第 3 點「d3d11 必須真的在啟動參數裡」說過頭（N-1）：工具檔這四種寫法仍綠——裸啟動後面接行尾註解裡的完整啟動、同一行三元兩個啟動、參數裡三元選 swiftshader、d3d11 後再接 swiftshader 或雙引號的 `--disable-gpu`。掃描範圍內目前都沒有這樣寫的檔。
+   - 條件 3 的重述漏了「CPU 平均 ≤4 核」；條件 7 的 `gl3-run.sh`／`gl3-gate.log` 那輪已中止，實際用的是 `gl7-run.sh`／`gl7-gate.log`（L-2）。兩條都照原文判。
+3. **`tools/gated.sh`（N-2，已修）**：被包的函式沒宣告 local 就用變數 `r` 時，gated 會回錯的失敗碼（`r=9; return 0` → 回 9），是修訂二第 4 點帶進來的；同名的 `log` 也會讓交還寫錯記錄檔。改成 `_r`、`_log`。假閘門（`scratchpad/gt/n.sh`）：改前 rc=9、改後 rc=0；`t.sh`、`e.sh` 照舊全對。gl7 各函式都有 local，數字不受影響。
+4. 不處理（記錄）：N-1；M-1 殘留（`path.join(ROOT,'tools','x.mjs')` 這種多段寫法跟不到根 `tools/`，目前根 `tools/` 沒有進版控的 js）；N-4 複製有註記的測試當新測試範本會一起放行（只印在診斷、沒有斷言）；M-7 殘留（tool-options 自己真的去跑 market-card-readability 仍綠）；`.mts`、第二跳換行寫路徑不跟。這幾條的後果都只是「某支測試或工具走 CPU」，不會讓壞產品通過。
+
+## 執行結果（2026-11-23，桌機；被測 75b6e61b，`tmp/v0664/gl7-summary.txt`，起訖工作樹都乾淨）
+| 條件 | 結果 | 數字 |
+|---|---|---|
+| 1 掃描測試 | 過 | 5／5 綠，掃 159 支、`launchGpu` 17 支、註記 3 支；突變 a、b、b2、c–k 共 12 個各 1 次全紅，還原後全綠（`scan3-summary.txt`） |
+| 2 只換旗標 | 過 | 17 支各 +2／−1、3 支各 +1／−0；旗標與 15 支原字面值深度相等 15／15（`argeq.mjs`）；`index.html`、`js/`、`assets/` 差異 0 行 |
+| 3 真的走顯示卡 | 過 | glb-loader：RTX 5070 Ti 18 筆、SwiftShader 0、CPU 平均 0.7 核；sfx-wiring 兩次：RTX 各 6 筆、SwiftShader 0、0.7／0.8 核（上限 4 核） |
+| 4 沒變紅 | 過 | hand-warm-context、lot-prefetch、movecam 各 5／5 綠（CPU，movecam r4-L2 沒紅）；glb-loader 整檔 19／19（674 秒）；sfx-wiring 2／2（711、700 秒） |
+| 5 鑑別力 | 過 | hand-warm-context：bebb8fd9 紅「0/1 顆有編好的程式」、f2ff1ad7 紅「TypeError … isReady」；lot-prefetch：bebb8fd9 紅「等了 7184ms」；movecam：hold、ghost、end 紅在表上同一句（end 3.26px、37 幀）；glb-loader：micro 紅 W＋W2、nosig 紅 W2；sfx-wiring：不播揭盅、不播受咒、不播封標紅在對應斷言 |
+| 6 全套 | 過 | `--test-concurrency=6` 獨佔 676 項：674 過、1 紅（nightwalk #1，既有，只差「抓交替水符→水鬼名冊」）、1 跳過（`YAOSHI_OLD_GM_PATH` 沒給）；1126 秒、CPU 平均 2.4 核。負載型的測試都沒紅 |
+| 7 拆件 | 過 | `gl7-run.sh` 19 件，`gl7-gate.log` 放行 19、交還 19、沒放行／漏還 0；`gated_x` 4 處都有理由註解 |
+| 8 冷讀 | 過 | 3 輪，最後一輪 CRITICAL 0、HIGH 0 |
+
+全套的 CPU 是整輪平均；改前沒有在桌機量過同條件的整輪 CPU，不拿來比。`tools/gated.sh` 的變數改名在 gl7 之後，只重跑掃描測試與假閘門，產品與測試檔沒再動。
+
+**未做**：製作人同意（啟動旗標＋修訂一第 1 點、修訂二第 1 點、修訂三第 1 點），所以沒併 main。

@@ -8,12 +8,12 @@
 # GATE_LOG＝閘門輸出要寫到哪（不設就丟掉）。
 GATE="powershell -NoProfile -File C:/Users/shung/tether-wt/gate.ps1"
 _gated() {
-  local ex="$1" log="${GATE_LOG:-/dev/null}" r=0; shift
-  case "$log" in /*|[A-Za-z]:*) ;; *) log="$PWD/$log" ;; esac # 先記成絕對路徑：被包的指令 cd 走之後，相對路徑寫不進去，bash 會整條不執行、閘門就漏還
-  $GATE -Wait $ex >> "$log" 2>&1 || { echo "閘門沒放行：$*" >&2; return 97; }
-  "$@" || r=$? # 寫成 || 是讓呼叫端有 set -e 時也走得到下面的交還（代價：被包的函式裡 set -e 不會中途停，要自己回傳失敗碼）
-  $GATE -Release >> "$log" 2>&1 || $GATE -Release > /dev/null 2>&1 || echo "閘門沒交還成功（腳本結束才會失效）：$*" >&2
-  return $r
+  local ex="$1" _log="${GATE_LOG:-/dev/null}" _r=0; shift
+  case "$_log" in /*|[A-Za-z]:*) ;; *) _log="$PWD/$_log" ;; esac # 先記成絕對路徑：被包的指令 cd 走之後，相對路徑寫不進去，bash 會整條不執行、閘門就漏還
+  $GATE -Wait $ex >> "$_log" 2>&1 || { echo "閘門沒放行：$*" >&2; return 97; }
+  "$@" || _r=$? # 寫成 || 是讓呼叫端有 set -e 時也走得到下面的交還（代價：被包的函式裡 set -e 不會中途停，要自己回傳失敗碼）
+  $GATE -Release >> "$_log" 2>&1 || $GATE -Release > /dev/null 2>&1 || echo "閘門沒交還成功（腳本結束才會失效）：$*" >&2
+  return $_r
 }
 gated() { _gated "" "$@"; }
 gated_x() { _gated "-Exclusive" "$@"; }
