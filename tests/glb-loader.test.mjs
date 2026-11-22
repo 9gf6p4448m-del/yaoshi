@@ -9,6 +9,7 @@
 //   P：每次請求都送一部分後停 22 秒再續傳（共享頻寬讓給別件）→ 不得在停頓中中止還在的下載，那格要在第一次請求後 35 秒內出現。
 //   H：40 秒才回標頭、之後沒有本體 → 排隊上限從請求開始算（43–50 秒重抓），不被晚到的標頭重設。
 //   X：解析永遠不回 → 45 秒後判失敗、期間不重抓本體；之後再要同一件會重新下載並出現。
+//   Codex yaoshi-v0.66.2-r2 後：Q（r2 F1）原請求收過本體後停住、重抓要排隊 25 秒 → 排隊中的重抓不得被 20 秒門檻砍掉；F1 明夜下限 43 秒（r2 F3）。
 // 時間一律用伺服器端（Node）的時鐘量，頁內校時影響不到量測。
 // 舊版對照：YAOSHI_RENDER_ROOT=<舊樹> 跑同一份測試。
 import assert from 'node:assert/strict';
@@ -47,6 +48,7 @@ const PARTIAL = { kind: 'partial', frac: 0.3 };
 const TRICKLE = { kind: 'trickle', every: 10000, step: 2048 };
 const PAUSE = { kind: 'pause', frac: 0.3, pause: 22000 };
 const LATEHEADERS = { kind: 'lateheaders', delay: 40000 };
+const DELAYED = { kind: 'delayed', delay: 25000 }; // 排隊 delay 毫秒才回標頭，之後照 RATE 送完
 const HOLD = { kind: 'hold' };
 const NF = { kind: 'nf' };
 
@@ -97,6 +99,7 @@ function startServer() {
     let body;
     try { body = fs.readFileSync(file); } catch (e) { res.writeHead(404); res.end('not found'); rec.status = 404; rec.end = S.now(); return; }
     if (plan.kind === 'nf') { res.writeHead(404, { 'Content-Type': 'text/plain' }); res.end('not found'); rec.status = 404; rec.end = S.now(); return; }
+    if (plan.kind === 'delayed') { later(() => { if (!res.destroyed) stream(res, rec, body, NORMAL); }, plan.delay); return; }
     if (plan.kind === 'lateheaders') {
       later(() => { if (res.destroyed) return; res.writeHead(200, { 'Content-Type': 'model/gltf-binary', 'Content-Length': body.length, 'Cache-Control': 'no-store' }); res.flushHeaders(); rec.headersAt = S.now(); }, plan.delay);
       return;
@@ -187,7 +190,8 @@ test('GLB 載入器：卡住重抓、解析另計、單調時鐘、托盤失敗�
         assert.ok(gap >= 18000 && gap <= 25000, `停住後 ${gap}ms 才重抓（有效區間 18000–25000ms）`);
         assert.ok(slot, `重抓後 10 秒內托盤那格（${hangKey}）沒有就緒且看得到`);
         assert.ok(nextOnly.length > 0, '明夜沒有今夜以外的拍品，量不到明夜批次');
-        assert.ok(tomorrow && tomorrow.t - t0 <= 50000, `明夜批次開局後 ${tomorrow ? tomorrow.t - t0 + 'ms' : '62 秒內都沒'}才開始（上限 50000ms）`);
+        // r2 F3：下限 43 秒——今夜斷續那件一直在動、沒被判卡住，放行明夜的只能是 45 秒獨立上限（任一件停滯就整批放行的回歸會在約 20 秒放行）
+        assert.ok(tomorrow && tomorrow.t - t0 >= 43000 && tomorrow.t - t0 <= 50000, `明夜批次開局後 ${tomorrow ? tomorrow.t - t0 + 'ms' : '62 秒內都沒'}開始（有效區間 43000–50000ms）`);
         // 活性（Codex yaoshi-v0.66.2-r1 F4）：明夜開始時今夜那件斷續的還沒下載完＝今夜批次還沒結束，放行明夜的只能是獨立上限
         assert.ok(trk.end === null || trk.end > tomorrow.t, `明夜開始時（${tomorrow.t}ms）今夜批次已下載完（斷續那件 ${trk.end}ms 完），量不到明夜的獨立上限`);
         assert.deepEqual(errs, []);
@@ -215,6 +219,34 @@ test('GLB 載入器：卡住重抓、解析另計、單調時鐘、托盤失敗�
         assert.ok(during.length >= 2, `停頓期間斷續那件只有 ${during.length} 塊資料，沒行使到「別件還在傳」`);
         assert.ok(a.aborted === null || (a.resumeAt !== null && a.aborted >= a.resumeAt), `第一次請求在停頓中（${a.pauseAt}→${a.pauseAt + 22000}ms）就被中止（${a.aborted}ms），已收的位元組丟掉`);
         assert.ok(slot, `第一次請求後 35 秒內那格（${key}）沒有就緒且看得到（請求：${S.log.filter((r) => r.f === a.f).map((r) => (r.q || '-') + '@' + r.t + (r.aborted !== null ? '✗' + r.aborted : '') + (r.end !== null ? '✓' + r.end : '')).join(' ')}）`);
+        assert.deepEqual(errs, []);
+      } finally { await ctx.close(); }
+    });
+
+    await sub('Q', 'Q：傳到一半停住、重抓都要排隊 25 秒才有回應、別件斷續有資料 → 排隊中的重抓不被砍，那格在第一次請求後 60 秒內出現', async () => {
+      const errs = [];
+      const { ctx, page } = await openGame(browser, S, errs);
+      try {
+        const order = [];
+        S.decide = (f, q) => { if (!order.includes(f)) order.push(f); const i = order.indexOf(f); return i === 0 ? (q ? DELAYED : PARTIAL) : i === 1 ? TRICKLE : NORMAL; };
+        await page.evaluate(() => window.__yaoshi.newGame('solo', 1, ['qingmian']));
+        const pf = await prefetchOf(page);
+        assert.equal(await toRound1(page), 1, '沒走到第 1 夜拍品上桌');
+        const a = await until(() => S.log.find((r) => r.kind === 'partial'), 10000);
+        const trk = await until(() => S.log.find((r) => r.kind === 'trickle'), 10000);
+        assert.ok(a && trk, '情境沒布好（停住／斷續那兩件沒被請求）');
+        const key = pf.now.find((k) => fileOf(k) === a.f);
+        assert.ok(key, `停住那件（${a.f}）不是今夜拍品`);
+        const slot = await untilBy(S, async () => { const s = await slotOf(page, key); return s && s.ready && s.visible ? s : null; }, a.t + 60000, 200);
+        const r1 = S.log.find((r) => r.f === a.f && /retry=1/.test(r.q));
+        const hist = S.log.filter((r) => r.f === a.f).map((r) => (r.q || '-') + '@' + r.t + (r.first !== null ? '▶' + r.first : '') + (r.aborted !== null ? '✗' + r.aborted : '') + (r.end !== null ? '✓' + r.end : '')).join(' ');
+        // 活性：原請求先收到部分本體才停；重抓真的在排隊（25 秒才有回應）時別件一直有資料
+        assert.ok(a.bytes > 0 && a.end === null, `原請求沒有先收到部分本體（bytes=${a.bytes}）`);
+        assert.ok(r1, `停住那件沒有重抓（${hist}）`);
+        const during = trk.chunks.filter((c) => c > r1.t && c < r1.t + 25000);
+        assert.ok(during.length >= 2, `重抓排隊期間斷續那件只有 ${during.length} 塊資料，沒行使到「別件還在傳」`);
+        assert.ok(r1.aborted === null || r1.first !== null, `第一次重抓還在排隊（${r1.t}→${r1.t + 25000}ms）就被中止（${r1.aborted}ms）：${hist}`);
+        assert.ok(slot, `第一次請求後 60 秒內那格（${key}）沒有就緒且看得到：${hist}`);
         assert.deepEqual(errs, []);
       } finally { await ctx.close(); }
     });

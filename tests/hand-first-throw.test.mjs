@@ -17,6 +17,8 @@ const PORT = Number(process.env.YAOSHI_FIRSTTHROW_PORT || 9796);
 const HAND = 'hand-skin-proto-b';
 const WAIT = 8000;
 const FRAME_MAX = 300; // 第一次畫手那一幀的長任務上限（Codex yaoshi-v0.66.2-r1 F6）
+const PRE_FIRST_MAX = 400; // 點下去到第一次畫手之間最長的長任務（r2 F5；基準約 250ms＝進出價頁那一下）
+const PICK_TO_FIRST_MAX = 1000; // 點下去到第一次畫手（r2 F5；基準約 650ms＝手的動畫起手）
 
 function loadPlaywright() {
   const cands = [path.join(ROOT, 'tools/anyCreature/package.json'), path.join(SRV_ROOT, 'tools/anyCreature/package.json'),
@@ -83,7 +85,9 @@ test('第一次出手：沒有平行編譯擴充功能、真人節奏入局，�
       // 第一次畫手所在的那一幀：包含第一次手程式查詢的長任務（沒有＝那幀不到 50ms）（Codex yaoshi-v0.66.2-r1 F6）
       const frame = first === null ? null : window.__lt.filter((e) => e.s <= first && first <= e.s + e.d).reduce((m, e) => Math.max(m, e.d), 0);
       return { progs: handProgs.size, pre: hand.filter((x) => x.t < P).length, post: post.length, maxPost: Math.round(Math.max(0, ...post.map((x) => x.d))),
-        sumPost: Math.round(post.reduce((a, x) => a + x.d, 0)), frame: frame === null ? null : Math.round(frame), pickToFirst: first === null ? null : Math.round(first - P), ltObserved: window.__lt.length };
+        sumPost: Math.round(post.reduce((a, x) => a + x.d, 0)), frame: frame === null ? null : Math.round(frame), pickToFirst: first === null ? null : Math.round(first - P), ltObserved: window.__lt.length,
+        // 點下去到第一次畫手之間（含第一次畫手那一刻）最長的主執行緒卡頓（Codex yaoshi-v0.66.2-r2 F5）
+        preFirst: first === null ? null : Math.round(window.__lt.filter((e) => e.s <= first && e.s + e.d >= P).reduce((m, e) => Math.max(m, e.d), 0)) };
     }, { H: HAND, P: pickAt });
     // 活性：手的程式在第一次出手之後才第一次被拿來畫（three 第一次使用時才查 getProgramInfoLog；查過就不再查）
     assert.ok(r.progs > 0, '出價頁後找不到手的程式，第一次出手沒畫手');
@@ -93,6 +97,9 @@ test('第一次出手：沒有平行編譯擴充功能、真人節奏入局，�
     assert.ok(r.ltObserved > 0, '瀏覽器沒回報任何長任務，量不到整幀卡頓');
     assert.ok(r.sumPost <= 300, `第一次出手後手的程式同步等待合計 ${r.sumPost}ms（上限 300ms）`);
     assert.ok(r.frame <= FRAME_MAX, `第一次畫手那一幀主執行緒卡了 ${r.frame}ms（上限 ${FRAME_MAX}ms）`);
+    // Codex yaoshi-v0.66.2-r2 F5：點下去到第一次畫手之間也不能卡（541eab03 系三次 preFirst 252／247／244ms、pickToFirst 651／652／635ms）
+    assert.ok(r.preFirst <= PRE_FIRST_MAX, `點下去到第一次畫手之間主執行緒最長卡了 ${r.preFirst}ms（上限 ${PRE_FIRST_MAX}ms）`);
+    assert.ok(r.pickToFirst <= PICK_TO_FIRST_MAX, `點下去 ${r.pickToFirst}ms 後才第一次畫手（上限 ${PICK_TO_FIRST_MAX}ms）`);
     assert.deepEqual(errs, []);
   } finally { await browser.close(); srv.kill(); }
 });
