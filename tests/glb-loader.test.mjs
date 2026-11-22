@@ -143,6 +143,7 @@ async function untilBy(S, fn, deadline, step = 100) { for (;;) { if (S.now() > d
 /** 開一個全新 context（不共用快取）的遊戲頁，等托盤與手都載好、線路安靜 3 秒。 */
 async function openGame(browser, S, errs, init) {
   const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 1, hasTouch: true });
+  S.decide = () => NORMAL; // 上一個情境的送法不帶進開頁（v0.66.3 r2：M 的送法會讓手的模型斷續送、開頁等不到，後面的情境不論實作都過不了）
   await ctx.addInitScript(() => { try { localStorage.setItem('yaoshi_intro_v1', '1'); } catch (e) {} });
   if (init) await ctx.addInitScript(init);
   const page = await ctx.newPage();
