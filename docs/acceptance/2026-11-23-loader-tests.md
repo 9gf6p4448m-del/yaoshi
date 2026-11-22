@@ -42,3 +42,13 @@
 - 條件 3 追加突變：**nextthen**（`prefetchGlb` 只在明夜呼叫時 `queueMicrotask(() => p.then(…))`）W2 須紅在「第 2–5 世代對 bell 的共用下載承諾掛了 N 次回呼」；**noguard**（`renderer.js` 拿掉 `batch === prefetchBatch`）W2 須紅在「換世代後，舊批次還替自己的明夜開了新下載」。
 - 修訂前 6cb20bcd 的 `W,W2`：未改的產品 3／3 綠、sync 紅在「掛了 3 次 then」（其餘突變沒跑完就停掉、改跑修訂版）。nextthen、noguard 在 6cb20bcd 上的結果**沒有量**，依冷讀推導。
 - 不修：F-B（第 4 世代只看數量，抵銷情形由第 5 世代的 0 擋，已寫註解）、F-C（訂閱以外的洩漏，例如計時器沒清，不在這兩條 finding 內）。
+
+## 執行結果（2026-11-23 00:20–00:45，受測 5c29779e、工作樹乾淨、桌機獨佔閘門；`tmp/v0664/new-summary.txt`＋`new-*.log`，不進 git）
+1、4. 未改的產品 `W,W2` 連 3 次：每次 pass 3／fail 0（W、W2、父項），正對照 [1,1] 都成立。
+2. micro、timer、await：W 紅在「第 2 次預載派發前到放行後，bell 的共用下載承諾被掛了 3 次回呼」；sync：W 紅在原本的「第 2–4 次預載派發當下…掛了 3 次 then」。四個突變 W2 也紅在「第 2–5 世代…掛了 N 次回呼」（sync、micro、await 2 次，timer 3 次）。
+3. nonext、nosig：W2 紅在「換世代後，舊明夜批次還在 bell 的共用下載上掛著 1 個等待者」，W 綠。nextthen：W2 紅在「第 2–5 世代…掛了 1 次回呼」，W 綠。noguard：W2 紅在「flag.glb 被請求 1 次」，W 綠。修訂前的 6cb20bcd 測試跑 nextthen、noguard 都綠（`new-6cb-*.log`）＝這兩個盲點是修訂一補上的。
+5. 整檔 1 次：tests 19／pass 19／fail 0（686 秒）。**更正**：條件 5 寫「原 19 項」是數錯——C 撤掉後原本是 18 項（17 情境＋父項，`base-clean.log` 的 tests 18），加 W2 是 19，判準沒變。
+6. 測試檔相對 c2f8abfc 新增 84 行、刪除 0 行；`git diff --stat c2f8abfc` 只有測試、本檔、`DECISIONS.md`。
+7. pageerror 的斷言在上述綠的情境內都成立。
+8. 對抗式檢查兩輪（沒有對話史）：第一輪對 6cb20bcd C0／H0／M2／L3（處置見修訂一）；第二輪三態覆審對 5c29779e：F-A、F-D 都判「真的修好」，沒有新的 C／H。殘留 LOW（記錄不修）：明夜路徑只做過微任務突變、沒做計時器突變（計數不看時機）；W2 的計數從第 1 世代之後才開始。
+9. 全套測試與 Codex：照條件 9 併進下一個版號，本批沒跑。
