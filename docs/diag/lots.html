@@ -54,9 +54,13 @@
   // v2（同日）：iPhone 第一次回報顯示拍品是「還在載」不是「載失敗」，要分清慢在網路還是主執行緒忙、最後會不會出現：
   // itemsTl＝每格 ready／visible 的變化時間軸；stalls＝本頁計時器被卡住的間隔（iframe 與本頁同一條主執行緒）
   var itemsTl = [], stalls = [], lastSig = null, lastTick = Date.now();
+  // v3（2026-11-22，Codex yaoshi-v0.66.1-r3 F4）：手機第一次出手會不會卡。hand＝手模型載好／手程式出現／程式就緒的時間、
+  // 這台有沒有 KHR_parallel_shader_compile（沒有時 three 0.158 的 isReady 直接回 true，第一次畫手才真的等編譯）；
+  // phaseTl＝主按鈕文字的變化（看出價、盯上、開標各在幾秒），配上 stalls 就能看出第一次出手那一刻有沒有卡住。
+  var hand = { ext: null, loaded: null, prog: null, ready: null }, phaseTl = [], lastBtn = null;
   setInterval(function () {
     var now = Date.now(), gap = now - lastTick; lastTick = now;
-    if (gap > 400 && stalls.length < 80) stalls.push(ts() + ' ' + gap + 'ms');
+    if (gap > 400 && stalls.length < 200) stalls.push(ts() + ' ' + gap + 'ms');
     var w = g.contentWindow;
     try {
       if (w && w !== hooked && /index\.html/.test(w.location.href)) {
@@ -78,6 +82,20 @@
           var sig = YT.items().map(function (s) { return (s.key || '咒') + ':' + (s.ready ? 'R' : '-') + (s.visible ? 'V' : '-'); }).join(' ');
           if (sig !== lastSig) { if (itemsTl.length < 80) itemsTl.push(ts() + ' ' + sig); lastSig = sig; }
         }
+        var Y3 = hooked.__yaoshi3d;
+        if (Y3 && Y3.renderer) {
+          if (hand.ext === null) hand.ext = !!Y3.renderer.getContext().getExtension('KHR_parallel_shader_compile');
+          var H = Y3.tray && Y3.tray.hands;
+          if (hand.loaded === null && H && H.loaded && H.loaded()) hand.loaded = ts();
+          if (hand.ready === null) {
+            var hp = (Y3.renderer.info.programs || []).filter(function (p) { return p.name === 'hand-skin-proto-b'; })[0];
+            if (hp && hand.prog === null) hand.prog = ts();
+            if (hp && hp.isReady && hp.isReady()) hand.ready = ts(); // 有擴充功能時這個查詢不會卡；沒有時一律回 true
+          }
+        }
+        var mb = hooked.document.getElementById('mainbtn');
+        var bt = mb && mb.offsetParent ? mb.innerText.replace(/\s+/g, ' ').trim().slice(0, 24) : '';
+        if (bt !== lastBtn) { if (phaseTl.length < 80) phaseTl.push(ts() + ' ' + (bt || '(沒有主按鈕)')); lastBtn = bt; }
       }
     } catch (e) { /* 換頁中 */ }
   }, 100);
@@ -196,7 +214,9 @@
     }
     d.trayLoadTimeline = timeline.slice(-20);
     d.itemsTimeline = itemsTl.slice(-40);
-    d.stalls = stalls.slice(-40);
+    d.stalls = stalls.slice(-60);
+    d.hand = hand;
+    d.phaseTimeline = phaseTl.slice(-40);
     d.consoleLog = log;
     return d;
   }
