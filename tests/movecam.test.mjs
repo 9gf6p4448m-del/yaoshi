@@ -7,6 +7,7 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { launchGpu } from './browser.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(HERE, '..');
@@ -18,7 +19,7 @@ function loadPlaywright() {
   throw new Error('找不到 playwright（設 YAOSHI_PW_ROOT 指向含 node_modules/playwright 的目錄）');
 }
 const { chromium } = loadPlaywright();
-const browser = await chromium.launch();
+const browser = await launchGpu(chromium);
 async function open(query = '', { fixtureLoop = true } = {}) {
   const page = await browser.newPage({ viewport: { width: 844, height: 390 } });
   await page.goto(pathToFileURL(TARGET).href + '?paperwar=1' + query, { waitUntil: 'load' });

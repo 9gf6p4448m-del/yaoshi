@@ -77,6 +77,7 @@
 - 靜態 HTML／JS 遊戲。快速檢查：`node --test tests/*.test.mjs`；純呈現改動另以同版基準跑 `tests/tools/trace-eq.mjs`。
 - 瀏覽器工具使用本機、未追蹤的 `tools/anyCreature/` 依賴。2026-09-15 實測 Node 24.16.0、Python 3.14.5、Playwright 1.62.1、本機測試套件 Three 0.180.0；遊戲 importmap 實際載入 Three 0.158.0，兩者不能混稱。同機可沿用；換機需先確認依賴，Git 不包含這個目錄。不因版本不同而擅自升級遊戲。
 - 效能診斷與正式 gate 分開；CPU profile 不能證明 Safari fps。正式性能量測獨占 GPU browser，不與截圖／矩陣同跑。
+- 測試開瀏覽器一律 `launchGpu(chromium)`（`tests/browser.mjs`，WebGL 走顯示卡）；`tests/browser-launch-scan.test.mjs` 會掃，直接啟動要在上一行寫「// 不走顯示卡：<理由>」。驗收腳本 `source tools/gated.sh`：每條件各過一次閘門、做完交還，效能量測一組改前／改後算一件，`gated_x` 只給量效能或怕負載假紅的。
 - 有受影響的程式改動才跑必要檢查。未改產品時不用重跑 1599 矩陣；不能反覆重測直到挑到綠燈。
 
 Claude Code 的專案記憶機制參考：[官方文件](https://code.claude.com/docs/en/memory)。

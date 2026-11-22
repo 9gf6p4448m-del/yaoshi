@@ -36,6 +36,7 @@ import http from 'node:http';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
+import { launchGpu } from './browser.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SRV_ROOT = process.env.YAOSHI_RENDER_ROOT || ROOT;
@@ -220,7 +221,7 @@ async function toMarketSince(page, since) {
 test('GLB 載入器：卡住重抓、解析另計、單調時鐘、托盤失敗回呼核對身分、明夜等今夜下載完', { timeout: 1200000 }, async (t) => {
   const { chromium } = loadPlaywright();
   const S = await startServer();
-  const browser = await chromium.launch();
+  const browser = await launchGpu(chromium);
   const sub = (id, name, fn) => t.test(name, ONLY.length && !ONLY.includes(id) ? { skip: 'YAOSHI_GLBLOADER_ONLY' } : {}, fn);
   try {
     await sub('F1', 'F1：傳到一半停住、同夜別件斷續有資料 → 停住那件約 20 秒重抓、托盤那格出現；明夜批次 50 秒內開始', async () => {

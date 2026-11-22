@@ -22,6 +22,7 @@ import { execFileSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { DRIVE_STEP, scr, driveToFirst, waitTrayReady, waitSettled } from './tools/appraise-c-lib.mjs';
+import { launchGpu } from './browser.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SRV_ROOT = process.env.YAOSHI_RENDER_ROOT || ROOT;
@@ -99,7 +100,7 @@ const kinds = (m) => new Set(m.els.map((e) => e.kind));
 async function withGame(mode, size, fn) {
   const { chromium } = loadPlaywright();
   const srv = await serve(mode);
-  const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=d3d11', '--ignore-gpu-blocklist'] });
+  const browser = await launchGpu(chromium);
   try {
     const ctx = await browser.newContext({ viewport: { width: size[0], height: size[1] }, deviceScaleFactor: 1, hasTouch: true });
     await ctx.addInitScript(() => { try { localStorage.setItem('yaoshi_intro_v1', '1'); } catch (e) {} });

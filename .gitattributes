@@ -41,3 +41,6 @@ docs/experiments/2026-09-28-appraise-c/signoff/signoff-west.png -text
 docs/experiments/2026-09-28-appraise-c/cloud-reference/b-east.png -text
 docs/experiments/2026-09-28-appraise-c/cloud-reference/b-west.png -text
 docs/experiments/2026-09-28-appraise-c/cloud-reference/NOTES.md -text
+
+# bash 腳本在 Windows 取出也要是 LF
+tools/gated.sh text eol=lf

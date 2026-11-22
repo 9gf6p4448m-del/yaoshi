@@ -8,6 +8,7 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
+import { launchGpu } from './browser.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SRV_ROOT = process.env.YAOSHI_RENDER_ROOT || ROOT;
@@ -19,7 +20,7 @@ test('?handslow／?grabslow：CFG 生效值＝原值×k、3D 讀同一份倍率�
   const { chromium } = createRequire(path.join(ROOT, 'tools/anyCreature/package.json'))('playwright');
   const srv = spawn('python', ['-m', 'http.server', String(PORT), '--bind', '127.0.0.1'], { cwd: SRV_ROOT, stdio: 'ignore' });
   await new Promise((r) => setTimeout(r, 900));
-  const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=d3d11', '--ignore-gpu-blocklist'] });
+  const browser = await launchGpu(chromium);
   try {
     const cases = [['', 1.5, 1.3], ['?handslow=1&grabslow=1', 1, 1], ['?handslow=2', 2, 1.3], ['?grabslow=2', 1.5, 2], ['?handslow=2&grabslow=1.5', 2, 1.5], ['?handslow=0&grabslow=0', 1.5, 1.3], ['?handslow=abc&grabslow=abc', 1.5, 1.3], ['?handslow=99&grabslow=99', 1.5, 1.3], ['?handslow=&grabslow=', 1.5, 1.3], ['?handslow=3', 3, 1.3]];
     for (const [q, kh, kg] of cases) {

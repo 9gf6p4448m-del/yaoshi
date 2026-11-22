@@ -14,6 +14,7 @@ import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { driveToFirst, openGame, waitTrayReady, waitSettled, scr, DRIVE_STEP } from './tools/appraise-c-lib.mjs';
+import { launchGpu } from './browser.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SRV_ROOT = process.env.YAOSHI_RENDER_ROOT || ROOT;
@@ -179,7 +180,7 @@ before(async () => {
   const { chromium } = loadPlaywright();
   srv = spawn('python', ['-m', 'http.server', String(PORT), '--bind', '127.0.0.1'], { cwd: SRV_ROOT, stdio: 'ignore' });
   await new Promise((r) => setTimeout(r, 900));
-  browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=d3d11', '--ignore-gpu-blocklist'] });
+  browser = await launchGpu(chromium);
   for (const k of VPS) {
     const d = { rounds: null };
     const { ctx, page } = await openGame(browser, PORT, ALL[k], 'solo', 3, { clock: false, destiny: DESTINY });

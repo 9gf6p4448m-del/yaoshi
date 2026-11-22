@@ -12,6 +12,7 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
+import { launchGpu } from './browser.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SRV_ROOT = process.env.YAOSHI_RENDER_ROOT || ROOT;
@@ -34,7 +35,7 @@ test('拍品提前下載：慢線路下第 2 夜拍品推上桌 1 秒內全部�
     const ok = await fetch(`http://127.0.0.1:${PORT}/index.html`, { method: 'HEAD' }).then((r) => r.ok).catch(() => false);
     if (ok) break; await new Promise((r) => setTimeout(r, 200));
   }
-  const browser = await chromium.launch();
+  const browser = await launchGpu(chromium);
   const errs = [];
   let linkFreeAt = 0;
   try {

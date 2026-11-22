@@ -10,6 +10,7 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
+import { launchGpu } from './browser.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SRV_ROOT = process.env.YAOSHI_RENDER_ROOT || ROOT; // 突變驗紅：指向修改前的暫存樹
@@ -19,7 +20,7 @@ test('預設皮膚＝B 皮膚（青面斑塊與拇指橫紋已調整）；?skin=
   const { chromium } = createRequire(path.join(ROOT, 'tools/anyCreature/package.json'))('playwright');
   const srv = spawn('python', ['-m', 'http.server', String(PORT), '--bind', '127.0.0.1'], { cwd: SRV_ROOT, stdio: 'ignore' });
   await new Promise((r) => setTimeout(r, 900));
-  const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=d3d11', '--ignore-gpu-blocklist'] });
+  const browser = await launchGpu(chromium);
   try {
     const out = {};
     for (const q of ['', '?skin=0', '?skin=off', '?skin=a', '?skin=ab', '?handreal=0']) {

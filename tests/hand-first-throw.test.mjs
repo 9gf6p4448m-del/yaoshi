@@ -12,6 +12,7 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
+import { launchGpu } from './browser.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SRV_ROOT = process.env.YAOSHI_RENDER_ROOT || ROOT;
@@ -37,7 +38,7 @@ test('第一次出手：沒有平行編譯擴充功能、真人節奏入局，�
     if (ok) break; await new Promise((r) => setTimeout(r, 200));
   }
   // 要走真的 GPU（ANGLE D3D11）：預設 headless 是 SwiftShader 軟體繪圖，編譯快、量不出差別（2026-11-22 實測：拿掉預編仍綠）
-  const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=d3d11', '--ignore-gpu-blocklist'] });
+  const browser = await launchGpu(chromium);
   const errs = [];
   try {
     const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 1 });
