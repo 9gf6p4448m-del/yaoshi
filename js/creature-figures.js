@@ -141,21 +141,29 @@ const glbCache = new Map();
      · 收到過本體的請求：**不中止**，另外並行一次重抓，誰先收齊用誰、收齊就中止其他的。共享慢線上它可能只是暫時把頻寬讓給別件，
        中止會丟掉已收的位元組、三次機會也可能全耗在同樣的停頓上（r1 F1）；真的死掉的連線，重抓照樣約 20 秒就補上（r3 F1）。
      · 第 GLB_MAX_TRIES 次也卡住 → 放棄（中止全部）。
-   - 讓出連線（v0.66.3，Codex yaoshi-v0.66.2-r3 F1；驗收 docs/acceptance/2026-11-22-v0.66.3.md）：最新那次請求送出 GLB_RELEASE_MS 還沒收到
-     回應標頭，而這件收過本體的舊請求已停住超過 GLB_STALL_MS → 中止那些停住的舊請求。HTTP/1.1 每主機只有 6 條連線，全被停住的舊請求佔滿時
-     重抓排在瀏覽器裡送不出去；HTTP/2 下重抓幾乎立刻拿到標頭，舊請求照上一點保留並行。
+   - 讓出連線（v0.66.3，Codex yaoshi-v0.66.2-r3 F1；驗收 docs/acceptance/2026-11-22-v0.66.3.md）：HTTP/1.1 每主機只有 6 條連線，全被停住的舊請求
+     佔滿時重抓排在瀏覽器裡送不出去。只有在「一定有請求在排隊」時才讓：頁面走 HTTP/1.x（navigation 的 nextHopProtocol）、已發出還沒結束的 GLB 請求
+     超過 GLB_H1_CONN 個，而且最新那次請求送出 GLB_RELEASE_MS 還沒收到標頭 → 中止這件收過本體、已停住超過 GLB_STALL_MS 的舊請求。
+     其他情況（含正式站 h2、查不到協定）照上一點保留並行：「重抓沒標頭」也可能只是伺服器慢，舊請求說不定會恢復（Codex yaoshi-v0.66.3-r1 F1）。
    - 解析中（位元組收齊）：不歸下載計時管、不重抓本體；超過 GLB_PARSE_MAX_MS 沒回成功或失敗 → 判失敗、清出快取，下次要這件會重新下載（r1 F3）。
    - 計時一律用單調時鐘（monoNow），系統校時不影響（r3 F5）。
-   glbState：promise → { stalled, waiters }＝這一份曾被判卡住（開始重抓或放棄）；waiters＝等「判卡住」通知的預載呼叫（判卡住時一次通知並清空，
-   不各自開計時器輪詢，r2 F2）。 */
+   glbState：promise → { stalled, settled, waiters }：stalled＝這一份曾被判卡住（開始重抓或放棄）；settled＝null 還沒結束／true 成功／false 失敗；
+   waiters＝預載呼叫的訂閱（函式，收 'stall'、true、false），判卡住或結束時通知，不各自開計時器輪詢（r2 F2）。每份共用載入只掛一組完成回呼來通知它們，
+   預載呼叫不再自己對共用承諾加 then——取消時從集合移除就不留任何回呼（v0.66.3，Codex yaoshi-v0.66.3-r1 F2）。 */
 const GLB_STALL_MS = 20000;
 const GLB_IDLE_MS = 15000;
 const GLB_QUEUE_MAX_MS = 45000;
 const GLB_PARSE_MAX_MS = 45000;
 const GLB_RELEASE_MS = 10000;
+const GLB_H1_CONN = 6; // HTTP/1.1 每主機連線上限
 const GLB_MAX_TRIES = 3;
 const glbState = new WeakMap();
 let glbLastAnyData = 0; // 任何一份 GLB 最後一次收到資料的時間（monoNow）
+let glbOpen = 0; // 已發出、還沒結束的 GLB 請求數（含排在瀏覽器裡還沒送出的）
+/** 頁面是不是走 HTTP/1.x（查不到＝不是；正式站 GitHub Pages 是 h2）。 */
+function glbH1() {
+  try { const e = performance.getEntriesByType('navigation')[0]; return !!e && /^http\/1/i.test(e.nextHopProtocol || ''); } catch (e) { return false; }
+}
 let loader = null;
 const monoNow = () => (typeof performance !== 'undefined' && typeof performance.now === 'function' ? performance.now() : Date.now());
 /** 這一件（live＝還在的請求，最後一個最新）算不算卡住（見上方）。 */
@@ -191,7 +199,7 @@ async function fetchGlbBytes(u, signal, onData) {
 function loadGlb(url) {
   if (!glbCache.has(url)) {
     if (!loader) loader = new GLTFLoader();
-    const st = { stalled: false, waiters: new Set() };
+    const st = { stalled: false, settled: null, waiters: new Set() };
     const p = new Promise((resolve, reject) => {
       let settled = false, tries = 0, timer = null;
       const live = []; // 還在的請求 { ctl, startAt, lastAt（標頭或本體）, bodyAt（本體）, gotHead, gotBody, parsing, parseAt }，最後一個最新
@@ -209,7 +217,12 @@ function loadGlb(url) {
         const att = { ctl, startAt: t, lastAt: t, bodyAt: -Infinity, gotHead: false, gotBody: false, parsing: false, parseAt: 0 };
         live.push(att);
         const u = n ? url + (url.includes('?') ? '&' : '?') + 'retry=' + n : url;
-        fetchGlbBytes(u, ctl && ctl.signal, (body) => { if (settled || !live.includes(att)) return; att.gotHead = true; att.lastAt = glbLastAnyData = monoNow(); if (body) { att.gotBody = true; att.bodyAt = att.lastAt; } })
+        glbOpen++;
+        let open = true;
+        const closed = () => { if (open) { open = false; glbOpen--; } };
+        const fp = fetchGlbBytes(u, ctl && ctl.signal, (body) => { if (settled || !live.includes(att)) return; att.gotHead = true; att.lastAt = glbLastAnyData = monoNow(); if (body) { att.gotBody = true; att.bodyAt = att.lastAt; } });
+        fp.then(closed, closed); // 收齊、失敗或被中止＝這條請求結束（連線讓出）
+        fp
           .then((buf) => {
             if (settled || !live.includes(att)) return null; // 已被中止
             for (const a of live.slice()) if (a !== att) drop(a); // 這份收齊了：其他請求不必再搶頻寬
@@ -227,19 +240,21 @@ function loadGlb(url) {
         if (settled || live.length === 0) return;
         const now = monoNow(), cur = live[live.length - 1];
         if (cur.parsing) { if (now - cur.parseAt > GLB_PARSE_MAX_MS) finish(false, new Error('GLB 解析逾時：' + url)); return; }
-        // 讓出連線（r3 F1，見上方說明）：重抓送出 GLB_RELEASE_MS 還沒有標頭 → 中止停住超過 GLB_STALL_MS 的舊請求
-        if (live.length > 1 && !cur.gotHead && now - cur.startAt > GLB_RELEASE_MS) {
+        // 讓出連線（見上方說明）：HTTP/1.x 且確定有請求在排隊、重抓送出 GLB_RELEASE_MS 還沒有標頭 → 中止停住超過 GLB_STALL_MS 的舊請求
+        if (live.length > 1 && !cur.gotHead && now - cur.startAt > GLB_RELEASE_MS && glbOpen > GLB_H1_CONN && glbH1()) {
           for (const a of live.slice(0, -1)) if (a.gotBody && now - a.bodyAt > GLB_STALL_MS) drop(a);
         }
         if (!glbStalled(live, now)) return;
         st.stalled = true;
-        for (const w of [...st.waiters]) w();
+        for (const w of [...st.waiters]) w('stall');
         if (tries >= GLB_MAX_TRIES) { finish(false, new Error('GLB 下載卡住（' + tries + ' 次）：' + url)); return; }
         for (const a of live.slice()) if (!a.gotBody) drop(a); // 沒收到本體的先中止；收到過的留著並行
         start();
       }, 1000);
     });
     glbState.set(p, st);
+    const notify = (ok) => { st.settled = ok; for (const w of [...st.waiters]) w(ok); };
+    p.then(() => notify(true), () => notify(false)); // 每份只這一組（r1 F2）
     p.catch(() => { if (glbCache.get(url) === p) glbCache.delete(url); });
     glbCache.set(url, p);
   }
@@ -270,8 +285,8 @@ export function glbWaiters(url) { const p = glbCache.get(url); const st = p && g
  * 卡住時不讓呼叫端的下一批一直等（Codex r1 F3）：loadGlb 判這件卡住（開始重抓）就先回 false 放行；判法見 loadGlb 上方的說明。
  * 這一件本身不放棄——loadGlb 自己會換網址重抓，接在同一個 promise 上的托盤格子
  * 重抓成功就會出現（r2 F1）。
- * signal（v0.66.3，Codex yaoshi-v0.66.2-r3 F2）：呼叫端不再等時（換夜／新局換世代、批次等待上限到了）中止它——解除這個呼叫掛在共用下載上的
- * 等待者並回 false；共用下載本身不取消（別的呼叫端照用）。承諾上的 then 回呼拆不掉，下載收尾（成功、失敗、卡住放棄、解析逾時）時釋放。
+ * signal（v0.66.3，Codex yaoshi-v0.66.2-r3 F2）：呼叫端不再等時（換夜／新局換世代、批次等待上限到了）中止它——從共用下載的訂閱集合移除並回 false；
+ * 共用下載本身不取消（別的呼叫端照用）。這個呼叫只有那一筆訂閱，沒有對共用承諾加 then，移除後不留任何回呼（Codex yaoshi-v0.66.3-r1 F2）。
  * @param {string} url
  * @param {AbortSignal} [signal]
  * @returns {Promise<boolean>}
@@ -283,17 +298,16 @@ export function prefetchGlb(url, signal) {
     let done = false;
     const finish = (ok) => {
       if (done) return; done = true;
-      if (st) st.waiters.delete(onStall);
+      st.waiters.delete(w);
       if (signal) signal.removeEventListener('abort', onAbort);
       resolve(ok);
     };
-    const onStall = () => finish(false);
+    const w = (ev) => finish(ev === true); // 'stall'／false → 放行；true → 載到
     const onAbort = () => finish(false);
-    if (signal && signal.aborted) { finish(false); return; }
-    if (st && st.stalled) { finish(false); return; } // 這份之前就判過卡住：不擋下一批
-    if (st) st.waiters.add(onStall);
+    if (st.settled !== null) { finish(st.settled); return; }
+    if ((signal && signal.aborted) || st.stalled) { finish(false); return; } // 已取消，或這份之前就判過卡住：不擋下一批
+    st.waiters.add(w);
     if (signal) signal.addEventListener('abort', onAbort);
-    p.then(() => finish(true), () => finish(false));
   });
 }
 
