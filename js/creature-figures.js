@@ -129,11 +129,13 @@ const glbCache = new Map();
    - 卡住就換網址 ?retry=N 再抓一次——不換網址的話，瀏覽器會把同網址的
      新請求併進還掛著的舊請求一起等（Chromium 實測 8 秒內不發新請求）。GLB 自包含，加查詢參數不影響內容。最多 GLB_MAX_TRIES 次（含第一次）。
    - HTTP 錯誤（404 等）與解析失敗照舊直接失敗、不重試；失敗的不留在快取（覆審 LOW：網路抖一次不該讓這隻整個 session 都載不到）。
-   - 判卡住看「這一件所有還在的請求」最後一次收到資料的時間（v0.66.2；驗收 docs/acceptance/2026-11-22-v0.66.2-loader.md）：
+   - 判卡住（v0.66.2；驗收 docs/acceptance/2026-11-22-v0.66.2-loader.md），依序：
+     · 這一件任何還在的請求 GLB_STALL_MS 內有本體資料進來 → 在動，不算卡住（舊請求恢復傳輸時也不會再多開重抓）。
      · 線路整條停了（這件 GLB_STALL_MS、所有 GLB 合計 GLB_IDLE_MS 都沒資料）→ 卡住（v0.66.1 的規則）。
-     · 收到過本體、這件 GLB_STALL_MS 沒資料 → 卡住，不看別件（Codex yaoshi-v0.66.1-r3 F1：別件每 10 秒有資料時原本永遠不重抓）。
-     · 還沒收到任何本體：排在別件後面是正常的（HTTP/1.1 每主機連線數、HTTP/2 依序送；慢線路實測一件排隊 20 秒拿不到第一個位元組），
-       所以只看上一條；但從最新這次請求**發出**算起最多等 GLB_QUEUE_MAX_MS（回應標頭到了也不重設，r1 F2）。
+     · 否則看**最新那次**請求自己在哪一段（Codex yaoshi-v0.66.2-r2 F1：不能拿舊請求收過本體，就把排隊中的重抓也套 20 秒）：
+       傳到一半（收過本體）→ 卡住，不看別件（Codex yaoshi-v0.66.1-r3 F1：別件每 10 秒有資料時原本永遠不重抓）；
+       還沒收到本體 → 排在別件後面是正常的（HTTP/1.1 每主機連線數、HTTP/2 依序送；慢線路實測一件排隊 20 秒拿不到第一個位元組），
+       從這次請求**發出**算起最多等 GLB_QUEUE_MAX_MS（回應標頭到了也不重設，r1 F2）。
    - 卡住時怎麼處理（v0.66.2 r1 F1 與 v0.66.1 r2 F2 兩個要求拆開各自滿足）：
      · 還沒收到本體的請求：先中止再重抓——它一個位元組都沒拿到，中止不浪費，也不跟新請求搶（r2 F2）。
      · 收到過本體的請求：**不中止**，另外並行一次重抓，誰先收齊用誰、收齊就中止其他的。共享慢線上它可能只是暫時把頻寬讓給別件，
@@ -141,7 +143,8 @@ const glbCache = new Map();
      · 第 GLB_MAX_TRIES 次也卡住 → 放棄（中止全部）。
    - 解析中（位元組收齊）：不歸下載計時管、不重抓本體；超過 GLB_PARSE_MAX_MS 沒回成功或失敗 → 判失敗、清出快取，下次要這件會重新下載（r1 F3）。
    - 計時一律用單調時鐘（monoNow），系統校時不影響（r3 F5）。
-   glbState：promise → { stalled }＝這一份曾被判卡住（開始重抓或放棄），prefetchGlb 用它放行下一批。 */
+   glbState：promise → { stalled, waiters }＝這一份曾被判卡住（開始重抓或放棄）；waiters＝等「判卡住」通知的預載呼叫（判卡住時一次通知並清空，
+   不各自開計時器輪詢，r2 F2）。 */
 const GLB_STALL_MS = 20000;
 const GLB_IDLE_MS = 15000;
 const GLB_QUEUE_MAX_MS = 45000;
@@ -153,11 +156,12 @@ let loader = null;
 const monoNow = () => (typeof performance !== 'undefined' && typeof performance.now === 'function' ? performance.now() : Date.now());
 /** 這一件（live＝還在的請求，最後一個最新）算不算卡住（見上方）。 */
 function glbStalled(live, now) {
-  let last = -Infinity, body = false;
-  for (const a of live) { if (a.lastAt > last) last = a.lastAt; if (a.gotBody) body = true; }
-  const quiet = now - last;
-  if (quiet > GLB_STALL_MS && now - glbLastAnyData > GLB_IDLE_MS) return true;
-  return body ? quiet > GLB_STALL_MS : now - live[live.length - 1].startAt > GLB_QUEUE_MAX_MS;
+  let lastAny = -Infinity, lastBody = -Infinity;
+  for (const a of live) { if (a.lastAt > lastAny) lastAny = a.lastAt; if (a.bodyAt > lastBody) lastBody = a.bodyAt; }
+  if (now - lastBody <= GLB_STALL_MS) return false;
+  if (now - lastAny > GLB_STALL_MS && now - glbLastAnyData > GLB_IDLE_MS) return true;
+  const cur = live[live.length - 1];
+  return cur.gotBody ? true : now - cur.startAt > GLB_QUEUE_MAX_MS;
 }
 
 /** 下載一份 GLB 的位元組；收到回應標頭時呼叫 onData(false)，每收到一塊本體呼叫 onData(true)。signal 中止時 reject。 */
@@ -183,10 +187,10 @@ async function fetchGlbBytes(u, signal, onData) {
 function loadGlb(url) {
   if (!glbCache.has(url)) {
     if (!loader) loader = new GLTFLoader();
-    const st = { stalled: false };
+    const st = { stalled: false, waiters: new Set() };
     const p = new Promise((resolve, reject) => {
       let settled = false, tries = 0, timer = null;
-      const live = []; // 還在的請求 { ctl, startAt, lastAt, gotBody, parsing, parseAt }，最後一個最新
+      const live = []; // 還在的請求 { ctl, startAt, lastAt（標頭或本體）, bodyAt（本體）, gotBody, parsing, parseAt }，最後一個最新
       const drop = (a) => { const i = live.indexOf(a); if (i >= 0) live.splice(i, 1); if (a.ctl) a.ctl.abort(); };
       const finish = (ok, v) => {
         if (settled) return;
@@ -198,10 +202,10 @@ function loadGlb(url) {
         const n = tries++;
         const ctl = typeof AbortController === 'function' ? new AbortController() : null;
         const t = monoNow();
-        const att = { ctl, startAt: t, lastAt: t, gotBody: false, parsing: false, parseAt: 0 };
+        const att = { ctl, startAt: t, lastAt: t, bodyAt: -Infinity, gotBody: false, parsing: false, parseAt: 0 };
         live.push(att);
         const u = n ? url + (url.includes('?') ? '&' : '?') + 'retry=' + n : url;
-        fetchGlbBytes(u, ctl && ctl.signal, (body) => { if (settled || !live.includes(att)) return; att.lastAt = glbLastAnyData = monoNow(); if (body) att.gotBody = true; })
+        fetchGlbBytes(u, ctl && ctl.signal, (body) => { if (settled || !live.includes(att)) return; att.lastAt = glbLastAnyData = monoNow(); if (body) { att.gotBody = true; att.bodyAt = att.lastAt; } })
           .then((buf) => {
             if (settled || !live.includes(att)) return null; // 已被中止
             for (const a of live.slice()) if (a !== att) drop(a); // 這份收齊了：其他請求不必再搶頻寬
@@ -221,6 +225,7 @@ function loadGlb(url) {
         if (cur.parsing) { if (now - cur.parseAt > GLB_PARSE_MAX_MS) finish(false, new Error('GLB 解析逾時：' + url)); return; }
         if (!glbStalled(live, now)) return;
         st.stalled = true;
+        for (const w of [...st.waiters]) w();
         if (tries >= GLB_MAX_TRIES) { finish(false, new Error('GLB 下載卡住（' + tries + ' 次）：' + url)); return; }
         for (const a of live.slice()) if (!a.gotBody) drop(a); // 沒收到本體的先中止；收到過的留著並行
         start();
@@ -262,10 +267,12 @@ export function prefetchGlb(url) {
   const p = loadGlb(url);
   const st = glbState.get(p);
   return new Promise((resolve) => {
-    let timer = null;
-    const finish = (ok) => { if (timer) clearInterval(timer); timer = null; resolve(ok); };
+    let done = false;
+    const finish = (ok) => { if (done) return; done = true; if (st) st.waiters.delete(onStall); resolve(ok); };
+    const onStall = () => finish(false);
+    if (st && st.stalled) { finish(false); return; } // 這份之前就判過卡住：不擋下一批
+    if (st) st.waiters.add(onStall);
     p.then(() => finish(true), () => finish(false));
-    timer = setInterval(() => { if (st && st.stalled) finish(false); }, 250);
   });
 }
 
