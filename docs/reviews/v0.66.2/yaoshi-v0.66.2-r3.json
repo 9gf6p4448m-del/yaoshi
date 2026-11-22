@@ -1,0 +1,157 @@
+{
+  "review_id": "yaoshi-v0.66.2-r3",
+  "verdict": "FAIL",
+  "summary": "review-id: yaoshi-v0.66.2-r3\n載入器修好了上一輪「別件持續傳輸時，重試排隊 25 秒就被砍掉」的案例，但保留中的原請求若占滿連線，兩次重試可能都在送出前被中止，最後整批模型載入失敗。唯讀 Node 模擬重現了這條路徑。版號測試 3 項通過，同一快照以 20 個種子重跑的模擬輸出逐位元組一致。基準版等價性、瀏覽器表現及 iPhone 實機仍未獨立驗證。",
+  "counts": {
+    "critical": 0,
+    "high": 1,
+    "medium": 6,
+    "low": 0
+  },
+  "findings": [
+    {
+      "id": "F1",
+      "severity": "HIGH",
+      "file": "js/creature-figures.js",
+      "line": 230,
+      "title": "停滯的原請求占滿連線時，載入器會耗盡從未送出的重試",
+      "detail": "（推測）收到過本體的原請求會保留連線，而每次呼叫 fetch 就會扣一次重試額度。唯讀 Node 模擬執行快照載入器，使用六個連線位置與可控時鐘，觀察到 12 個重試全在佇列內被取消，六份原載入全部失敗。實際瀏覽器及 iPhone 的連線池未驗證。現有 Q 在伺服器已收到請求後才延遲回應，覆蓋不到請求尚未送出的情況。",
+      "failure_scenario": "同源 HTTP/1.1 只剩六個連線位置，當夜與仍在背景下載的模型共六份，每份原請求都收到部分本體後停止。伺服器能正常回應新請求，但六條舊連線一條也沒釋放。第 21 秒排入第一次重試，第 42 秒取消並排入第二次，第 63 秒中止原請求及仍在排隊的第二次重試。托盤將失敗格算作已收尾，對應模型仍是空的。",
+      "fix_hint": "為重試保留連線容量，或在重試持續無法取得進度時有界地釋放部分停滯原請求，並用固定連線上限驗證至少一份重試能真正送達。"
+    },
+    {
+      "id": "F2",
+      "severity": "MEDIUM",
+      "file": "js/renderer.js",
+      "line": 287,
+      "title": "換夜和等待上限仍會留下已放行批次的預載訂閱",
+      "detail": "45 秒計時器只讓 Promise.race 的外層完成，世代檢查只擋舊批次發起明夜下載。兩條路都沒有解除 creature-figures.js:274–275 的等待者或承諾回呼。唯讀 Node 模擬讓同一模型持續有資料，四次呼叫後仍保留四個等待者，共用一個下載計時器。",
+      "failure_scenario": "同一模型每 10 秒收到少量資料，連續四次換夜或同頁新局都預載它。每個批次各自換世代或等滿 45 秒放行後，四個訂閱仍留在同一份未完成的載入上，直到下載完成、失敗或被判停滯。",
+      "fix_hint": "給預載批次可取消的訂閱，在達到上限或換世代時解除等待者，保留其他呼叫端仍在使用的共用下載。"
+    },
+    {
+      "id": "F3",
+      "severity": "MEDIUM",
+      "file": "tests/hand-first-throw.test.mjs",
+      "line": 84,
+      "title": "第一次出手測試仍以程式查詢當作首次畫手",
+      "detail": "（推測）新增的兩個門檻能抓住首次查詢前的卡頓。兩個門檻的終點仍是第一次 getProgramInfoLog 或 getProgramParameter 呼叫，測試沒有觀測手部網格首次送出繪製的時間。",
+      "failure_scenario": "點擊後第 650 毫秒完成手部程式查詢，查詢合計只花 5 毫秒。若後續的渲染路徑將手部網格延到第 1300 毫秒才送出繪製，測試仍可用第 650 毫秒的時間通過 1000 毫秒門檻。",
+      "fix_hint": "以手部網格首次實際送出繪製的訊號作為延遲終點，並保留現有的程式查詢耗時斷言。"
+    },
+    {
+      "id": "F4",
+      "severity": "MEDIUM",
+      "file": "index.html",
+      "line": 4380,
+      "title": "同頁新局仍沿用前一局的入座提示計時",
+      "detail": "（推測）newGame 沒有清除或重設 TRAYLOAD，trayLoadWatch 只在 idle 時啟動。驗收檔第 75、113 行已記錄這項限制，正常的局末「再入妖市」會整頁重載。",
+      "failure_scenario": "第一局模型仍未就緒，在首次派發市集事件約 11 秒後用同頁入口開第二局。第二局入桌約 1 秒後，第一局的 12 秒計時收掉提示。若第一局提示已結束，第二局不會重新開始監看。",
+      "fix_hint": "在同頁開新局時清除舊的提示與計時器，讓每局從自己的首次市集事件起算。"
+    },
+    {
+      "id": "F5",
+      "severity": "MEDIUM",
+      "file": "js/bridge-players.js",
+      "line": 153,
+      "title": "席位與對決呈現仍直接讀取賽局狀態",
+      "detail": "（推測）席位橋接直接讀 window.__yaoshi.S.players 與角色氣色，對決也在 js/duel-figures.js:993 讀取玩家資料。這是驗收檔第 113 行記載的既有圖層例外，本版預載改動沒有新增這項依賴。",
+      "failure_scenario": "只提供 fx3d 事件和日誌重建牌桌時，市集事件已帶席位角色，但缺少 window.__yaoshi.S，席位橋接仍會走隱藏頭像的分支。",
+      "fix_hint": "將角色與氣色整理成呈現事件的席位快照，讓席位橋接與對決場景從事件更新。"
+    },
+    {
+      "id": "F6",
+      "severity": "MEDIUM",
+      "file": "index.html",
+      "line": 6422,
+      "title": "同頁兩局都在第一夜時，晚到的 renderer 會補播上一局的令牌",
+      "detail": "（推測）市集日誌只用夜數決定是否清除出價、盯上及開標紀錄。唯讀 Node 執行日誌函式，確認兩個第一夜的市集事件之間即使有新預載事件，舊令牌仍留在日誌。實際畫面結果由 js/renderer.js:304–310 的補播順序推得。",
+      "failure_scenario": "renderer 載入期間，第一局在第 1 夜留下第 0 格的盯上事件，此時從同頁入口開第二局並進入第 1 夜。renderer 隨後載好，先擺第二局的拍品，再把第一局的盯上令牌放到第二局第 0 格。",
+      "fix_hint": "用新局識別與夜數共同決定日誌世代，讓 renderer 只補播目前這一局的事件。"
+    },
+    {
+      "id": "F7",
+      "severity": "MEDIUM",
+      "file": "tests/glb-loader.test.mjs",
+      "line": 289,
+      "title": "解析逾時測試只能證明 60 秒內收尾",
+      "detail": "（推測）X 記錄了解析起點，但只檢查起點存在，沒有從該點量到失敗的時間。另一個解析測試只延遲 25 秒，兩案之間留下能讓過短逾時通過的區間。",
+      "failure_scenario": "若解析上限從 45 秒誤改成 30 秒，25 秒慢解析案例仍可通過，永不完成的 X 也會在 60 秒內收尾。但玩家遇到可在第 35 秒成功的解析時，托盤已先判失敗並留下空格。",
+      "fix_hint": "在解析入口起算，為逾時收尾加上接近 45 秒的上下界，並驗證接近上限但能完成的解析仍可上桌。"
+    }
+  ],
+  "prior_findings": [
+    {
+      "id": "F1",
+      "status": "fixed",
+      "note": "js/creature-figures.js:161–164 使用最新一次請求自身的傳輸階段。唯讀 Node 模擬中，其他模型持續有資料，第一次重試等待至少 25 秒後仍成功，模型在第 49 秒載完。tests/glb-loader.test.mjs:226 的 Q 覆蓋原反例。連線池全滿是本輪新發現的情境。"
+    },
+    {
+      "id": "F2",
+      "status": "superficially_fixed",
+      "note": "js/creature-figures.js:227–228、266–275 已用共用停滯通知移除逐呼叫輪詢。js/renderer.js:287–288 的上限與世代檢查仍未解除舊訂閱，見本輪 F2。"
+    },
+    {
+      "id": "F3",
+      "status": "fixed",
+      "note": "tests/glb-loader.test.mjs:194–196 要求明夜在第 43–50 秒開始，且今夜持續傳輸的模型當時尚未完成。上一輪約第 20 秒提早放行的反例會被下限攔下。驗收檔第 111 行記錄了對應的突變紅燈。"
+    },
+    {
+      "id": "F4",
+      "status": "not_fixed",
+      "note": "index.html:3880 仍只在 idle 啟動，index.html:4380 的新局入口仍未重設提示計時。驗收檔第 75、113 行列為已知限制。"
+    },
+    {
+      "id": "F5",
+      "status": "superficially_fixed",
+      "note": "tests/hand-first-throw.test.mjs:90、101–102 已加上最長任務與延遲門檻，能攔住上一輪的查詢前阻塞案例。第 84 行仍以程式查詢代表首次畫手，見本輪 F3。"
+    },
+    {
+      "id": "F6",
+      "status": "not_fixed",
+      "note": "js/bridge-players.js:148–166 與 js/duel-figures.js:993 仍直接讀取賽局資料。驗收檔第 113 行記為既有例外。"
+    }
+  ],
+  "coverage": [
+    {
+      "item": "engine-determinism",
+      "checked": true,
+      "note": "所附差異中的 index.html 只改版號、版訊及樣式網址，新增載入計時在 3D 模組內。用唯讀 Node 模擬治具將快照的 20 個種子各跑兩次，無例外且輸出逐位元組一致。快照缺基準版，跨版本等價性無法獨立重跑。"
+    },
+    {
+      "item": "layer-contract",
+      "checked": true,
+      "note": "追查 fx3d、預載事件、同步註冊與日誌補播。正常單局的早到事件由監聽器接收，晚到時補播最新預載。Node 已驗到同夜數跨局日誌會保留舊令牌，畫面影響與席位缺少狀態時的行為為靜態推論。"
+    },
+    {
+      "item": "async-loading",
+      "checked": true,
+      "note": "檢查同 URL 共用快取、換格、換夜、同頁新局與世代放行，並用唯讀 Node 模擬排隊成功、連線滿載時的重試失敗及等待者累積。瀏覽器實際傳輸、記憶體占用與連線池行為未量測。"
+    },
+    {
+      "item": "failure-paths",
+      "checked": true,
+      "note": "追查網路拒絕、404、下載與解析逾時、托盤換格，以及 tray3d、table3d、prefetch 開關。連線滿載失敗已在模擬驗證。WebGL 情境只核對恢復時的手部與光影處理，實際 context lost、恢復及開關畫面均未重跑。"
+    },
+    {
+      "item": "mobile-safari",
+      "checked": true,
+      "note": "靜態核對無 requestIdleCallback 時以 setTimeout 退路、背景分頁的繪圖迴圈，以及慢線下並行下載保留的本體資料。iPhone 的計時器節流、同源連線容量、記憶體與 Apple GPU 表現均未實測。"
+    },
+    {
+      "item": "version-and-cache",
+      "checked": true,
+      "note": "VERSION、RELEASE_VERSION、版訊、兩支 CSS 快取鍵及測試釘選均為 0.66.2。renderer、托盤與共用 GLB 載入器沿用同一版本查詢字串。唯讀版號測試 3 項通過，公開站點的實際快取未驗證。"
+    },
+    {
+      "item": "tests-discriminating",
+      "checked": true,
+      "note": "逐條對照 F1、P、Q、H、X、慢解析、校時、換格及出手測試的觸發條件與斷言。Q 能覆蓋上一輪案例，明夜的新下限能攔截提早放行。首次畫手、解析上下界及真正的連線排隊缺口見 F1、F3、F7。未在瀏覽器重跑紅綠對照。"
+    },
+    {
+      "item": "scope",
+      "checked": true,
+      "note": "所附規則面差異的檔案及變更區段落在驗收檔第 47 行與後續修訂列出的範圍。快照無 Git 與基準檔，無法獨立核對差異清單以外的提交內容。"
+    }
+  ]
+}
