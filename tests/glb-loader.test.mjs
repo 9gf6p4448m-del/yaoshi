@@ -5,6 +5,10 @@
 //   F5：一件傳到一半停住後把系統時鐘往回撥／往前撥 120 秒 → 重抓時間仍是停住後約 20 秒（不受校時影響）。
 //   F3：托盤一格換貨後，舊貨才載入失敗 → 新貨那格不得被標成就緒；沒換貨時載入失敗仍標就緒（不擋整個托盤）。
 //   F6：正常線路 → 今夜的模型全部下載完，明夜的才開始。
+//   以下三個與 F1 的加嚴是 Codex yaoshi-v0.66.2-r1 後加的（F1／F2／F3／F4）：
+//   P：每次請求都送一部分後停 22 秒再續傳（共享頻寬讓給別件）→ 不得在停頓中中止還在的下載，那格要在第一次請求後 35 秒內出現。
+//   H：40 秒才回標頭、之後沒有本體 → 排隊上限從請求開始算（43–50 秒重抓），不被晚到的標頭重設。
+//   X：解析永遠不回 → 45 秒後判失敗、期間不重抓本體；之後再要同一件會重新下載並出現。
 // 時間一律用伺服器端（Node）的時鐘量，頁內校時影響不到量測。
 // 舊版對照：YAOSHI_RENDER_ROOT=<舊樹> 跑同一份測試。
 import assert from 'node:assert/strict';
@@ -36,10 +40,13 @@ const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; cha
   '.m4a': 'audio/mp4', '.mp3': 'audio/mpeg', '.ogg': 'audio/ogg', '.wav': 'audio/wav', '.woff2': 'font/woff2', '.txt': 'text/plain' };
 
 /** 模型檔的送法。normal＝照 RATE 送完；partial＝送到 frac 就停（連線不關）；trickle＝先送一塊，之後每 every 毫秒送 step 位元組；
+ *  pause＝送到 frac 後停 pause 毫秒再照 RATE 送完（共享頻寬讓給別件、之後恢復）；lateheaders＝delay 毫秒後才回標頭、之後一個本體位元組都不送；
  *  hold＝不回，等 release(file, status)；nf＝直接 404。 */
 const NORMAL = { kind: 'normal' };
 const PARTIAL = { kind: 'partial', frac: 0.3 };
 const TRICKLE = { kind: 'trickle', every: 10000, step: 2048 };
+const PAUSE = { kind: 'pause', frac: 0.3, pause: 22000 };
+const LATEHEADERS = { kind: 'lateheaders', delay: 40000 };
 const HOLD = { kind: 'hold' };
 const NF = { kind: 'nf' };
 
@@ -49,7 +56,7 @@ function startServer() {
   const later = (fn, ms) => { const t = setTimeout(() => { S.timers.delete(t); fn(); }, ms); S.timers.add(t); return t; };
   const stream = (res, rec, body, plan) => {
     let o = 0;
-    const stop = plan.kind === 'partial' ? Math.floor(body.length * plan.frac) : body.length;
+    let stop = plan.kind === 'partial' || plan.kind === 'pause' ? Math.floor(body.length * plan.frac) : body.length;
     const send = (n) => {
       if (res.destroyed) return false;
       const c = body.subarray(o, Math.min(o + n, body.length)); o += c.length;
@@ -59,7 +66,10 @@ function startServer() {
     };
     const tick = () => {
       if (plan.kind === 'trickle' && rec.first !== null) { if (send(plan.step)) later(tick, plan.every); return; }
-      if (o >= stop) return; // partial：停在這裡，連線不關
+      if (o >= stop) { // partial：停在這裡，連線不關；pause：停 plan.pause 毫秒後送完
+        if (plan.kind === 'pause' && rec.pauseAt === null) { rec.pauseAt = S.now(); later(() => { if (res.destroyed) return; rec.resumeAt = S.now(); stop = body.length; tick(); }, plan.pause); }
+        return;
+      }
       if (send(Math.min(CHUNK, stop - o))) later(tick, plan.kind === 'trickle' ? plan.every : CHUNK / RATE * 1000);
     };
     res.writeHead(200, { 'Content-Type': 'model/gltf-binary', 'Content-Length': body.length, 'Cache-Control': 'no-store' });
@@ -81,12 +91,16 @@ function startServer() {
     }
     const f = path.basename(p);
     const plan = S.decide(f, u.search) || NORMAL;
-    const rec = { f, q: u.search, kind: plan.kind, t: S.now(), first: null, last: null, end: null, bytes: 0, chunks: [], aborted: null, status: 200 };
+    const rec = { f, q: u.search, kind: plan.kind, t: S.now(), first: null, last: null, end: null, bytes: 0, chunks: [], aborted: null, status: 200, pauseAt: null, resumeAt: null, headersAt: null };
     S.log.push(rec);
     res.on('close', () => { if (rec.end === null) rec.aborted = S.now(); });
     let body;
     try { body = fs.readFileSync(file); } catch (e) { res.writeHead(404); res.end('not found'); rec.status = 404; rec.end = S.now(); return; }
     if (plan.kind === 'nf') { res.writeHead(404, { 'Content-Type': 'text/plain' }); res.end('not found'); rec.status = 404; rec.end = S.now(); return; }
+    if (plan.kind === 'lateheaders') {
+      later(() => { if (res.destroyed) return; res.writeHead(200, { 'Content-Type': 'model/gltf-binary', 'Content-Length': body.length, 'Cache-Control': 'no-store' }); res.flushHeaders(); rec.headersAt = S.now(); }, plan.delay);
+      return;
+    }
     if (plan.kind === 'hold') {
       S.holds.set(f, (status) => {
         if (res.destroyed) return;
@@ -107,6 +121,8 @@ function startServer() {
 const fileOf = (k) => (k === 'tiger' ? 'tiger_c' : k) + '.glb';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 async function until(fn, ms, step = 200) { const t0 = Date.now(); for (;;) { const v = await fn(); if (v) return v; if (Date.now() - t0 > ms) return null; await sleep(step); } }
+/** 直到 fn 為真或伺服器時鐘過了 deadline（先查期限再查狀態：過了期限才第一次看到的不算，Codex yaoshi-v0.66.2-r1 F4）。 */
+async function untilBy(S, fn, deadline, step = 100) { for (;;) { if (S.now() > deadline) return null; const v = await fn(); if (v && S.now() <= deadline) return v; await sleep(step); } }
 
 /** 開一個全新 context（不共用快取）的遊戲頁，等托盤與手都載好、線路安靜 3 秒。 */
 async function openGame(browser, S, errs) {
@@ -158,9 +174,10 @@ test('GLB 載入器：卡住重抓、解析另計、單調時鐘、托盤失敗�
         assert.ok(nowFiles.includes(hang.f) && nowFiles.includes(trk.f), `停住（${hang.f}）／斷續（${trk.f}）不是今夜拍品（${nowFiles}）`);
         const hangKey = pf.now.find((k) => fileOf(k) === hang.f);
         const retry = await until(() => S.log.find((r) => r.f === hang.f && /retry=1/.test(r.q)), Math.max(0, t0 + 62000 - S.now()), 250);
-        const tomorrow = await until(() => S.log.find((r) => nextOnly.includes(r.f)), Math.max(0, t0 + 62000 - S.now()), 250);
+        // 托盤那格從重抓那一刻就開始盯，期限照伺服器時鐘（過了期限才第一次看到的不算；Codex yaoshi-v0.66.2-r1 F4）
         let slot = null;
-        if (retry) slot = await until(async () => { const s = await slotOf(page, hangKey); return s && s.ready && s.visible ? s : null; }, Math.max(0, retry.t + 10000 - S.now()), 200);
+        if (retry) slot = await untilBy(S, async () => { const s = await slotOf(page, hangKey); return s && s.ready && s.visible ? s : null; }, retry.t + 10000);
+        const tomorrow = await until(() => S.log.find((r) => nextOnly.includes(r.f)), Math.max(0, t0 + 62000 - S.now()), 250);
         // 活性：停住那件真的收到部分資料後才停；斷續那件在重抓前 15 秒內真的還有資料（＝線路沒有整條停）
         assert.ok(hang.bytes > 0 && hang.end === null, `停住那件沒有先收到部分資料（bytes=${hang.bytes}）`);
         assert.ok(retry, `停住那件（${hang.f}，最後一塊 ${hang.last}ms）開局後 62 秒內都沒重抓（斷續那件每 10 秒還在給資料）`);
@@ -171,6 +188,83 @@ test('GLB 載入器：卡住重抓、解析另計、單調時鐘、托盤失敗�
         assert.ok(slot, `重抓後 10 秒內托盤那格（${hangKey}）沒有就緒且看得到`);
         assert.ok(nextOnly.length > 0, '明夜沒有今夜以外的拍品，量不到明夜批次');
         assert.ok(tomorrow && tomorrow.t - t0 <= 50000, `明夜批次開局後 ${tomorrow ? tomorrow.t - t0 + 'ms' : '62 秒內都沒'}才開始（上限 50000ms）`);
+        // 活性（Codex yaoshi-v0.66.2-r1 F4）：明夜開始時今夜那件斷續的還沒下載完＝今夜批次還沒結束，放行明夜的只能是獨立上限
+        assert.ok(trk.end === null || trk.end > tomorrow.t, `明夜開始時（${tomorrow.t}ms）今夜批次已下載完（斷續那件 ${trk.end}ms 完），量不到明夜的獨立上限`);
+        assert.deepEqual(errs, []);
+      } finally { await ctx.close(); }
+    });
+
+    await sub('P', 'P：每次請求都送一部分後停 22 秒再續傳（共享頻寬讓給別件）→ 不中止還在的下載，那格在第一次請求後 35 秒內出現', async () => {
+      const errs = [];
+      const { ctx, page } = await openGame(browser, S, errs);
+      try {
+        const order = [];
+        S.decide = (f) => { if (!order.includes(f)) order.push(f); const i = order.indexOf(f); return i === 0 ? PAUSE : i === 1 ? TRICKLE : NORMAL; };
+        await page.evaluate(() => window.__yaoshi.newGame('solo', 1, ['qingmian']));
+        const pf = await prefetchOf(page);
+        assert.equal(await toRound1(page), 1, '沒走到第 1 夜拍品上桌');
+        const a = await until(() => S.log.find((r) => r.kind === 'pause'), 10000);
+        const trk = await until(() => S.log.find((r) => r.kind === 'trickle'), 10000);
+        assert.ok(a && trk, '情境沒布好（停頓／斷續那兩件沒被請求）');
+        const key = pf.now.find((k) => fileOf(k) === a.f);
+        assert.ok(key, `停頓那件（${a.f}）不是今夜拍品`);
+        const slot = await untilBy(S, async () => { const s = await slotOf(page, key); return s && s.ready && s.visible ? s : null; }, a.t + 35000, 200);
+        // 活性：停頓那件先收到部分資料、停了 20 秒以上；停頓期間斷續那件一直有資料（線路沒整條停）
+        assert.ok(a.pauseAt !== null && a.bytes > 0, `停頓那件沒有先收到部分資料就停（bytes=${a.bytes}）`);
+        const during = trk.chunks.filter((c) => c > a.pauseAt && c < a.pauseAt + 22000);
+        assert.ok(during.length >= 2, `停頓期間斷續那件只有 ${during.length} 塊資料，沒行使到「別件還在傳」`);
+        assert.ok(a.aborted === null || (a.resumeAt !== null && a.aborted >= a.resumeAt), `第一次請求在停頓中（${a.pauseAt}→${a.pauseAt + 22000}ms）就被中止（${a.aborted}ms），已收的位元組丟掉`);
+        assert.ok(slot, `第一次請求後 35 秒內那格（${key}）沒有就緒且看得到（請求：${S.log.filter((r) => r.f === a.f).map((r) => (r.q || '-') + '@' + r.t + (r.aborted !== null ? '✗' + r.aborted : '') + (r.end !== null ? '✓' + r.end : '')).join(' ')}）`);
+        assert.deepEqual(errs, []);
+      } finally { await ctx.close(); }
+    });
+
+    await sub('H', 'H：40 秒才回標頭、之後沒有本體、別件斷續有資料 → 仍在第一次請求後 43–50 秒重抓（排隊上限從請求開始算，不被標頭重設）', async () => {
+      const errs = [];
+      const { ctx, page } = await openGame(browser, S, errs);
+      try {
+        const order = [];
+        S.decide = (f, q) => { if (q) return NORMAL; if (!order.includes(f)) order.push(f); const i = order.indexOf(f); return i === 0 ? LATEHEADERS : i === 1 ? TRICKLE : NORMAL; };
+        await page.evaluate(() => window.__yaoshi.newGame('solo', 1, ['qingmian']));
+        const a = await until(() => S.log.find((r) => r.kind === 'lateheaders'), 10000);
+        const trk = await until(() => S.log.find((r) => r.kind === 'trickle'), 10000);
+        assert.ok(a && trk, '情境沒布好（晚標頭／斷續那兩件沒被請求）');
+        const retry = await untilBy(S, () => S.log.find((r) => r.f === a.f && /retry=1/.test(r.q)), a.t + 62000, 250);
+        assert.ok(a.headersAt !== null, '標頭沒送出，沒行使到「晚到的標頭」');
+        assert.ok(retry, `晚標頭那件（${a.f}，${a.t}ms 請求、${a.headersAt}ms 回標頭）62 秒內都沒重抓`);
+        const trkRecent = trk.chunks.filter((c) => c <= retry.t).pop();
+        assert.ok(trkRecent !== undefined && retry.t - trkRecent < 15000, '重抓當下斷續那件 15 秒內沒資料，沒行使到「別件還有資料」');
+        const gap = retry.t - a.t;
+        assert.ok(gap >= 43000 && gap <= 50000, `第一次請求後 ${gap}ms 才重抓（有效區間 43000–50000ms）`);
+        assert.deepEqual(errs, []);
+      } finally { await ctx.close(); }
+    });
+
+    await sub('X', 'X：解析永遠不回 → 45 秒後判失敗、不重抓本體；之後再要同一件會重新下載並出現', async () => {
+      const errs = [];
+      const { ctx, page } = await openGame(browser, S, errs);
+      try {
+        await page.evaluate(() => {
+          const sc = document.createElement('script'); sc.type = 'module';
+          sc.textContent = "import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'; const P = GLTFLoader.prototype, orig = P.parseAsync;"
+            + " window.__hang = { at: null, n: 0 };"
+            + " P.parseAsync = function (...a) { window.__hang.n++; if (window.__hang.at !== null) return orig.apply(this, a); window.__hang.at = performance.now(); return new Promise(() => {}); };";
+          document.head.appendChild(sc);
+        });
+        await page.waitForFunction('!!window.__hang', { timeout: 10000 });
+        const t0 = S.now();
+        await page.evaluate(() => { window.__yaoshi3d.tray.setItems([{ key: 'bell' }]); });
+        const ready = await untilBy(S, async () => { const s = await slotOf(page, 'bell'); return s && s.ready ? s : null; }, t0 + 60000, 250);
+        const hang = await page.evaluate(() => window.__hang);
+        assert.ok(hang.at !== null, '沒行使到永不回的解析');
+        assert.ok(ready, '解析永不回時，60 秒內那格一直沒有收尾（待決承諾留著）');
+        assert.equal(ready.visible, false, '解析沒完成，那格卻看得到');
+        assert.deepEqual(S.log.filter((r) => r.f === 'bell.glb').map((r) => r.q), [''], '解析等待期間本體被重抓');
+        // 之後再要同一件：要重新下載（快取已清），這次解析正常 → 出現
+        await page.evaluate(() => { window.__yaoshi3d.tray.setItems([]); window.__yaoshi3d.tray.setItems([{ key: 'bell' }]); });
+        const again = await until(async () => { const s = await slotOf(page, 'bell'); return s && s.ready && s.visible ? s : null; }, 10000);
+        assert.equal(S.log.filter((r) => r.f === 'bell.glb').length, 2, '再要同一件時沒有重新下載（還接在舊的待決承諾上）');
+        assert.ok(again, '再要同一件後 10 秒內那格沒有出現');
         assert.deepEqual(errs, []);
       } finally { await ctx.close(); }
     });

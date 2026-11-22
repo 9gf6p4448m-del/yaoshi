@@ -16,6 +16,7 @@ const SRV_ROOT = process.env.YAOSHI_RENDER_ROOT || ROOT;
 const PORT = Number(process.env.YAOSHI_FIRSTTHROW_PORT || 9796);
 const HAND = 'hand-skin-proto-b';
 const WAIT = 8000;
+const FRAME_MAX = 300; // 第一次畫手那一幀的長任務上限（Codex yaoshi-v0.66.2-r1 F6）
 
 function loadPlaywright() {
   const cands = [path.join(ROOT, 'tools/anyCreature/package.json'), path.join(SRV_ROOT, 'tools/anyCreature/package.json'),
@@ -38,7 +39,8 @@ test('第一次出手：沒有平行編譯擴充功能、真人節奏入局，�
     const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 1 });
     await ctx.addInitScript(() => {
       try { localStorage.setItem('yaoshi_intro_v1', '1'); } catch (e) {}
-      window.__gl = [];
+      window.__gl = []; window.__lt = [];
+      try { new PerformanceObserver((l) => { for (const e of l.getEntries()) window.__lt.push({ s: e.startTime, d: e.duration }); }).observe({ type: 'longtask', buffered: true }); } catch (e) {}
       for (const C of [window.WebGL2RenderingContext, window.WebGLRenderingContext]) {
         if (!C) continue;
         const ge = C.prototype.getExtension, gs = C.prototype.getSupportedExtensions;
@@ -77,12 +79,20 @@ test('第一次出手：沒有平行編譯擴充功能、真人節奏入局，�
       const handProgs = new Set(R.info.programs.filter((p) => p.name === H).map((p) => p.program));
       const hand = window.__gl.filter((x) => handProgs.has(x.prog));
       const post = hand.filter((x) => x.t >= P);
-      return { progs: handProgs.size, pre: hand.filter((x) => x.t < P).length, post: post.length, maxPost: Math.round(Math.max(0, ...post.map((x) => x.d))) };
+      const first = post.length ? Math.min(...post.map((x) => x.t)) : null;
+      // 第一次畫手所在的那一幀：包含第一次手程式查詢的長任務（沒有＝那幀不到 50ms）（Codex yaoshi-v0.66.2-r1 F6）
+      const frame = first === null ? null : window.__lt.filter((e) => e.s <= first && first <= e.s + e.d).reduce((m, e) => Math.max(m, e.d), 0);
+      return { progs: handProgs.size, pre: hand.filter((x) => x.t < P).length, post: post.length, maxPost: Math.round(Math.max(0, ...post.map((x) => x.d))),
+        sumPost: Math.round(post.reduce((a, x) => a + x.d, 0)), frame: frame === null ? null : Math.round(frame), pickToFirst: first === null ? null : Math.round(first - P), ltObserved: window.__lt.length };
     }, { H: HAND, P: pickAt });
     // 活性：手的程式在第一次出手之後才第一次被拿來畫（three 第一次使用時才查 getProgramInfoLog；查過就不再查）
     assert.ok(r.progs > 0, '出價頁後找不到手的程式，第一次出手沒畫手');
     assert.ok(r.post > 0 && r.pre === 0, `手的程式第一次使用不在出手之後（出手前 ${r.pre} 次、出手後 ${r.post} 次），沒量到第一次出手`);
+    console.log('[FIRSTTHROW] ' + JSON.stringify(r));
     assert.ok(r.maxPost <= 300, `第一次出手時手的程式同步等了 ${r.maxPost}ms（上限 300ms）`);
+    assert.ok(r.ltObserved > 0, '瀏覽器沒回報任何長任務，量不到整幀卡頓');
+    assert.ok(r.sumPost <= 300, `第一次出手後手的程式同步等待合計 ${r.sumPost}ms（上限 300ms）`);
+    assert.ok(r.frame <= FRAME_MAX, `第一次畫手那一幀主執行緒卡了 ${r.frame}ms（上限 ${FRAME_MAX}ms）`);
     assert.deepEqual(errs, []);
   } finally { await browser.close(); srv.kill(); }
 });
