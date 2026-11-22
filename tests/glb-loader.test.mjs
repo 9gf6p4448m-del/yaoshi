@@ -310,9 +310,9 @@ test('GLB 載入器：卡住重抓、解析另計、單調時鐘、托盤失敗�
       return { pf, want, full, first, hist, proto };
     };
 
-    await sub('C2', 'C2：同 C 但頁面回報 h2 → 不讓出連線（第一次請求後 40 秒內沒有任何原請求被中止）', async () => {
+    await sub('C2', 'C2：六件原請求都收過本體後停住（原 C 的布置）、頁面回報 h2 → 不讓出連線（第一次請求後 40 秒內沒有任何原請求被中止）', async () => {
       const errs = [];
-      // 本機測試伺服器只有 HTTP/1.1：把頁面看到的協定改報 h2，量「只有 HTTP/1.1 才讓出」這道開關（實際 h2 傳輸未在本機量，正式站實測 h2 見 DECISIONS 2026-11-22）
+      // 本機測試伺服器只有 HTTP/1.1：把頁面看到的協定改報 h2，守「不中止會恢復的原下載」（當初量的是「只有 HTTP/1.1 才讓出」那道開關，讓出機制已撤；實際 h2 傳輸未在本機量，正式站實測 h2 見 DECISIONS 2026-11-22）
       const { ctx, page } = await openGame(browser, S, errs, () => {
         Object.defineProperty(PerformanceResourceTiming.prototype, 'nextHopProtocol', { configurable: true, get() { return 'h2'; } });
       });
