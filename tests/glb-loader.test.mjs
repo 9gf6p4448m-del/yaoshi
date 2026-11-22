@@ -20,6 +20,8 @@
 //   Codex yaoshi-v0.66.3-r2 後：M（r2 F1）五件原請求佔五條連線（這件收過本體後停住、約第 35 秒恢復，另四件斷續有資料），這件的重抓佔第六條、
 //   16 秒後才回 404，之後別件排隊 → 不得因為「別件在排隊」中止這件會恢復的原下載，那格要出現；
 //   W 加嚴（r2 F2）：第 2–4 次預載派發當下，不得有人對 bell 的共用下載承諾掛 then（catch／finally／Promise.all 也經過 then）。
+//   送 r3 前預審（fresh agent 模擬的 M′）：K 六件原請求佔滿六條連線（這件收過本體後停住、約第 35 秒恢復，另五件斷續有資料），這件的重抓只能排隊、
+//   16 秒後才會回 404 → 名額不是全被停住的請求佔著（別件還在傳、遲早讓出），不得中止會恢復的原下載，那格要出現。
 // 時間一律用伺服器端（Node）的時鐘量，頁內校時影響不到量測。
 // 舊版對照：YAOSHI_RENDER_ROOT=<舊樹> 跑同一份測試。
 import assert from 'node:assert/strict';
@@ -416,6 +418,49 @@ test('GLB 載入器：卡住重抓、解析另計、單調時鐘、托盤失敗�
         assert.ok(trk.length === 4 && trk.every((r) => r.aborted === null || r.aborted > resumePlan), `斷續有資料的另四件沒有一直佔著連線到預定恢復：${trk.map((r) => r.f + '[' + hist(r.f) + ']').join(' ')}`);
         // 行為
         assert.ok(a.aborted === null || a.aborted >= resumePlan, `別件排隊時，會恢復的原下載在預定恢復（${resumePlan}ms）前就被中止（${a.aborted}ms）：${hist(a.f)}`);
+        assert.ok(slot, `第一次請求後 45 秒內那格（${key}）沒有就緒且看得到：${hist(a.f)}`);
+        assert.deepEqual(errs, []);
+      } finally { await ctx.close(); }
+    });
+
+    await sub('K', 'K：六件原請求佔滿六條連線（這件收過本體後停住、約第 35 秒恢復，另五件斷續有資料）、這件的重抓只能排隊且 16 秒後才會回 404 → 別件還在傳，不中止會恢復的原下載，那格在第一次請求後 45 秒內出現', async () => {
+      const errs = [];
+      const { ctx, page } = await openGame(browser, S, errs);
+      try {
+        const order = [];
+        S.decide = (f, q) => { if (!order.includes(f)) order.push(f); if (order.indexOf(f) === 0) return q ? LATE404 : LONGPAUSE; return q ? NORMAL : TRICKLE; };
+        await page.evaluate(() => window.__yaoshi.newGame('solo', 1, ['qingmian']));
+        const pf = await prefetchOf(page);
+        assert.ok(pf && pf.now && pf.now.length >= 1, '開局沒派今夜預載');
+        const nowFiles = [...new Set(pf.now.map(fileOf))], nextFiles = new Set(pf.next.map(fileOf));
+        assert.ok(nowFiles.length <= 6, `今夜 ${nowFiles.length} 件，超過 6 件，布不出「六件原請求佔滿六條」`);
+        // 另外補幾件（斷續有資料、一直傳不完）湊滿 6 份原請求。用預載事件派：換了世代，明夜批次不會開始
+        const extra = fs.readdirSync(path.join(SRV_ROOT, 'assets/creatures')).filter((f) => f.endsWith('.glb') && !/^hand/.test(f) && f !== 'tiger.glb'
+          && !nowFiles.includes(f) && !nextFiles.has(f)).sort().slice(0, 6 - nowFiles.length).map((f) => f.replace(/\.glb$/, ''));
+        await page.evaluate((now) => document.dispatchEvent(new CustomEvent('ys:prefetch', { detail: { now, next: [] } })), [...pf.now, ...extra]);
+        assert.equal(await toRound1(page), 1, '沒走到第 1 夜拍品上桌');
+        const proto = await page.evaluate(() => performance.getEntriesByType('navigation')[0].nextHopProtocol);
+        const a = await until(() => S.log.find((r) => r.kind === 'pause'), 10000);
+        assert.ok(a, '情境沒布好（長停頓那件沒被請求）');
+        const key = pf.now.find((k) => fileOf(k) === a.f);
+        assert.ok(key, `長停頓那件（${a.f}）不是今夜拍品`);
+        const slot = await untilBy(S, async () => { const s = await slotOf(page, key); return s && s.ready && s.visible ? s : null; }, a.t + 45000, 250);
+        const resumePlan = a.pauseAt + LONGPAUSE.pause;
+        await until(() => S.now() > resumePlan, Math.max(0, resumePlan - S.now() + 5000), 250);
+        const hist = (f) => S.log.filter((r) => r.f === f).map((r) => (r.q || '-') + '@' + r.t + (r.aborted !== null ? '✗' + r.aborted : '') + (r.end !== null ? '✓' + r.end : '')).join(' ');
+        const openAt = (t) => S.log.filter((r) => r.t <= t && (r.end === null || r.end > t) && (r.aborted === null || r.aborted > t));
+        // 活性（只看布置，不看結果）：HTTP/1.x；原下載先收過本體才停；停住 22 秒時（已判卡住、重抓在排隊）伺服器上正好 6 份原請求開著＝六條全佔；
+        // 另五件斷續有資料、到預定恢復時都還開著、預定恢復前 20 秒內都有資料（＝佔著名額的不是全都停住）。
+        // 預定恢復（停住後 34 秒）晚於「判卡住（約 21 秒）＋排隊 10 秒」，r2 的讓出規則會在這段中止原下載
+        assert.match(proto, /^http\/1/i, `頁面不是走 HTTP/1.x（${proto}），沒行使到每主機 6 條連線上限`);
+        assert.ok(a.pauseAt !== null && a.bytes > 0, `原下載沒有先收到部分本體就停（bytes=${a.bytes}）`);
+        const full = openAt(a.pauseAt + 22000);
+        assert.ok(full.length === 6 && full.includes(a) && full.every((r) => !r.q), `停住 22 秒時伺服器上開著的不是 6 份原請求：${full.map((r) => r.f + (r.q || '')).join(' ')}`);
+        const trk = S.log.filter((r) => r.kind === 'trickle' && !r.q);
+        assert.ok(trk.length === 5 && trk.every((r) => (r.aborted === null || r.aborted > resumePlan) && r.chunks.some((c) => c > resumePlan - 20000 && c <= resumePlan)),
+          `另五件沒有一直開著、在預定恢復前 20 秒內有資料：${trk.map((r) => r.f + '[' + hist(r.f) + '] ' + r.chunks.join(',')).join(' ')}`);
+        // 行為
+        assert.ok(a.aborted === null || a.aborted >= resumePlan, `別件還在傳時，會恢復的原下載在預定恢復（${resumePlan}ms）前就被中止（${a.aborted}ms）：${hist(a.f)}`);
         assert.ok(slot, `第一次請求後 45 秒內那格（${key}）沒有就緒且看得到：${hist(a.f)}`);
         assert.deepEqual(errs, []);
       } finally { await ctx.close(); }
