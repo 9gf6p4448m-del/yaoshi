@@ -15,6 +15,8 @@
 //   W（r3 F2）：同一件一直斷續有資料時連續 4 次預載（換夜／新局）→ 舊批次的等待者要解除，只留最新一批；45 秒上限放行後也要解除。
 //   N（r3 F4）：同頁開新局 →「請神入座」遮罩從新局自己的第一次市集事件起算（不被上一局的 12 秒計時收掉；上一局已結束的也要重新監看）。
 //   X 加上下界、新增 Y（r3 F7）：解析逾時要在解析開始後 43–50 秒收尾；解析 40 秒後才完成的那件要上桌。
+//   Codex yaoshi-v0.66.3-r1 後：R（r1 F1）原下載收過本體後停住、約第 35 秒恢復，重抓已送達但 16 秒後才回 404 → 不得中止會恢復的原下載，那格要出現；
+//   C2（r1 F1）同 C 但頁面回報 h2 → 不讓出連線（只有 HTTP/1.1 且進行中的 GLB 請求超過 6 個才讓出）；C 加活性「頁面走 HTTP/1.x」。
 // 時間一律用伺服器端（Node）的時鐘量，頁內校時影響不到量測。
 // 舊版對照：YAOSHI_RENDER_ROOT=<舊樹> 跑同一份測試。
 import assert from 'node:assert/strict';
@@ -54,6 +56,8 @@ const TRICKLE = { kind: 'trickle', every: 10000, step: 2048 };
 const PAUSE = { kind: 'pause', frac: 0.3, pause: 22000 };
 const LATEHEADERS = { kind: 'lateheaders', delay: 40000 };
 const DELAYED = { kind: 'delayed', delay: 25000 }; // 排隊 delay 毫秒才回標頭，之後照 RATE 送完
+const LONGPAUSE = { kind: 'pause', frac: 0.3, pause: 34000 }; // v0.66.3 r1 F1：停 34 秒後恢復（約第 35 秒）
+const LATE404 = { kind: 'late404', delay: 16000 }; // v0.66.3 r1 F1：伺服器收到請求後 16 秒才回 404（重抓已送達、標頭晚到又失敗）
 const HOLD = { kind: 'hold' };
 const NF = { kind: 'nf' };
 
@@ -104,6 +108,7 @@ function startServer() {
     let body;
     try { body = fs.readFileSync(file); } catch (e) { res.writeHead(404); res.end('not found'); rec.status = 404; rec.end = S.now(); return; }
     if (plan.kind === 'nf') { res.writeHead(404, { 'Content-Type': 'text/plain' }); res.end('not found'); rec.status = 404; rec.end = S.now(); return; }
+    if (plan.kind === 'late404') { later(() => { if (res.destroyed) return; rec.headersAt = S.now(); res.writeHead(404, { 'Content-Type': 'text/plain' }); res.end('not found'); rec.status = 404; rec.end = S.now(); }, plan.delay); return; }
     if (plan.kind === 'delayed') { later(() => { if (!res.destroyed) stream(res, rec, body, NORMAL); }, plan.delay); return; }
     if (plan.kind === 'lateheaders') {
       later(() => { if (res.destroyed) return; res.writeHead(200, { 'Content-Type': 'model/gltf-binary', 'Content-Length': body.length, 'Cache-Control': 'no-store' }); res.flushHeaders(); rec.headersAt = S.now(); }, plan.delay);
@@ -133,9 +138,10 @@ async function until(fn, ms, step = 200) { const t0 = Date.now(); for (;;) { con
 async function untilBy(S, fn, deadline, step = 100) { for (;;) { if (S.now() > deadline) return null; const v = await fn(); if (v && S.now() <= deadline) return v; await sleep(step); } }
 
 /** 開一個全新 context（不共用快取）的遊戲頁，等托盤與手都載好、線路安靜 3 秒。 */
-async function openGame(browser, S, errs) {
+async function openGame(browser, S, errs, init) {
   const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 1, hasTouch: true });
   await ctx.addInitScript(() => { try { localStorage.setItem('yaoshi_intro_v1', '1'); } catch (e) {} });
+  if (init) await ctx.addInitScript(init);
   const page = await ctx.newPage();
   page.on('pageerror', (e) => errs.push(String(e).slice(0, 200)));
   await page.goto(`http://127.0.0.1:${PORT}/index.html`, { waitUntil: 'load' });
@@ -275,26 +281,34 @@ test('GLB 載入器：卡住重抓、解析另計、單調時鐘、托盤失敗�
       } finally { await ctx.close(); }
     });
 
+    /** C／C2 共用的布置：每件原請求送 30% 後停住（連線不關）、重抓正常；今夜拍品＋另補幾件湊滿 6 份停住的原請求。 */
+    const setupC = async (page) => {
+      S.decide = (f, q) => (q ? NORMAL : PARTIAL);
+      await page.evaluate(() => window.__yaoshi.newGame('solo', 1, ['qingmian']));
+      const pf = await prefetchOf(page);
+      assert.ok(pf && pf.now && pf.now.length >= 2, '開局沒派今夜預載（至少要 2 件）');
+      const nowFiles = [...new Set(pf.now.map(fileOf))], nextFiles = new Set(pf.next.map(fileOf));
+      // 另外補幾件模型一起下載（＝仍在背景下載的模型），湊滿 6 份停住的原請求。用預載事件派：換了世代，明夜批次不會再開始，線上只剩這 6 份
+      const extra = fs.readdirSync(path.join(SRV_ROOT, 'assets/creatures')).filter((f) => f.endsWith('.glb') && !/^hand/.test(f) && f !== 'tiger.glb'
+        && !nowFiles.includes(f) && !nextFiles.has(f)).sort().slice(0, Math.max(0, 6 - nowFiles.length)).map((f) => f.replace(/\.glb$/, ''));
+      await page.evaluate((now) => document.dispatchEvent(new CustomEvent('ys:prefetch', { detail: { now, next: [] } })), [...pf.now, ...extra]);
+      assert.equal(await toRound1(page), 1, '沒走到第 1 夜拍品上桌');
+      const want = [...nowFiles, ...extra.map((k) => k + '.glb')];
+      // 活性：6 份原請求同時收過本體、停住、連線還開著（＝瀏覽器對這台主機的 6 條連線全被佔住）
+      const full = await until(() => { const o = S.log.filter((r) => !r.q && want.includes(r.f) && r.bytes > 0 && r.end === null && r.aborted === null); return o.length >= 6 ? o : null; }, 15000);
+      assert.ok(full, `沒湊滿 6 份停住的原請求（${S.log.filter((r) => !r.q).map((r) => r.f + ':' + r.bytes).join(' ')}）`);
+      const first = Math.min(...full.map((r) => r.t));
+      const hist = (f) => S.log.filter((r) => r.f === f).map((r) => (r.q || '-') + '@' + r.t + (r.first !== null ? '▶' + r.first : '') + (r.aborted !== null ? '✗' + r.aborted : '') + (r.end !== null ? '✓' + r.end : '')).join(' ');
+      const proto = await page.evaluate(() => performance.getEntriesByType('navigation')[0].nextHopProtocol);
+      return { pf, want, full, first, hist, proto };
+    };
+
     await sub('C', 'C：六件原請求都收過本體後停住、佔滿 6 條 HTTP/1.1 連線 → 重抓送得出去，今夜每格在第一次請求後 45 秒內出現', async () => {
       const errs = [];
       const { ctx, page } = await openGame(browser, S, errs);
       try {
-        S.decide = (f, q) => (q ? NORMAL : PARTIAL); // 每件的原請求都送 30% 後停住（連線不關）；重抓（?retry=N）正常
-        await page.evaluate(() => window.__yaoshi.newGame('solo', 1, ['qingmian']));
-        const pf = await prefetchOf(page);
-        assert.ok(pf && pf.now && pf.now.length >= 2, '開局沒派今夜預載（至少要 2 件）');
-        const nowFiles = [...new Set(pf.now.map(fileOf))], nextFiles = new Set(pf.next.map(fileOf));
-        // 另外補幾件模型一起下載（＝仍在背景下載的模型），湊滿 6 份停住的原請求。用預載事件派：換了世代，明夜批次不會再開始，線上只剩這 6 份
-        const extra = fs.readdirSync(path.join(SRV_ROOT, 'assets/creatures')).filter((f) => f.endsWith('.glb') && !/^hand/.test(f) && f !== 'tiger.glb'
-          && !nowFiles.includes(f) && !nextFiles.has(f)).sort().slice(0, Math.max(0, 6 - nowFiles.length)).map((f) => f.replace(/\.glb$/, ''));
-        await page.evaluate((now) => document.dispatchEvent(new CustomEvent('ys:prefetch', { detail: { now, next: [] } })), [...pf.now, ...extra]);
-        assert.equal(await toRound1(page), 1, '沒走到第 1 夜拍品上桌');
-        const want = [...nowFiles, ...extra.map((k) => k + '.glb')];
-        // 活性：6 份原請求同時收過本體、停住、連線還開著（＝瀏覽器對這台主機的 6 條連線全被佔住）
-        const full = await until(() => { const o = S.log.filter((r) => !r.q && want.includes(r.f) && r.bytes > 0 && r.end === null && r.aborted === null); return o.length >= 6 ? o : null; }, 15000);
-        assert.ok(full, `沒湊滿 6 份停住的原請求（${S.log.filter((r) => !r.q).map((r) => r.f + ':' + r.bytes).join(' ')}）`);
-        const first = Math.min(...full.map((r) => r.t));
-        const hist = (f) => S.log.filter((r) => r.f === f).map((r) => (r.q || '-') + '@' + r.t + (r.first !== null ? '▶' + r.first : '') + (r.aborted !== null ? '✗' + r.aborted : '') + (r.end !== null ? '✓' + r.end : '')).join(' ');
+        const { pf, want, full, first, hist, proto } = await setupC(page);
+        assert.match(proto, /^http\/1/i, `頁面不是走 HTTP/1.x（${proto}），沒行使到每主機 6 條連線上限`);
         const slots = await untilBy(S, async () => { const ss = await Promise.all(pf.now.map((k) => slotOf(page, k))); return ss.every((s) => s && s.ready && s.visible) ? ss : null; }, first + 45000, 250);
         assert.ok(slots, `第一次請求後 45 秒內今夜沒有每格都出現：${pf.now.map((k) => k + '[' + hist(fileOf(k)) + ']').join(' ')}`);
         // 活性：重抓是在有連線空出來之後才送到伺服器（＝真的被 6 條連線上限擋住過）；原請求不是一判卡住就丟（停住後至少 25 秒才中止）
@@ -302,6 +316,50 @@ test('GLB 載入器：卡住重抓、解析另計、單調時鐘、托盤失敗�
         const firstRetry = Math.min(...S.log.filter((r) => r.q && want.includes(r.f)).map((r) => r.t));
         assert.ok(firstRetry >= firstAbort, `重抓 ${firstRetry}ms 就送到伺服器，早於第一份原請求被放掉（${firstAbort}ms）：連線沒被佔滿，沒行使到 6 條上限`);
         for (const r of full) if (r.aborted !== null) assert.ok(r.aborted - r.last >= 25000, `${r.f} 停住 ${r.aborted - r.last}ms 就被中止（要 ≥25000ms：判卡住先並行重抓，不急著丟已收的位元組）`);
+        assert.deepEqual(errs, []);
+      } finally { await ctx.close(); }
+    });
+
+    await sub('C2', 'C2：同 C 但頁面回報 h2 → 不讓出連線（第一次請求後 40 秒內沒有任何原請求被中止）', async () => {
+      const errs = [];
+      // 本機測試伺服器只有 HTTP/1.1：把頁面看到的協定改報 h2，量「只有 HTTP/1.1 才讓出」這道開關（實際 h2 傳輸未在本機量，正式站實測 h2 見 DECISIONS 2026-11-22）
+      const { ctx, page } = await openGame(browser, S, errs, () => {
+        Object.defineProperty(PerformanceResourceTiming.prototype, 'nextHopProtocol', { configurable: true, get() { return 'h2'; } });
+      });
+      try {
+        const { full, first, hist, proto } = await setupC(page);
+        assert.equal(proto, 'h2', `頁面看到的協定沒改成 h2（${proto}）`);
+        await until(() => S.now() >= first + 40000, 60000, 250);
+        const early = full.filter((r) => r.aborted !== null && r.aborted < first + 40000);
+        assert.deepEqual(early.map((r) => r.f), [], `頁面回報 h2，原請求仍被中止讓出連線：${early.map((r) => r.f + '[' + hist(r.f) + ']').join(' ')}`);
+        assert.deepEqual(errs, []);
+      } finally { await ctx.close(); }
+    });
+
+    await sub('R', 'R：原下載收過本體後停住、約第 35 秒恢復；重抓已送達但 16 秒後才回 404 → 不中止會恢復的原下載，那格在第一次請求後 45 秒內出現', async () => {
+      const errs = [];
+      const { ctx, page } = await openGame(browser, S, errs);
+      try {
+        const order = [];
+        S.decide = (f, q) => { if (!order.includes(f)) order.push(f); return order.indexOf(f) === 0 ? (q ? LATE404 : LONGPAUSE) : NORMAL; };
+        await page.evaluate(() => window.__yaoshi.newGame('solo', 1, ['qingmian']));
+        const pf = await prefetchOf(page);
+        assert.equal(await toRound1(page), 1, '沒走到第 1 夜拍品上桌');
+        const a = await until(() => S.log.find((r) => r.kind === 'pause'), 10000);
+        assert.ok(a, '情境沒布好（長停頓那件沒被請求）');
+        const key = pf.now.find((k) => fileOf(k) === a.f);
+        assert.ok(key, `長停頓那件（${a.f}）不是今夜拍品`);
+        const slot = await untilBy(S, async () => { const s = await slotOf(page, key); return s && s.ready && s.visible ? s : null; }, a.t + 45000, 250);
+        await until(() => S.log.some((r) => r.f === a.f && r.q && r.end !== null), Math.max(0, a.t + 45000 - S.now()), 250);
+        const r1 = S.log.find((r) => r.f === a.f && /retry=1/.test(r.q));
+        const hist = S.log.filter((r) => r.f === a.f).map((r) => (r.q || '-') + '@' + r.t + (r.headersAt !== null ? 'H' + r.headersAt : '') + (r.aborted !== null ? '✗' + r.aborted : '') + (r.end !== null ? '✓' + r.end : '')).join(' ');
+        // 活性（只看布置，不看結果）：原下載先收過本體才停；重抓真的送到伺服器，而且到伺服器預定讓原下載恢復時，重抓已等標頭超過 10 秒（＝舊規則會在這段中止原下載）
+        assert.ok(a.pauseAt !== null && a.bytes > 0, `原下載沒有先收到部分本體就停（bytes=${a.bytes}）`);
+        assert.ok(r1, `沒有重抓（${hist}）`);
+        const resumePlan = a.pauseAt + LONGPAUSE.pause;
+        assert.ok(resumePlan - r1.t > 10000 && (r1.headersAt === null || r1.headersAt > resumePlan), `預定恢復（${resumePlan}ms）時重抓（${r1.t}ms 送出、標頭 ${r1.headersAt}ms）沒有等標頭超過 10 秒，沒行使到「重抓標頭晚到」：${hist}`);
+        assert.ok(a.aborted === null || a.aborted >= resumePlan, `會恢復的原下載在預定恢復（${resumePlan}ms）前就被中止（${a.aborted}ms）：${hist}`);
+        assert.ok(slot, `第一次請求後 45 秒內那格（${key}）沒有就緒且看得到：${hist}`);
         assert.deepEqual(errs, []);
       } finally { await ctx.close(); }
     });
