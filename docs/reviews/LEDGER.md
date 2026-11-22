@@ -12,3 +12,4 @@
 | 2026-11-21 | 審查 | yaoshi-v0.66.1-r1 | 1/3 | `f2ff1ad7`（v0.66.1 候選：手 shader 預編＋拍品預載；基準 bebb8fd9） | FAIL | 0/2/4/0 | `3e1572c1e6f65b5db7b2c3a5f23baa4c8577400ec6602939457aa43b9a19e4a6` | — |
 | 2026-11-22 | 審查 | yaoshi-v0.66.1-r2 | 2/3 | `001623e9`（r1 六項修正後；規則面同 d3852d35；基準 bebb8fd9） | FAIL（r1：F1/F2/F4/F6 fixed、F3/F5 superficially_fixed） | 0/1/3/0 | `0339bf471487f9663a8ceb8d4f1760487a66a278e4838b2ed731a634b3c1466a` | — |
 | 2026-11-22 | 審查 | yaoshi-v0.66.1-r3 | 3/3 | `79af5f85`（r2 修正＋排隊誤判修正後；規則面同 29975875；基準 bebb8fd9） | FAIL（r2：F1/F2/F4 fixed、F3 superficially_fixed）；3 輪用完，未解 HIGH 交製作人 | 0/1/5/0 | `d49f71cccab9590081e98082772acce028430308357ec00fffece6acf47c6c60` | 2026-11-22｜v0.66.1 r3 剩餘 finding 簽准（F1 HIGH 逐條簽；F2–F6 MEDIUM 階段末整批簽；v0.66.2 修） |
+| 2026-11-22 | start | yaoshi-v0.66.2-r1 | 1/3 | `c45dd1b1`（v0.66.2 候選：r3 F1–F6 修正＋版號 0.66.2；規則面同 541eab03；基準 79af5f85） | — | — | — | — |
