@@ -141,15 +141,6 @@ const glbCache = new Map();
      · 收到過本體的請求：**不中止**，另外並行一次重抓，誰先收齊用誰、收齊就中止其他的。共享慢線上它可能只是暫時把頻寬讓給別件，
        中止會丟掉已收的位元組、三次機會也可能全耗在同樣的停頓上（r1 F1）；真的死掉的連線，重抓照樣約 20 秒就補上（r3 F1）。
      · 第 GLB_MAX_TRIES 次也卡住 → 放棄（中止全部）。
-   - 讓出名額（v0.66.3，Codex yaoshi-v0.66.2-r3 F1、v0.66.3-r1 F1、r2 F1；驗收 docs/acceptance/2026-11-22-v0.66.3.md）：HTTP/1.1 每主機只有 6 條連線，
-     全被停住的舊請求佔滿時重抓送不出去；但重抓送出去了、只是伺服器慢，舊請求又可能會恢復，不能丟。瀏覽器不告訴我們一個 fetch 送出去了沒，
-     所以頁面走 HTTP/1.x（navigation 的 nextHopProtocol）時，載入器自己最多同時發出 GLB_H1_CONN 個 GLB 請求，其餘排在 glbWait（先來先發）——
-     「送出去了沒」變成載入器自己知道的事。讓出要三件同時成立：這件最新那次請求**還排在 glbWait 裡**超過 GLB_RELEASE_MS；
-     這件有已發出、收過本體、停住超過 GLB_STALL_MS 的舊請求；而且**佔著名額的 GLB 請求全都停住**（GLB_STALL_MS 沒資料，
-     為了讓出才補上的重抓不算——同一批停住的各件才能並行讓出）。成立就中止這件的舊請求，把最新那次排到佇列最前面接手名額。
-     只要有一條還在傳，名額遲早會空出來，就不砍可能恢復的舊請求（送 r3 前預審 M′：別件佔著名額時誤砍）；最新那次已發出也照上一點保留並行。
-     殘餘（記錄）：五條停住、一條永遠傳不完時不讓出，跟 v0.66.2 相同。
-     h2／查不到協定不設上限（不排隊、不讓出），跟 v0.66.2 一樣。同主機的非 GLB 請求（圖片、音效）也佔瀏覽器連線，載入器看不到，不在此列。
    - 解析中（位元組收齊）：不歸下載計時管、不重抓本體；超過 GLB_PARSE_MAX_MS 沒回成功或失敗 → 判失敗、清出快取，下次要這件會重新下載（r1 F3）。
    - 計時一律用單調時鐘（monoNow），系統校時不影響（r3 F5）。
    glbState：promise → { stalled, settled, waiters }：stalled＝這一份曾被判卡住（開始重抓或放棄）；settled＝null 還沒結束／true 成功／false 失敗；
@@ -159,27 +150,9 @@ const GLB_STALL_MS = 20000;
 const GLB_IDLE_MS = 15000;
 const GLB_QUEUE_MAX_MS = 45000;
 const GLB_PARSE_MAX_MS = 45000;
-const GLB_RELEASE_MS = 10000;
-const GLB_H1_CONN = 6; // HTTP/1.1 每主機連線上限：HTTP/1.x 下載入器自己最多同時發出這麼多個 GLB 請求
 const GLB_MAX_TRIES = 3;
 const glbState = new WeakMap();
 let glbLastAnyData = 0; // 任何一份 GLB 最後一次收到資料的時間（monoNow）
-const glbWait = []; // 排著等發出的請求（loadGlb 裡的 att），先來先發
-const glbOn = new Set(); // 已發出、還沒結束的請求（att）
-/** 頁面是不是走 HTTP/1.x（查不到＝不是；正式站 GitHub Pages 是 h2）。 */
-function glbH1() {
-  try { const e = performance.getEntriesByType('navigation')[0]; return !!e && /^http\/1/i.test(e.nextHopProtocol || ''); } catch (e) { return false; }
-}
-/** 有名額就從佇列最前面發出（HTTP/1.x 最多 GLB_H1_CONN 個；其他協定不限）。 */
-function glbPump() {
-  const cap = glbH1() ? GLB_H1_CONN : Infinity;
-  while (glbWait.length && glbOn.size < cap) glbWait.shift().send();
-}
-/** 佔著名額的 GLB 請求是不是全都停住（GLB_STALL_MS 沒資料；為了讓出才補上的重抓不算）。 */
-function glbAllStalled(now) {
-  for (const a of glbOn) if (!a.retake && now - a.lastAt <= GLB_STALL_MS) return false;
-  return true;
-}
 let loader = null;
 const monoNow = () => (typeof performance !== 'undefined' && typeof performance.now === 'function' ? performance.now() : Date.now());
 /** 這一件（live＝還在的請求，最後一個最新）算不算卡住（見上方）。 */
@@ -218,13 +191,8 @@ function loadGlb(url) {
     const st = { stalled: false, settled: null, waiters: new Set() };
     const p = new Promise((resolve, reject) => {
       let settled = false, tries = 0, timer = null;
-      const live = []; // 還在的請求 { ctl, startAt, lastAt（發出、標頭或本體）, bodyAt（本體）, gotHead, gotBody, parsing, parseAt, sent, send, close, retake }，最後一個最新
-      const drop = (a) => {
-        const i = live.indexOf(a); if (i >= 0) live.splice(i, 1);
-        const w = glbWait.indexOf(a); if (w >= 0) glbWait.splice(w, 1); // 還排在佇列裡：拿掉就好，沒發出請求
-        if (a.ctl) a.ctl.abort();
-        if (a.close) a.close(); // 已發出：名額立刻讓出，不等中止的錯誤回來
-      };
+      const live = []; // 還在的請求 { ctl, startAt, lastAt（標頭或本體）, bodyAt（本體）, gotBody, parsing, parseAt }，最後一個最新
+      const drop = (a) => { const i = live.indexOf(a); if (i >= 0) live.splice(i, 1); if (a.ctl) a.ctl.abort(); };
       const finish = (ok, v) => {
         if (settled) return;
         settled = true; clearInterval(timer);
@@ -235,47 +203,27 @@ function loadGlb(url) {
         const n = tries++;
         const ctl = typeof AbortController === 'function' ? new AbortController() : null;
         const t = monoNow();
-        // startAt＝進佇列的時間（排隊上限從這裡算，跟以前排在瀏覽器裡一樣）
-        const att = { ctl, startAt: t, lastAt: t, bodyAt: -Infinity, gotHead: false, gotBody: false, parsing: false, parseAt: 0, sent: false, send: null, close: null, retake: false };
+        const att = { ctl, startAt: t, lastAt: t, bodyAt: -Infinity, gotBody: false, parsing: false, parseAt: 0 };
         live.push(att);
         const u = n ? url + (url.includes('?') ? '&' : '?') + 'retry=' + n : url;
-        att.send = () => {
-          att.sent = true; glbOn.add(att);
-          att.lastAt = monoNow(); // 排隊的時間不算「線上沒資料」（預審 MEDIUM：讓出後補上的重抓上線約 10 秒就被判整條線停了）
-          // 名額讓出後下一個微任務才補發：同一件一次中止好幾個請求時，先把它自己排著的也拿掉，不會補發了又馬上中止
-          att.close = () => { if (glbOn.delete(att)) Promise.resolve().then(glbPump); };
-          const fp = fetchGlbBytes(u, ctl && ctl.signal, (body) => { if (settled || !live.includes(att)) return; att.gotHead = true; att.lastAt = glbLastAnyData = monoNow(); if (body) { att.gotBody = true; att.bodyAt = att.lastAt; } });
-          fp.then(att.close, att.close); // 收齊、失敗或被中止＝這條請求結束（名額讓出）
-          fp
-            .then((buf) => {
-              if (settled || !live.includes(att)) return null; // 已被中止
-              for (const a of live.slice()) if (a !== att) drop(a); // 這份收齊了：其他請求不必再搶頻寬
-              att.parsing = true; att.parseAt = monoNow();
-              return loader.parseAsync(buf, THREE.LoaderUtils.extractUrlBase(url)).then((g) => ({ g }));
-            })
-            .then((r) => { if (r && !settled && live.includes(att)) finish(true, r.g); }, (e) => {
-              if (settled || !live.includes(att)) return; // 被中止的請求丟出的錯誤
-              live.splice(live.indexOf(att), 1);
-              if (att.parsing || live.length === 0) finish(false, e); // 解析失敗，或沒有別的請求可等
-            });
-        };
-        glbWait.push(att);
-        glbPump();
+        fetchGlbBytes(u, ctl && ctl.signal, (body) => { if (settled || !live.includes(att)) return; att.lastAt = glbLastAnyData = monoNow(); if (body) { att.gotBody = true; att.bodyAt = att.lastAt; } })
+          .then((buf) => {
+            if (settled || !live.includes(att)) return null; // 已被中止
+            for (const a of live.slice()) if (a !== att) drop(a); // 這份收齊了：其他請求不必再搶頻寬
+            att.parsing = true; att.parseAt = monoNow();
+            return loader.parseAsync(buf, THREE.LoaderUtils.extractUrlBase(url)).then((g) => ({ g }));
+          })
+          .then((r) => { if (r && !settled && live.includes(att)) finish(true, r.g); }, (e) => {
+            if (settled || !live.includes(att)) return; // 被中止的請求丟出的錯誤
+            live.splice(live.indexOf(att), 1);
+            if (att.parsing || live.length === 0) finish(false, e); // 解析失敗，或沒有別的請求可等
+          });
       };
       start();
       timer = setInterval(() => {
         if (settled || live.length === 0) return;
         const now = monoNow(), cur = live[live.length - 1];
         if (cur.parsing) { if (now - cur.parseAt > GLB_PARSE_MAX_MS) finish(false, new Error('GLB 解析逾時：' + url)); return; }
-        // 讓出名額（見上方說明）：最新那次還排在自己佇列裡（確定沒送出）超過 GLB_RELEASE_MS、佔著名額的全都停住 → 中止這件已發出、停住超過 GLB_STALL_MS 的舊請求，名額交給它
-        if (!cur.sent && now - cur.startAt > GLB_RELEASE_MS && glbAllStalled(now)) {
-          const old = live.filter((a) => a !== cur && a.sent && a.gotBody && now - a.bodyAt > GLB_STALL_MS);
-          if (old.length) {
-            cur.retake = true; glbWait.splice(glbWait.indexOf(cur), 1); glbWait.unshift(cur);
-            for (const a of old) drop(a);
-            return; // 這一拍不再判卡住：剛排到最前面的請求不能又被當成卡住丟掉（預審 LOW）
-          }
-        }
         if (!glbStalled(live, now)) return;
         st.stalled = true;
         for (const w of [...st.waiters]) w('stall');

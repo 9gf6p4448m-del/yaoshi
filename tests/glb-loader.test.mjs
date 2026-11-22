@@ -11,12 +11,13 @@
 //   X：解析永遠不回 → 45 秒後判失敗、期間不重抓本體；之後再要同一件會重新下載並出現。
 //   Codex yaoshi-v0.66.2-r2 後：Q（r2 F1）原請求收過本體後停住、重抓要排隊 25 秒 → 排隊中的重抓不得被 20 秒門檻砍掉；F1 明夜下限 43 秒（r2 F3）。
 //   v0.66.3（Codex yaoshi-v0.66.2-r3；驗收 docs/acceptance/2026-11-22-v0.66.3.md）：
-//   C（r3 F1）：六件的原請求都收過本體後停住、佔滿瀏覽器對這台主機的 6 條 HTTP/1.1 連線 → 重抓要真的送得出去、今夜每格 45 秒內出現。
+//   C（r3 F1：HTTP/1.1 六條全被停住的原請求佔滿時重抓要送得出去）已撤：製作人 2026-11-22 同意撤掉讓出機制與條件 1（驗收檔修訂一）。C2、R、M、K 留著守
+//   「不中止會恢復的原下載」，以後要再加讓出規則得先過它們。
 //   W（r3 F2）：同一件一直斷續有資料時連續 4 次預載（換夜／新局）→ 舊批次的等待者要解除，只留最新一批；45 秒上限放行後也要解除。
 //   N（r3 F4）：同頁開新局 →「請神入座」遮罩從新局自己的第一次市集事件起算（不被上一局的 12 秒計時收掉；上一局已結束的也要重新監看）。
 //   X 加上下界、新增 Y（r3 F7）：解析逾時要在解析開始後 43–50 秒收尾；解析 40 秒後才完成的那件要上桌。
 //   Codex yaoshi-v0.66.3-r1 後：R（r1 F1）原下載收過本體後停住、約第 35 秒恢復，重抓已送達但 16 秒後才回 404 → 不得中止會恢復的原下載，那格要出現；
-//   C2（r1 F1）同 C 但頁面回報 h2 → 不讓出連線（只有 HTTP/1.1 且進行中的 GLB 請求超過 6 個才讓出）；C 加活性「頁面走 HTTP/1.x」。
+//   C2（r1 F1）六件原請求都收過本體後停住（原 C 的布置）、頁面回報 h2 → 不讓出連線。
 //   Codex yaoshi-v0.66.3-r2 後：M（r2 F1）五件原請求佔五條連線（這件收過本體後停住、約第 35 秒恢復，另四件斷續有資料），這件的重抓佔第六條、
 //   16 秒後才回 404，之後別件排隊 → 不得因為「別件在排隊」中止這件會恢復的原下載，那格要出現；
 //   W 加嚴（r2 F2）：第 2–4 次預載派發當下，不得有人對 bell 的共用下載承諾掛 then（catch／finally／Promise.all 也經過 then）。
@@ -287,7 +288,7 @@ test('GLB 載入器：卡住重抓、解析另計、單調時鐘、托盤失敗�
       } finally { await ctx.close(); }
     });
 
-    /** C／C2 共用的布置：每件原請求送 30% 後停住（連線不關）、重抓正常；今夜拍品＋另補幾件湊滿 6 份停住的原請求。 */
+    /** C2 的布置（與已撤的 C 共用過）：每件原請求送 30% 後停住（連線不關）、重抓正常；今夜拍品＋另補幾件湊滿 6 份停住的原請求。 */
     const setupC = async (page) => {
       S.decide = (f, q) => (q ? NORMAL : PARTIAL);
       await page.evaluate(() => window.__yaoshi.newGame('solo', 1, ['qingmian']));
@@ -308,23 +309,6 @@ test('GLB 載入器：卡住重抓、解析另計、單調時鐘、托盤失敗�
       const proto = await page.evaluate(() => performance.getEntriesByType('navigation')[0].nextHopProtocol);
       return { pf, want, full, first, hist, proto };
     };
-
-    await sub('C', 'C：六件原請求都收過本體後停住、佔滿 6 條 HTTP/1.1 連線 → 重抓送得出去，今夜每格在第一次請求後 45 秒內出現', async () => {
-      const errs = [];
-      const { ctx, page } = await openGame(browser, S, errs);
-      try {
-        const { pf, want, full, first, hist, proto } = await setupC(page);
-        assert.match(proto, /^http\/1/i, `頁面不是走 HTTP/1.x（${proto}），沒行使到每主機 6 條連線上限`);
-        const slots = await untilBy(S, async () => { const ss = await Promise.all(pf.now.map((k) => slotOf(page, k))); return ss.every((s) => s && s.ready && s.visible) ? ss : null; }, first + 45000, 250);
-        assert.ok(slots, `第一次請求後 45 秒內今夜沒有每格都出現：${pf.now.map((k) => k + '[' + hist(fileOf(k)) + ']').join(' ')}`);
-        // 活性：重抓是在有連線空出來之後才送到伺服器（＝真的被 6 條連線上限擋住過）；原請求不是一判卡住就丟（停住後至少 25 秒才中止）
-        const firstAbort = Math.min(...full.map((r) => (r.aborted === null ? Infinity : r.aborted)));
-        const firstRetry = Math.min(...S.log.filter((r) => r.q && want.includes(r.f)).map((r) => r.t));
-        assert.ok(firstRetry >= firstAbort, `重抓 ${firstRetry}ms 就送到伺服器，早於第一份原請求被放掉（${firstAbort}ms）：連線沒被佔滿，沒行使到 6 條上限`);
-        for (const r of full) if (r.aborted !== null) assert.ok(r.aborted - r.last >= 25000, `${r.f} 停住 ${r.aborted - r.last}ms 就被中止（要 ≥25000ms：判卡住先並行重抓，不急著丟已收的位元組）`);
-        assert.deepEqual(errs, []);
-      } finally { await ctx.close(); }
-    });
 
     await sub('C2', 'C2：同 C 但頁面回報 h2 → 不讓出連線（第一次請求後 40 秒內沒有任何原請求被中止）', async () => {
       const errs = [];
