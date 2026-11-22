@@ -1,0 +1,112 @@
+{
+  "review_id": "yaoshi-v0.66.3-r3",
+  "verdict": "PASS",
+  "summary": "review-id: yaoshi-v0.66.3-r3\n本輪未發現未解的 CRITICAL 或 HIGH。上一輪會因別件請求排隊而誤殺原下載的機制已撤除。仍有四項 MEDIUM：同頁重開會保留舊局補播、W 漏測延後掛上的回呼與明夜批次取消、入座遮罩會把載入失敗的空格當成就緒。HTTP/1.1 六條連線全被停住的舊請求占滿時仍可能空格，驗收修訂一記載了製作人對這項既有限制的簽准。本輪使用唯讀 Node 與靜態檢查，未執行瀏覽器測試或 iPhone 實機驗證。",
+  "counts": {
+    "critical": 0,
+    "high": 0,
+    "medium": 4,
+    "low": 0
+  },
+  "findings": [
+    {
+      "id": "F1",
+      "severity": "MEDIUM",
+      "file": "index.html",
+      "line": 6425,
+      "title": "同頁重開到相同夜數會把舊局出價補到新拍品",
+      "detail": "（推測）唯讀 Node 執行日誌函式，確認第二次第 1 夜市集會覆蓋拍品，但保留第一局的出價。晚到的 renderer 會先套用新市集，再補播舊出價。已就緒的 renderer 在 js/renderer.js:238 也只用夜數決定是否清桌。這是既有缺口，驗收檔第 93 行已列為下一版候選，公開局末入口目前會整頁重載。",
+      "failure_scenario": "renderer 載入期間，第一局第 1 夜對第 0 格出價 5。同頁呼叫 newGame，第二局第 1 夜第 0 格換成另一件拍品。renderer 此時完成註冊，會把第一局的 5 枚錢擺到新拍品前。",
+      "fix_hint": "在新局送出帶局次識別的事件，讓日誌和已就緒的托盤同時清場，並以同夜數的兩局驗證即時接收與晚到補播。"
+    },
+    {
+      "id": "F2",
+      "severity": "MEDIUM",
+      "file": "tests/glb-loader.test.mjs",
+      "line": 648,
+      "title": "W 漏掉事件派發後才掛到共用承諾的回呼",
+      "detail": "（推測）W 只在同步派發事件期間計數。唯讀 Node 對快照載入器與批次處理做記憶體內突變，把逐次 p.then 移到微任務。後三次預載各新增一組共用回呼，但 W 的同步計數仍是 0，等待者仍從 1 降到 0。驗收條件 15 的同步突變能被抓到，延後掛回呼的變體仍會漏過。",
+      "failure_scenario": "有人把共用下載的完成回呼放到 queueMicrotask 中註冊，並保留取消時移除集合項目的程式。反覆換夜後，被取消批次的回呼會累積在同一份斷續下載上，W 的同步計數與集合斷言仍成立。",
+      "fix_hint": "讓共用承諾的監測跨越派發與後續微任務，並加入延後掛回呼的突變驗證。"
+    },
+    {
+      "id": "F3",
+      "severity": "MEDIUM",
+      "file": "tests/glb-loader.test.mjs",
+      "line": 648,
+      "title": "W 把明夜清單留空，漏測換世代時取消明夜批次",
+      "detail": "（推測）驗收檔第 12 行要求換世代時解除今夜與明夜兩批訂閱，W 每次只派 now。唯讀 Node 移除 js/renderer.js:285 的明夜取消呼叫後，重現 W 的今夜計數仍為 1→0；另派已啟動的明夜模型再換世代，該模型的舊等待者仍有 1 個。",
+      "failure_scenario": "今夜模型先載完，第一夜的明夜批次開始預載 bell，下載斷續且尚未結束。第二夜開始時若漏掉明夜中止，第一夜留下的訂閱仍掛在 bell 上，而 W 全程沒有啟動明夜批次。",
+      "fix_hint": "讓 W 啟動一批仍待決的明夜預載，換世代後斷言舊訂閱已解除且共用下載仍在進行。"
+    },
+    {
+      "id": "F4",
+      "severity": "MEDIUM",
+      "file": "index.html",
+      "line": 3857,
+      "title": "入座遮罩會把模型載入失敗的空格當成就緒",
+      "detail": "（推測）js/table-tray.js:995 在 GLB 失敗時仍設 ready 並保留不可見的 fig，第 1401 行會把它算進 readyCount。本版重新啟動的每局遮罩沿用該計數，因而把空格判成載入完畢。唯讀 Node 執行實際的計數與遮罩判定，確認一格不可見時仍可得到 3/3 與就緒。N 只扣住回應，沒有覆蓋模型已失敗的情況。",
+      "failure_scenario": "同頁開第二局，其他模型成功，一件模型在第 2 秒回 404。該格仍是空的，遮罩卻在下一次輪詢因全部就緒而收掉。",
+      "fix_hint": "讓遮罩分辨已顯示、仍載入與已失敗三種結果，並補測新局遇到 404 或解析失敗。"
+    }
+  ],
+  "prior_findings": [
+    {
+      "id": "F1",
+      "status": "fixed",
+      "note": "js/creature-figures.js:159–165、223–232 已移除以全域請求數判定讓線的路徑。只要重抓尚有嘗試次數，另一件排隊不會觸發中止已收過本體的原請求。HTTP/1.1 六條連線都被停住的請求占滿仍是驗收檔第 129 行記載的已簽准限制。"
+    },
+    {
+      "id": "F2",
+      "status": "superficially_fixed",
+      "note": "tests/glb-loader.test.mjs:648–668 能抓到上一輪的同步 p.then 突變。監測在事件派發返回時立即關閉，將同一組回呼延到微任務就會漏過，見本輪 F2。"
+    },
+    {
+      "id": "F3",
+      "status": "not_fixed",
+      "note": "index.html:4383 只重設入座遮罩，第 6425 行仍以夜數為清除日誌的條件。唯讀 Node 重現第二局同為第 1 夜時，市集換成新局、出價仍屬於舊局。驗收檔第 93 行明列延後處理。"
+    }
+  ],
+  "coverage": [
+    {
+      "item": "engine-determinism",
+      "checked": true,
+      "note": "追蹤 newGame 新增的遮罩重設，未見賽局欄位寫入或亂數呼叫。唯讀 Node 用種子 1–20 比對快照與記憶體中移除該呼叫的版本，模擬輸出逐位相同，改動夜數常數則能測出差異。缺少基準檔，未重做跨提交比對。"
+    },
+    {
+      "item": "layer-contract",
+      "checked": true,
+      "note": "新增預載只消費事件資料。靜態核對提前註冊走即時事件、晚到走日誌一次補播，補播直接呼叫處理器。唯讀 Node 重現同頁同夜數的舊資料殘留，實際渲染為靜態推論。席位及對決橋接直接讀取賽局資料仍是本版範圍外的既有例外。"
+    },
+    {
+      "item": "async-loading",
+      "checked": true,
+      "note": "檢查共用快取、重抓、失敗清除、換格身分、換世代及批次取消。唯讀 Node 確認取消今夜與明夜的訂閱不需要結束共用請求，並用記憶體內突變驗證 W 的兩個盲點。瀏覽器連線與長時間記憶體表現僅做靜態推論。"
+    },
+    {
+      "item": "failure-paths",
+      "checked": true,
+      "note": "靜態追蹤 404、下載與解析逾時、WebGL context 恢復、模組未啟動，以及 tray3d、table3d 和 prefetch 開關。唯讀 Node 確認 404 路徑留下的不可見格會被遮罩當成就緒。未在瀏覽器注入斷線或 context loss。"
+    },
+    {
+      "item": "mobile-safari",
+      "checked": true,
+      "note": "靜態檢查 requestIdleCallback 的替代路徑、背景計時可能延後、慢網路下的共用下載與資產持有。Apple GPU、背景恢復時序與實機記憶體未量測。"
+    },
+    {
+      "item": "version-and-cache",
+      "checked": true,
+      "note": "VERSION、RELEASE_VERSION、版本說明、兩份 CSS 查詢鍵及測試釘選均為 0.66.3。確認 renderer 把同一版本查詢字串傳給變更的子模組。唯讀執行 ui-hierarchy，三項全過。正式站快取未驗證。"
+    },
+    {
+      "item": "tests-discriminating",
+      "checked": true,
+      "note": "對照修訂後的 R、M、K、C2、W、N、X、Y 與第一次出手測試。C2 只替換頁面讀到的協定值。唯讀 Node 以突變確認 W 的盲點，其他瀏覽器紅綠結果依斷言與驗收紀錄判讀，本輪未重跑。"
+    },
+    {
+      "item": "scope",
+      "checked": true,
+      "note": "所附規則面 diff 的變更落在驗收條件 11 與修訂一的清單。使用快照核對實作、版號及撤除讓線的識別字，範圍結論以所附 diff 為準。"
+    }
+  ]
+}
