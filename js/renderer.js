@@ -273,15 +273,19 @@ function init() {
   const PREFETCH_ON = (() => { try { return new URLSearchParams(location.search || '').get('prefetch') !== '0'; } catch (e) { return true; } })();
   /* 世代號（Codex yaoshi-v0.66.1-r1 F1）：同一分頁重開新局（或換夜）時，上一份預載的「明夜」批次還沒開始的就作廢——
      不然舊局今夜抓完後才啟動的舊局明夜，會跟新局眼前要用的模型搶頻寬。已經在抓的請求無法取消，留在共用快取裡。
-     prefetchGlb 自己會處理「卡住」（太久沒收到資料就放手，F3），今夜批次不會永遠擋住明夜。 */
+     prefetchGlb 自己會處理「卡住」（判卡住開始重抓就放手，F3）。今夜有一件一直斷斷續續有資料、不算卡住也下載不完時，
+     明夜最多等 PREFETCH_NEXT_MAX_MS 就開始（v0.66.2，Codex yaoshi-v0.66.1-r3 F1：明夜批次要有獨立且有上限的等待）。 */
+  const PREFETCH_NEXT_MAX_MS = 45000;
   let prefetchGen = 0;
   const onPrefetch = (d) => {
     if (!PREFETCH_ON) return;
     const gen = ++prefetchGen;
     const urls = (a) => (Array.isArray(a) ? a : []).filter(Boolean).map((k) => creatureGlbUrl(k));
     const now = urls(d.now), next = urls(d.next);
-    Promise.all(now.map((u) => prefetchGlb(u)))
-      .then(() => { if (gen === prefetchGen) return Promise.all(next.map((u) => prefetchGlb(u))); })
+    let capTimer = null;
+    const cap = new Promise((r) => { capTimer = setTimeout(r, PREFETCH_NEXT_MAX_MS); });
+    Promise.race([Promise.all(now.map((u) => prefetchGlb(u))), cap])
+      .then(() => { clearTimeout(capTimer); if (gen === prefetchGen) return Promise.all(next.map((u) => prefetchGlb(u))); })
       .catch(() => {});
   };
   document.addEventListener('ys:prefetch', (e) => onPrefetch((e && e.detail) || {}));

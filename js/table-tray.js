@@ -990,7 +990,10 @@ export function createTableTray(scene, camera, opts = {}) {
       s.bb = f.bounds() || null;
       fitProxy(s);
       s.ready = true;
-    }, () => { s.ready = true; /* GLB 404：這一格空著，但不擋整個托盤 */ });
+    }, () => {
+      if (s.fig !== f || s.key !== key) return; // 這一格已經換貨：舊貨失敗不能把新貨標成就緒（v0.66.2，Codex yaoshi-v0.66.1-r3 F3）
+      s.ready = true; /* GLB 404：這一格空著，但不擋整個托盤 */
+    });
   }
 
   /* 得標不改拍賣資料：暫時移動現有的 3D 展示模型，落到席位後隱藏，下一夜 setItems 會照既有生命週期換貨。
