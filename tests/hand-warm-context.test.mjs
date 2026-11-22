@@ -12,7 +12,6 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
-import { launchGpu } from './browser.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SRV_ROOT = process.env.YAOSHI_RENDER_ROOT || ROOT;
@@ -43,7 +42,8 @@ test('手部 shader：第一次出手前已預編；context 遺失恢復時預�
     const ok = await fetch(`http://127.0.0.1:${PORT}/index.html`, { method: 'HEAD' }).then((r) => r.ok).catch(() => false);
     if (ok) break; await new Promise((r) => setTimeout(r, 200));
   }
-  const browser = await launchGpu(chromium);
+  // 不走顯示卡：B 段要抓的未捕捉例外（f2ff1ad7 的 compileAsync）走顯示卡不會發生（2026-11-23 實測：CPU 3/3 紅在 TypeError，顯示卡 3/3 沒有例外）
+  const browser = await chromium.launch();
   const errs = [];
   try {
     const page = await browser.newPage({ viewport: { width: 844, height: 390 } });
