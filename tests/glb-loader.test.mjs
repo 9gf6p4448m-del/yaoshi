@@ -10,6 +10,11 @@
 //   H：40 秒才回標頭、之後沒有本體 → 排隊上限從請求開始算（43–50 秒重抓），不被晚到的標頭重設。
 //   X：解析永遠不回 → 45 秒後判失敗、期間不重抓本體；之後再要同一件會重新下載並出現。
 //   Codex yaoshi-v0.66.2-r2 後：Q（r2 F1）原請求收過本體後停住、重抓要排隊 25 秒 → 排隊中的重抓不得被 20 秒門檻砍掉；F1 明夜下限 43 秒（r2 F3）。
+//   v0.66.3（Codex yaoshi-v0.66.2-r3；驗收 docs/acceptance/2026-11-22-v0.66.3.md）：
+//   C（r3 F1）：六件的原請求都收過本體後停住、佔滿瀏覽器對這台主機的 6 條 HTTP/1.1 連線 → 重抓要真的送得出去、今夜每格 45 秒內出現。
+//   W（r3 F2）：同一件一直斷續有資料時連續 4 次預載（換夜／新局）→ 舊批次的等待者要解除，只留最新一批；45 秒上限放行後也要解除。
+//   N（r3 F4）：同頁開新局 →「請神入座」遮罩從新局自己的第一次市集事件起算（不被上一局的 12 秒計時收掉；上一局已結束的也要重新監看）。
+//   X 加上下界、新增 Y（r3 F7）：解析逾時要在解析開始後 43–50 秒收尾；解析 40 秒後才完成的那件要上桌。
 // 時間一律用伺服器端（Node）的時鐘量，頁內校時影響不到量測。
 // 舊版對照：YAOSHI_RENDER_ROOT=<舊樹> 跑同一份測試。
 import assert from 'node:assert/strict';
@@ -152,8 +157,27 @@ async function toRound1(page) {
   return round();
 }
 const slotOf = (page, key) => page.evaluate((k) => window.__yaoshi3d.tray.items().find((s) => s.key === k) || null, key);
+/** 頁內呼叫遊戲正在用的同一份 creature-figures 模組（網址照 renderer 的版本參數組，才是同一個實例）。 */
+const cf = (page, fn, ...args) => page.evaluate(async ({ fn, args }) => {
+  const s = [...document.scripts].find((x) => /\/js\/renderer\.js(\?|$)/.test(x.src));
+  const m = await import(new URL('creature-figures.js' + new URL(s.src).search, s.src).href);
+  if (typeof m[fn] !== 'function') throw new Error('creature-figures 沒有 ' + fn);
+  return m[fn](...args);
+}, { fn, args });
+/** 點過教學／事件頁，直到頁內 window.__pm（pushMarket3d 的頁內時間）出現 since 之後的一筆；回那一筆。 */
+async function toMarketSince(page, since) {
+  for (let i = 0; i < 2000; i++) {
+    const t = await page.evaluate((s) => (window.__pm || []).find((x) => x >= s) ?? null, since);
+    if (t !== null) return t;
+    const st = await page.evaluate(`(() => { const b=document.getElementById('mainbtn'); return { d: !b || !b.offsetParent || b.disabled }; })()`);
+    if (!st.d) await page.click('#mainbtn').catch(() => {});
+    else await page.evaluate(`(() => { const e=[...document.querySelectorAll('#stage button, button')].find(x=>x.offsetParent&&!x.disabled&&/下一頁|開始|知道了|進入|確定|不盯|繼續|跳過|下一夜|蓋牌|開標/.test(x.innerText)); if(e)e.click(); })()`);
+    await sleep(60);
+  }
+  return null;
+}
 
-test('GLB 載入器：卡住重抓、解析另計、單調時鐘、托盤失敗回呼核對身分、明夜等今夜下載完', { timeout: 600000 }, async (t) => {
+test('GLB 載入器：卡住重抓、解析另計、單調時鐘、托盤失敗回呼核對身分、明夜等今夜下載完', { timeout: 1200000 }, async (t) => {
   const { chromium } = loadPlaywright();
   const S = await startServer();
   const browser = await chromium.launch();
@@ -251,6 +275,37 @@ test('GLB 載入器：卡住重抓、解析另計、單調時鐘、托盤失敗�
       } finally { await ctx.close(); }
     });
 
+    await sub('C', 'C：六件原請求都收過本體後停住、佔滿 6 條 HTTP/1.1 連線 → 重抓送得出去，今夜每格在第一次請求後 45 秒內出現', async () => {
+      const errs = [];
+      const { ctx, page } = await openGame(browser, S, errs);
+      try {
+        S.decide = (f, q) => (q ? NORMAL : PARTIAL); // 每件的原請求都送 30% 後停住（連線不關）；重抓（?retry=N）正常
+        await page.evaluate(() => window.__yaoshi.newGame('solo', 1, ['qingmian']));
+        const pf = await prefetchOf(page);
+        assert.ok(pf && pf.now && pf.now.length >= 2, '開局沒派今夜預載（至少要 2 件）');
+        const nowFiles = [...new Set(pf.now.map(fileOf))], nextFiles = new Set(pf.next.map(fileOf));
+        // 另外補幾件模型一起下載（＝仍在背景下載的模型），湊滿 6 份停住的原請求。用預載事件派：換了世代，明夜批次不會再開始，線上只剩這 6 份
+        const extra = fs.readdirSync(path.join(SRV_ROOT, 'assets/creatures')).filter((f) => f.endsWith('.glb') && !/^hand/.test(f) && f !== 'tiger.glb'
+          && !nowFiles.includes(f) && !nextFiles.has(f)).sort().slice(0, Math.max(0, 6 - nowFiles.length)).map((f) => f.replace(/\.glb$/, ''));
+        await page.evaluate((now) => document.dispatchEvent(new CustomEvent('ys:prefetch', { detail: { now, next: [] } })), [...pf.now, ...extra]);
+        assert.equal(await toRound1(page), 1, '沒走到第 1 夜拍品上桌');
+        const want = [...nowFiles, ...extra.map((k) => k + '.glb')];
+        // 活性：6 份原請求同時收過本體、停住、連線還開著（＝瀏覽器對這台主機的 6 條連線全被佔住）
+        const full = await until(() => { const o = S.log.filter((r) => !r.q && want.includes(r.f) && r.bytes > 0 && r.end === null && r.aborted === null); return o.length >= 6 ? o : null; }, 15000);
+        assert.ok(full, `沒湊滿 6 份停住的原請求（${S.log.filter((r) => !r.q).map((r) => r.f + ':' + r.bytes).join(' ')}）`);
+        const first = Math.min(...full.map((r) => r.t));
+        const hist = (f) => S.log.filter((r) => r.f === f).map((r) => (r.q || '-') + '@' + r.t + (r.first !== null ? '▶' + r.first : '') + (r.aborted !== null ? '✗' + r.aborted : '') + (r.end !== null ? '✓' + r.end : '')).join(' ');
+        const slots = await untilBy(S, async () => { const ss = await Promise.all(pf.now.map((k) => slotOf(page, k))); return ss.every((s) => s && s.ready && s.visible) ? ss : null; }, first + 45000, 250);
+        assert.ok(slots, `第一次請求後 45 秒內今夜沒有每格都出現：${pf.now.map((k) => k + '[' + hist(fileOf(k)) + ']').join(' ')}`);
+        // 活性：重抓是在有連線空出來之後才送到伺服器（＝真的被 6 條連線上限擋住過）；原請求不是一判卡住就丟（停住後至少 25 秒才中止）
+        const firstAbort = Math.min(...full.map((r) => (r.aborted === null ? Infinity : r.aborted)));
+        const firstRetry = Math.min(...S.log.filter((r) => r.q && want.includes(r.f)).map((r) => r.t));
+        assert.ok(firstRetry >= firstAbort, `重抓 ${firstRetry}ms 就送到伺服器，早於第一份原請求被放掉（${firstAbort}ms）：連線沒被佔滿，沒行使到 6 條上限`);
+        for (const r of full) if (r.aborted !== null) assert.ok(r.aborted - r.last >= 25000, `${r.f} 停住 ${r.aborted - r.last}ms 就被中止（要 ≥25000ms：判卡住先並行重抓，不急著丟已收的位元組）`);
+        assert.deepEqual(errs, []);
+      } finally { await ctx.close(); }
+    });
+
     await sub('H', 'H：40 秒才回標頭、之後沒有本體、別件斷續有資料 → 仍在第一次請求後 43–50 秒重抓（排隊上限從請求開始算，不被標頭重設）', async () => {
       const errs = [];
       const { ctx, page } = await openGame(browser, S, errs);
@@ -284,13 +339,18 @@ test('GLB 載入器：卡住重抓、解析另計、單調時鐘、托盤失敗�
           document.head.appendChild(sc);
         });
         await page.waitForFunction('!!window.__hang', { timeout: 10000 });
+        const off = S.now() - (await page.evaluate(() => performance.now())); // 頁內時間 → 伺服器時間
         const t0 = S.now();
         await page.evaluate(() => { window.__yaoshi3d.tray.setItems([{ key: 'bell' }]); });
-        const ready = await untilBy(S, async () => { const s = await slotOf(page, 'bell'); return s && s.ready ? s : null; }, t0 + 60000, 250);
+        let readyAt = null;
+        const ready = await untilBy(S, async () => { const s = await slotOf(page, 'bell'); if (s && s.ready) { readyAt = S.now(); return s; } return null; }, t0 + 60000, 250);
         const hang = await page.evaluate(() => window.__hang);
         assert.ok(hang.at !== null, '沒行使到永不回的解析');
         assert.ok(ready, '解析永不回時，60 秒內那格一直沒有收尾（待決承諾留著）');
         assert.equal(ready.visible, false, '解析沒完成，那格卻看得到');
+        // v0.66.3（Codex yaoshi-v0.66.2-r3 F7）：從解析開始算，收尾要接近 45 秒上限（過短的上限會讓 35 秒就能完成的解析被判失敗）
+        const el = Math.round(readyAt - (hang.at + off));
+        assert.ok(el >= 43000 && el <= 50000, `解析開始後 ${el}ms 就收尾（有效區間 43000–50000ms）`);
         assert.deepEqual(S.log.filter((r) => r.f === 'bell.glb').map((r) => r.q), [''], '解析等待期間本體被重抓');
         // 之後再要同一件：要重新下載（快取已清），這次解析正常 → 出現
         await page.evaluate(() => { window.__yaoshi3d.tray.setItems([]); window.__yaoshi3d.tray.setItems([{ key: 'bell' }]); });
@@ -403,6 +463,107 @@ test('GLB 載入器：卡住重抓、解析另計、單調時鐘、托盤失敗�
         const todayEnd = Math.max(...nowFiles.map((f) => S.log.find((r) => r.f === f).end));
         const nextStart = Math.min(...nextOnly.map((f) => S.log.find((r) => r.f === f).t));
         assert.ok(nextStart >= todayEnd, `明夜第一件 ${nextStart}ms 就開始下載，今夜最後一件 ${todayEnd}ms 才下載完（明夜拖慢今夜）`);
+        assert.deepEqual(errs, []);
+      } finally { await ctx.close(); }
+    });
+
+    await sub('Y', 'Y：解析 40 秒後才完成（接近 45 秒上限但來得及）→ 那格出現、不重抓本體', async () => {
+      const errs = [];
+      const { ctx, page } = await openGame(browser, S, errs);
+      try {
+        await page.evaluate(() => {
+          const sc = document.createElement('script'); sc.type = 'module';
+          sc.textContent = "import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'; const P = GLTFLoader.prototype, orig = P.parseAsync;"
+            + " window.__slow40 = { at: null, done: null, n: 0 };"
+            + " P.parseAsync = function (...a) { window.__slow40.n++; if (window.__slow40.at !== null) return orig.apply(this, a);"
+            + " window.__slow40.at = performance.now(); return new Promise((r) => setTimeout(r, 40000)).then(() => orig.apply(this, a)).then((g) => { window.__slow40.done = performance.now(); return g; }); };";
+          document.head.appendChild(sc);
+        });
+        await page.waitForFunction('!!window.__slow40', { timeout: 10000 });
+        const off = S.now() - (await page.evaluate(() => performance.now()));
+        await page.evaluate(() => { window.__yaoshi3d.tray.setItems([{ key: 'bell' }]); });
+        const at = await until(() => page.evaluate(() => window.__slow40.at), 10000, 100);
+        assert.ok(at, '沒行使到慢解析（bell 沒進到解析）');
+        const slot = await untilBy(S, async () => { const s = await slotOf(page, 'bell'); return s && s.ready ? s : null; }, at + off + 50000, 250);
+        const s40 = await page.evaluate(() => window.__slow40);
+        assert.ok(slot, '解析開始後 50 秒內那格一直沒有收尾');
+        assert.equal(slot.visible, true, `解析 40 秒後完成，那格卻是空的（被判解析逾時）：${JSON.stringify(slot)}`);
+        assert.ok(s40.done !== null && s40.done - s40.at >= 39000, `慢解析沒真的拖到 40 秒（${JSON.stringify(s40)}）`);
+        assert.deepEqual(S.log.filter((r) => r.f === 'bell.glb').map((r) => r.q), [''], '解析等待期間本體被重抓');
+        assert.deepEqual(errs, []);
+      } finally { await ctx.close(); }
+    });
+
+    await sub('W', 'W：同一件一直斷續有資料時連續 4 次預載 → 舊批次的等待者解除、只留最新一批；45 秒上限放行後也解除', async () => {
+      const errs = [];
+      const { ctx, page } = await openGame(browser, S, errs);
+      try {
+        const url = 'assets/creatures/bell.glb';
+        S.decide = (f) => (f === 'bell.glb' ? TRICKLE : NORMAL); // 每 10 秒 2KB：一直在動、不算卡住，也下載不完
+        const fire = () => page.evaluate(() => document.dispatchEvent(new CustomEvent('ys:prefetch', { detail: { now: ['bell'], next: [] } })));
+        for (let i = 0; i < 4; i++) { await fire(); await sleep(1000); }
+        const lastAt = S.now();
+        const w4 = await cf(page, 'glbWaiters', url);
+        assert.equal(w4, 1, `連續 4 次預載後 bell 的共用下載上還掛著 ${w4} 個等待者（只該留最新一批的 1 個）`);
+        const w0 = await untilBy(S, async () => ((await cf(page, 'glbWaiters', url)) === 0 ? true : null), lastAt + 50000, 500);
+        const bells = S.log.filter((r) => r.f === 'bell.glb');
+        // 活性：整段期間 bell 只有一份共用下載、一直在傳（沒下載完、沒被判卡住重抓、沒被中止）
+        assert.equal(bells.length, 1, `bell 被請求 ${bells.length} 次（應只有一份共用下載）：${bells.map((r) => (r.q || '-') + '@' + r.t).join(' ')}`);
+        assert.ok(bells[0].end === null && bells[0].aborted === null && bells[0].chunks.length >= 4, `bell 已下載完、被中止或沒在傳（${bells[0].chunks.length} 塊），沒行使到「一直有資料、還沒下載完」`);
+        assert.ok(w0, `最新一批等滿 45 秒放行後，bell 上的等待者到 ${lastAt + 50000}ms 仍沒解除（${await cf(page, 'glbWaiters', url)} 個）`);
+        assert.deepEqual(errs, []);
+      } finally { await ctx.close(); }
+    });
+
+    await sub('N', 'N：同頁開新局 →「請神入座」從新局自己的第一次市集事件起算；上一局遮罩已結束的新局也重新監看', async () => {
+      const errs = [];
+      const { ctx, page } = await openGame(browser, S, errs);
+      try {
+        S.decide = () => HOLD; // 模型一直不回：托盤不會就緒，遮罩只會被 12 秒上限收掉
+        await page.evaluate(() => {
+          window.__pm = []; const o = pushMarket3d;
+          pushMarket3d = function () { window.__pm.push(performance.now()); return o.apply(this, arguments); };
+          window.__tl = [];
+          new MutationObserver(() => { const on = !!document.getElementById('trayLoad'), l = window.__tl; if (!l.length || l[l.length - 1].on !== on) l.push({ t: performance.now(), on }); })
+            .observe(document.body, { childList: true, subtree: true });
+        });
+        const pnow = () => page.evaluate(() => performance.now());
+        const waitUntilPage = (t) => page.waitForFunction((x) => performance.now() >= x, t, { timeout: 60000, polling: 100 });
+        const tl = () => page.evaluate(() => window.__tl);
+        const isOn = (L, t) => { let on = false; for (const e of L) if (e.t <= t) on = e.on; return on; };
+        // 第一局
+        const g1 = await pnow();
+        await page.evaluate(() => window.__yaoshi.newGame('solo', 1, ['qingmian']));
+        const a1 = await toMarketSince(page, g1);
+        assert.ok(a1 !== null, '第一局沒走到市集');
+        await waitUntilPage(a1 + 6000);
+        assert.ok(isOn(await tl(), a1 + 5900), '第一局模型一直不回，遮罩卻沒出現（情境沒布好）');
+        // 第二局：在第一局 12 秒上限之前開
+        const g2 = await pnow();
+        await page.evaluate(() => window.__yaoshi.newGame('solo', 2, ['qingmian']));
+        const b1 = await toMarketSince(page, g2);
+        assert.ok(b1 !== null, '第二局沒走到市集');
+        assert.ok(b1 < a1 + 11000, `第二局第一次市集事件太晚（第一局起算 ${Math.round(b1 - a1)}ms），第一局的 12 秒計時沒落在第二局遮罩期間，沒行使到`);
+        await waitUntilPage(b1 + 13500);
+        const L2 = (await tl()).filter((e) => e.t >= b1);
+        const offIn = L2.filter((e) => !e.on && e.t > b1 + 2000 && e.t < b1 + 11500);
+        const off2 = L2.find((e) => !e.on && e.t >= b1 + 2000);
+        const fmt = (L, base) => L.map((e) => (e.on ? '+' : '-') + Math.round(e.t - base)).join(' ');
+        assert.ok(isOn(await tl(), b1 + 2000), `第二局第一次市集事件後 2 秒遮罩不在（相對第二局：${fmt(L2, b1)}）`);
+        assert.deepEqual(offIn.map((e) => Math.round(e.t - b1)), [], `第二局遮罩在自己 12 秒上限前被收掉（相對第二局 ms；第一局起算 ${Math.round(b1 - a1)}ms）`);
+        assert.ok(off2 && off2.t - b1 >= 11500 && off2.t - b1 <= 13000, `第二局遮罩收掉的時間不在第二局起算 11500–13000ms（${off2 ? Math.round(off2.t - b1) : '沒收'}）`);
+        // 第三局：上一局遮罩已經結束 → 新局要重新監看、再出現
+        await waitUntilPage(off2.t + 1000);
+        const g3 = await pnow();
+        await page.evaluate(() => window.__yaoshi.newGame('solo', 3, ['qingmian']));
+        const c1 = await toMarketSince(page, g3);
+        assert.ok(c1 !== null, '第三局沒走到市集');
+        await waitUntilPage(c1 + 2500);
+        const L3 = (await tl()).filter((e) => e.t >= c1);
+        const on3 = L3.find((e) => e.on);
+        assert.ok(on3 && on3.t - c1 >= 800 && on3.t - c1 <= 2000, `上一局遮罩已結束，第三局第一次市集事件後 0.8–2 秒遮罩沒再出現（相對第三局：${fmt(L3, c1)}）`);
+        // 活性：整段模型都沒回（托盤沒就緒），遮罩只會因上限收掉
+        assert.equal(await page.evaluate(() => trayReady3d()), false, '托盤已就緒，沒行使到「模型一直沒到」');
         assert.deepEqual(errs, []);
       } finally { await ctx.close(); }
     });

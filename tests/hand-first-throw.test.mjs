@@ -4,6 +4,8 @@
 // 背景預編只能靠瀏覽器自己在背景編）走到出價頁盯上一件（第一次出手），量手的程式第一次被拿來畫時，
 // getProgramInfoLog／getProgramParameter 同步等了多久（ANGLE D3D11 沒預編時約 2.5–3.1 秒）。
 // 已知不涵蓋：手模型一載好就在 3 秒內出手的極速入局——不論有沒有擴充功能，桌機都要等編譯（約 2.5 秒），見驗收檔 F4。
+// v0.66.3（Codex yaoshi-v0.66.2-r3 F3；驗收 docs/acceptance/2026-11-22-v0.66.3.md）：「第一次畫手」的終點改成手的程式第一次真的送出繪製
+// （攔 useProgram 記下目前的程式、攔 draw* 記每個程式第一次畫的時間），不再拿第一次程式查詢代替；程式查詢的同步等待照舊另外量。
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import path from 'node:path';
@@ -41,7 +43,7 @@ test('第一次出手：沒有平行編譯擴充功能、真人節奏入局，�
     const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 1 });
     await ctx.addInitScript(() => {
       try { localStorage.setItem('yaoshi_intro_v1', '1'); } catch (e) {}
-      window.__gl = []; window.__lt = [];
+      window.__gl = []; window.__lt = []; window.__fd = new Map();
       try { new PerformanceObserver((l) => { for (const e of l.getEntries()) window.__lt.push({ s: e.startTime, d: e.duration }); }).observe({ type: 'longtask', buffered: true }); } catch (e) {}
       for (const C of [window.WebGL2RenderingContext, window.WebGLRenderingContext]) {
         if (!C) continue;
@@ -51,6 +53,13 @@ test('第一次出手：沒有平行編譯擴充功能、真人節奏入局，�
         for (const fn of ['getProgramInfoLog', 'getProgramParameter']) {
           const o = C.prototype[fn];
           C.prototype[fn] = function (prog) { const a = performance.now(); const r = o.apply(this, arguments); window.__gl.push({ fn, t: a, d: performance.now() - a, prog }); return r; };
+        }
+        // 每個程式第一次真的送出繪製的時間（r3 F3）
+        const up = C.prototype.useProgram;
+        C.prototype.useProgram = function (p) { this.__ysProg = p; return up.apply(this, arguments); };
+        for (const fn of ['drawElements', 'drawArrays', 'drawElementsInstanced', 'drawArraysInstanced', 'drawRangeElements']) {
+          const o = C.prototype[fn]; if (!o) continue;
+          C.prototype[fn] = function () { const p = this.__ysProg; if (p && !window.__fd.has(p)) window.__fd.set(p, performance.now()); return o.apply(this, arguments); };
         }
       }
     });
@@ -81,10 +90,15 @@ test('第一次出手：沒有平行編譯擴充功能、真人節奏入局，�
       const handProgs = new Set(R.info.programs.filter((p) => p.name === H).map((p) => p.program));
       const hand = window.__gl.filter((x) => handProgs.has(x.prog));
       const post = hand.filter((x) => x.t >= P);
-      const first = post.length ? Math.min(...post.map((x) => x.t)) : null;
-      // 第一次畫手所在的那一幀：包含第一次手程式查詢的長任務（沒有＝那幀不到 50ms）（Codex yaoshi-v0.66.2-r1 F6）
+      const firstQuery = post.length ? Math.min(...post.map((x) => x.t)) : null;
+      // 第一次畫手＝手的程式第一次真的送出繪製（r3 F3；舊版用第一次程式查詢 firstQuery 代替）
+      const draws = [...handProgs].map((p) => window.__fd.get(p)).filter((x) => x !== undefined);
+      const drawPost = draws.filter((x) => x >= P);
+      const first = drawPost.length ? Math.min(...drawPost) : null;
+      // 第一次畫手所在的那一幀：包含第一次畫手的長任務（沒有＝那幀不到 50ms）（Codex yaoshi-v0.66.2-r1 F6）
       const frame = first === null ? null : window.__lt.filter((e) => e.s <= first && first <= e.s + e.d).reduce((m, e) => Math.max(m, e.d), 0);
-      return { progs: handProgs.size, pre: hand.filter((x) => x.t < P).length, post: post.length, maxPost: Math.round(Math.max(0, ...post.map((x) => x.d))),
+      return { progs: handProgs.size, pre: hand.filter((x) => x.t < P).length, post: post.length, drawPre: draws.filter((x) => x < P).length, drawPost: drawPost.length,
+        queryToDraw: first === null || firstQuery === null ? null : Math.round(first - firstQuery), maxPost: Math.round(Math.max(0, ...post.map((x) => x.d))),
         sumPost: Math.round(post.reduce((a, x) => a + x.d, 0)), frame: frame === null ? null : Math.round(frame), pickToFirst: first === null ? null : Math.round(first - P), ltObserved: window.__lt.length,
         // 點下去到第一次畫手之間（含第一次畫手那一刻）最長的主執行緒卡頓（Codex yaoshi-v0.66.2-r2 F5）
         preFirst: first === null ? null : Math.round(window.__lt.filter((e) => e.s <= first && e.s + e.d >= P).reduce((m, e) => Math.max(m, e.d), 0)) };
@@ -92,6 +106,7 @@ test('第一次出手：沒有平行編譯擴充功能、真人節奏入局，�
     // 活性：手的程式在第一次出手之後才第一次被拿來畫（three 第一次使用時才查 getProgramInfoLog；查過就不再查）
     assert.ok(r.progs > 0, '出價頁後找不到手的程式，第一次出手沒畫手');
     assert.ok(r.post > 0 && r.pre === 0, `手的程式第一次使用不在出手之後（出手前 ${r.pre} 次、出手後 ${r.post} 次），沒量到第一次出手`);
+    assert.ok(r.drawPost > 0 && r.drawPre === 0, `手的程式第一次送出繪製不在出手之後（出手前 ${r.drawPre} 個、出手後 ${r.drawPost} 個程式），沒量到第一次畫手`);
     console.log('[FIRSTTHROW] ' + JSON.stringify(r));
     assert.ok(r.maxPost <= 300, `第一次出手時手的程式同步等了 ${r.maxPost}ms（上限 300ms）`);
     assert.ok(r.ltObserved > 0, '瀏覽器沒回報任何長任務，量不到整幀卡頓');
