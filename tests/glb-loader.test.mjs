@@ -290,13 +290,20 @@ test('GLB 載入器：卡住重抓、解析另計、單調時鐘、托盤失敗�
         const slow = await page.evaluate(() => window.__slow);
         assert.ok(slow.at !== null && slow.done !== null, `沒行使到慢解析（at=${slow.at} done=${slow.done}）`);
         const slowAt = slow.at + off;
-        const files = S.log.map((r) => r.f);
         // 活性：慢解析開始後第 4–20 秒線路上沒有任何資料（舊寫法在第 20 秒時看到「這件 20 秒、整條線路 15 秒以上沒資料」就重抓）
         const busy = S.log.flatMap((r) => r.chunks.filter((c) => c > slowAt + 4000 && c < slowAt + 20000).map((c) => r.f + '@' + c));
         assert.deepEqual(busy, [], `慢解析期間線路沒安靜下來（慢解析從 ${Math.round(slowAt)}ms 開始），沒行使到「線路安靜」`);
+        // 取樣點（製作人 2026-11-22 同意，見驗收檔「執行中的修訂」）：明夜批次要等慢解析結束才開始，負載重時檢查那一刻明夜還在下載。
+        // 等已發出的下載都結束、解析次數追上下載完的檔數（最多 15 秒）再比；等號不放寬——重複解析只會讓次數更多。
+        const completed = () => new Set(S.log.filter((r) => r.end !== null).map((r) => r.f)).size;
+        const settled = await until(async () => S.log.every((r) => r.end !== null || r.aborted !== null)
+          && (await page.evaluate(() => window.__slow.n)) >= completed(), 15000, 250);
+        const n = await page.evaluate(() => window.__slow.n);
+        const files = S.log.map((r) => r.f);
         const dup = [...new Set(files.filter((f, i) => files.indexOf(f) !== i))];
         assert.deepEqual(dup, [], `解析拖著時被重抓：${dup.join(',')}（${S.log.filter((r) => dup.includes(r.f)).map((r) => r.f + r.q + '@' + r.t).join(' ')}）`);
-        assert.equal(slow.n, new Set(files).size, `解析了 ${slow.n} 次，但只下載了 ${new Set(files).size} 個檔（同一檔解析不只一次）`);
+        assert.ok(settled, `15 秒內下載沒全部結束或解析沒追上（解析 ${n} 次、下載完 ${completed()} 個檔、未結束 ${S.log.filter((r) => r.end === null && r.aborted === null).map((r) => r.f).join(',')}）`);
+        assert.equal(n, completed(), `解析了 ${n} 次，但下載完 ${completed()} 個檔（同一檔解析不只一次）`);
         assert.deepEqual(errs, []);
       } finally { await ctx.close(); }
     });
