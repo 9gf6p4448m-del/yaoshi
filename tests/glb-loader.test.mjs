@@ -23,7 +23,8 @@
 //   W 加嚴（r2 F2）：第 2–4 次預載派發當下，不得有人對 bell 的共用下載承諾掛 then（catch／finally／Promise.all 也經過 then）。
 //   v0.66.3-r3 後（驗收 docs/acceptance/2026-11-23-loader-tests.md）：
 //   W 再加嚴（r3 F2）：第 2 次預載派發前到 45 秒放行後，整段都數 bell 共用下載承諾被讀 constructor 的次數（then／catch／finally／Promise.all／race／await
-//   每次都要讀，延到微任務或計時器才掛的也數得到）；W2（r3 F3）：明夜批次啟動後換世代 → 舊明夜批次的等待者要解除。
+//   每次都要讀，延到微任務或計時器才掛的也數得到）；W2（r3 F3）：明夜批次啟動後換世代 → 舊明夜批次的等待者要解除、
+//   明夜路徑也不得對共用承諾掛回呼、作廢的批次不得替舊明夜開新下載。
 //   送 r3 前預審（fresh agent 模擬的 M′）：K 六件原請求佔滿六條連線（這件收過本體後停住、約第 35 秒恢復，另五件斷續有資料），這件的重抓只能排隊、
 //   16 秒後才會回 404 → 名額不是全被停住的請求佔著（別件還在傳、遲早讓出），不得中止會恢復的原下載，那格要出現。
 // 時間一律用伺服器端（Node）的時鐘量，頁內校時影響不到量測。
@@ -180,6 +181,29 @@ const cf = (page, fn, ...args) => page.evaluate(async ({ fn, args }) => {
   if (typeof m[fn] !== 'function') throw new Error('creature-figures 沒有 ' + fn);
   return m[fn](...args);
 }, { fn, args });
+/** 數共用下載承諾被掛了幾次回呼（v0.66.3-r3 F2）：在承諾上放自有的 constructor 存取器——then／catch／finally／Promise.all／race／await
+ *  每次都要讀它，延到微任務或計時器才掛的也數得到。 */
+const watchShared = (page, url) => page.evaluate(async (u) => {
+  const s = [...document.scripts].find((x) => /\/js\/renderer\.js(\?|$)/.test(x.src));
+  const m = await import(new URL('creature-figures.js' + new URL(s.src).search, s.src).href);
+  const p = typeof m.glbShared === 'function' ? m.glbShared(u) : null;
+  if (!p) return false;
+  const sc = window.__subCnt = { p, n: 0, at: [] };
+  Object.defineProperty(p, 'constructor', { configurable: true, get() { sc.n++; if (sc.at.length < 3) sc.at.push(String(new Error().stack).split('\n').slice(2, 5).map((x) => x.trim()).join(' < ')); return Promise; } });
+  return true;
+}, url);
+/** 收次數、做正對照（延到微任務才掛的 then、await 各要數到 1 次），再拆掉計數。 */
+const readShared = (page) => page.evaluate(async () => {
+  const c = window.__subCnt; if (!c) return null;
+  const turn = () => new Promise((r) => setTimeout(r, 100));
+  const n = c.n, at = c.at.slice();
+  queueMicrotask(() => { c.p.then(() => {}, () => {}); }); await turn();
+  const ctlThen = c.n - n;
+  (async () => { try { await c.p; } catch (e) {} })(); await turn();
+  const ctlAwait = c.n - n - ctlThen;
+  delete c.p.constructor; window.__subCnt = null;
+  return { n, at, ctlThen, ctlAwait };
+});
 /** 點過教學／事件頁，直到頁內 window.__pm（pushMarket3d 的頁內時間）出現 since 之後的一筆；回那一筆。 */
 async function toMarketSince(page, since) {
   for (let i = 0; i < 2000; i++) {
@@ -656,15 +680,11 @@ test('GLB 載入器：卡住重抓、解析另計、單調時鐘、托盤失敗�
           const m = await import(new URL('creature-figures.js' + new URL(s.src).search, s.src).href);
           const p = typeof m.glbShared === 'function' ? m.glbShared(u) : null;
           const c = window.__thenCnt = { on: false, all: 0, shared: 0 };
-          // r3 F2：自有的 constructor 存取器——對 p 的 then／catch／finally／Promise.all／race／await 都要讀它，晚一點才掛的也躲不掉
-          if (p) {
-            const sc = window.__subCnt = { p, n: 0, at: [] };
-            Object.defineProperty(p, 'constructor', { configurable: true, get() { sc.n++; if (sc.at.length < 3) sc.at.push(String(new Error().stack).split('\n').slice(2, 5).map((x) => x.trim()).join(' < ')); return Promise; } });
-          }
           const orig = window.__thenOrig = Promise.prototype.then;
           Promise.prototype.then = function (...a) { if (c.on) { c.all++; if (p && this === p) c.shared++; } return orig.apply(this, a); };
           return !!p;
         }, url);
+        const hasSub = await watchShared(page, url); // r3 F2：第 2 次派發前開始數，數到 45 秒放行後
         for (let i = 1; i < 4; i++) { await fire(); await sleep(1000); }
         const tc = await page.evaluate(() => { Promise.prototype.then = window.__thenOrig; const c = window.__thenCnt; window.__thenCnt = null; return c; });
         const lastAt = S.now();
@@ -675,19 +695,8 @@ test('GLB 載入器：卡住重抓、解析另計、單調時鐘、托盤失敗�
         assert.ok(tc.all > 0, `第 2–4 次預載派發當下沒有任何 then 呼叫（${JSON.stringify(tc)}），計數沒行使到`);
         assert.equal(tc.shared, 0, `第 2–4 次預載派發當下對 bell 的共用下載承諾掛了 ${tc.shared} 次 then（取消後這些回呼拆不掉，會隨換夜累積）`);
         const w0 = await untilBy(S, async () => ((await cf(page, 'glbWaiters', url)) === 0 ? true : null), lastAt + 50000, 500);
-        // r3 F2：第 2 次派發前到這裡（含 45 秒放行）有沒有人掛上共用承諾；正對照＝延到微任務才掛的 then、await 各要數到 1 次
-        const sub = await page.evaluate(async () => {
-          const c = window.__subCnt; if (!c) return null;
-          const turn = () => new Promise((r) => setTimeout(r, 100));
-          const n = c.n, at = c.at.slice();
-          queueMicrotask(() => { c.p.then(() => {}, () => {}); }); await turn();
-          const ctlThen = c.n - n;
-          (async () => { try { await c.p; } catch (e) {} })(); await turn();
-          const ctlAwait = c.n - n - ctlThen;
-          delete c.p.constructor; window.__subCnt = null;
-          return { n, at, ctlThen, ctlAwait };
-        });
-        assert.ok(sub, 'bell 的共用下載承諾沒裝上計數');
+        const sub = await readShared(page); // r3 F2：到這裡（含 45 秒放行）為止
+        assert.ok(hasSub && sub, 'bell 的共用下載承諾沒裝上計數');
         assert.equal(sub.n, 0, `第 2 次預載派發前到放行後，bell 的共用下載承諾被掛了 ${sub.n} 次回呼（取消後拆不掉，會隨換夜累積）：${sub.at.join(' ｜ ')}`);
         assert.deepEqual([sub.ctlThen, sub.ctlAwait], [1, 1], `正對照沒數到（微任務後的 then、await 應各 1 次）：${JSON.stringify(sub)}`);
         const bells = S.log.filter((r) => r.f === 'bell.glb');
@@ -713,6 +722,7 @@ test('GLB 載入器：卡住重抓、解析另計、單調時鐘、托盤失敗�
         const g1 = await started();
         const chairEnd = (S.log.find((r) => r.f === 'chair.glb') || {}).end;
         const w1 = await waiters();
+        const hasSub = await watchShared(page, url); // 第 2–5 世代不得再對 bell 的共用承諾掛回呼（明夜路徑也算）
         // 第 2 世代：只有今夜 shield、沒有明夜
         await fire(['shield'], []); await sleep(1000);
         const w2 = await waiters();
@@ -720,12 +730,15 @@ test('GLB 載入器：卡住重抓、解析另計、單調時鐘、托盤失敗�
         await fire(['chair'], ['bell']);
         const g3 = await started(); await sleep(500);
         const w3 = await waiters();
-        // 第 4 世代（真的換夜：昨夜的明夜變今夜）：舊明夜解除，只剩今夜的 1 個
-        await fire(['bell'], ['shield']); await sleep(1000);
+        // 第 4 世代（真的換夜：昨夜的明夜變今夜）：舊明夜解除，只剩今夜的 1 個。只看數量；「舊的沒解除、新的沒掛」這種抵銷由第 5 世代的 0 擋。
+        // 明夜 flag 是整段沒人要過的模型：今夜 bell 下載不完，換世代後這批作廢，flag 不得被下載
+        await fire(['bell'], ['flag']); await sleep(1000);
         const w4 = await waiters();
         // 第 5 世代：不再需要 bell
         await fire(['chair'], []); await sleep(1000);
         const w5 = await waiters();
+        const sub = await readShared(page);
+        const flags = S.log.filter((r) => r.f === 'flag.glb');
         const bells = S.log.filter((r) => r.f === 'bell.glb');
         // 活性（啟動）：明夜批次真的啟動過，而且是今夜 chair 下載完之後才啟動
         assert.ok(g1, '第 1 世代的明夜批次 15 秒內沒在 bell 上掛等待者，沒行使到');
@@ -736,6 +749,10 @@ test('GLB 載入器：卡住重抓、解析另計、單調時鐘、托盤失敗�
         assert.equal(w3, 1, `第 3 世代後 bell 上掛著 ${w3} 個等待者（只該有自己的 1 個）`);
         assert.equal(w4, 1, `換夜後 bell 上掛著 ${w4} 個等待者（舊明夜要解除，只該有今夜的 1 個）`);
         assert.equal(w5, 0, `不再需要 bell 之後還掛著 ${w5} 個等待者`);
+        assert.ok(hasSub && sub, 'bell 的共用下載承諾沒裝上計數');
+        assert.equal(sub.n, 0, `第 2–5 世代對 bell 的共用下載承諾掛了 ${sub.n} 次回呼（取消後拆不掉，會隨換夜累積）：${sub.at.join(' ｜ ')}`);
+        assert.deepEqual([sub.ctlThen, sub.ctlAwait], [1, 1], `正對照沒數到（微任務後的 then、await 應各 1 次）：${JSON.stringify(sub)}`);
+        assert.equal(flags.length, 0, `換世代後，舊批次還替自己的明夜開了新下載：flag.glb 被請求 ${flags.length} 次`);
         // 活性（共用下載照舊）：整段只有一份請求、沒下載完、沒被中止
         assert.equal(bells.length, 1, `bell 被請求 ${bells.length} 次（應只有一份共用下載）：${bells.map((r) => (r.q || '-') + '@' + r.t).join(' ')}`);
         assert.ok(bells[0].end === null && bells[0].aborted === null, 'bell 已下載完或被中止，沒行使到「共用下載還在進行」');
