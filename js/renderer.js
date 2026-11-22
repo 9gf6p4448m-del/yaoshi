@@ -274,18 +274,27 @@ function init() {
   /* 世代號（Codex yaoshi-v0.66.1-r1 F1）：同一分頁重開新局（或換夜）時，上一份預載的「明夜」批次還沒開始的就作廢——
      不然舊局今夜抓完後才啟動的舊局明夜，會跟新局眼前要用的模型搶頻寬。已經在抓的請求無法取消，留在共用快取裡。
      prefetchGlb 自己會處理「卡住」（判卡住開始重抓就放手，F3）。今夜有一件一直斷斷續續有資料、不算卡住也下載不完時，
-     明夜最多等 PREFETCH_NEXT_MAX_MS 就開始（v0.66.2，Codex yaoshi-v0.66.1-r3 F1：明夜批次要有獨立且有上限的等待）。 */
+     明夜最多等 PREFETCH_NEXT_MAX_MS 就開始（v0.66.2，Codex yaoshi-v0.66.1-r3 F1：明夜批次要有獨立且有上限的等待）。
+     不再等的就解除訂閱（v0.66.3，Codex yaoshi-v0.66.2-r3 F2）：每批今夜、明夜各一個中止器；換世代時中止上一批兩個，今夜等到上限時中止今夜那個——
+     舊批次不再掛著等待者（共用下載本身照舊，別的呼叫端照用）。 */
   const PREFETCH_NEXT_MAX_MS = 45000;
-  let prefetchGen = 0;
+  const abortCtl = () => (typeof AbortController === 'function' ? new AbortController() : null);
+  let prefetchBatch = null;
   const onPrefetch = (d) => {
     if (!PREFETCH_ON) return;
-    const gen = ++prefetchGen;
+    if (prefetchBatch) { if (prefetchBatch.now) prefetchBatch.now.abort(); if (prefetchBatch.next) prefetchBatch.next.abort(); }
+    const batch = prefetchBatch = { now: abortCtl(), next: abortCtl() };
+    const sig = (c) => (c ? c.signal : undefined);
     const urls = (a) => (Array.isArray(a) ? a : []).filter(Boolean).map((k) => creatureGlbUrl(k));
     const now = urls(d.now), next = urls(d.next);
     let capTimer = null;
     const cap = new Promise((r) => { capTimer = setTimeout(r, PREFETCH_NEXT_MAX_MS); });
-    Promise.race([Promise.all(now.map((u) => prefetchGlb(u))), cap])
-      .then(() => { clearTimeout(capTimer); if (gen === prefetchGen) return Promise.all(next.map((u) => prefetchGlb(u))); })
+    Promise.race([Promise.all(now.map((u) => prefetchGlb(u, sig(batch.now)))), cap])
+      .then(() => {
+        clearTimeout(capTimer);
+        if (batch.now) batch.now.abort(); // 今夜等完或到上限：還掛著的今夜等待者一律解除
+        if (batch === prefetchBatch) return Promise.all(next.map((u) => prefetchGlb(u, sig(batch.next))));
+      })
       .catch(() => {});
   };
   document.addEventListener('ys:prefetch', (e) => onPrefetch((e && e.detail) || {}));

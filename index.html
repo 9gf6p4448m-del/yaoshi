@@ -3850,7 +3850,8 @@ function pushMarket3d(){ fx3d("ys:market",{items:market3dItems(),seats:market3dS
 /* ===== 開局載入畫面（v0.59.10）=====
    新局第一次需要 3D 桌面（第一次 pushMarket3d）起算：1000ms 後 tray 仍未全就緒才露出 #trayLoad「請神入座中…」（快取命中不閃），
    tray 就緒（readyCount>=本夜件數）立即移除；上限 12 秒也移除（之後桌面晚到仍靠 renderer 補播補上，遊戲不等它）。
-   一個頁面生命週期只跑一次（之後每夜換件走既有路，不再顯示）；?table3d=0／?tray3d=0 不顯示。
+   每局只跑一次（之後每夜換件走既有路，不再顯示）；同頁開新局時 newGame 呼叫 trayLoadReset 重設，新局從自己的第一次市集事件起算
+   （v0.66.3，Codex yaoshi-v0.66.2-r3 F4；局末一律整頁重載，玩家實際體驗不變）。?table3d=0／?tray3d=0 不顯示。
    renderer 尚未載入時沒有事件可聽，所以每 100ms 輪詢 window.__yaoshi3d.tray（只讀）。進度＝readyCount／本夜件數；tray 未定義時是不確定進度。 */
 const TRAYLOAD={SHOW_MS:1000,MAX_MS:12000,state:"idle",el:null,showT:0,maxT:0,poll:0};
 function trayReady3d(){ try{ const Y=window.__yaoshi3d, n=S&&S.market?S.market.length:0; return !!(Y&&Y.tray&&n>0&&Y.tray.readyCount()>=n); }catch(e){ return false; } }
@@ -3876,6 +3877,7 @@ function trayLoadEnd(){
   clearTimeout(L.showT); clearTimeout(L.maxT); clearInterval(L.poll);
   try{ if(L.el&&L.el.parentNode) L.el.parentNode.removeChild(L.el); }catch(e){} L.el=null;
 }
+function trayLoadReset(){ trayLoadEnd(); TRAYLOAD.state="idle"; } /* 同頁新局：清掉上一局的計時與遮罩，回到等第一次市集事件 */
 function trayLoadWatch(){
   const L=TRAYLOAD; if(L.state!=="idle"||typeof TABLE3D==="undefined"||!TABLE3D||!TRAY3D) return;
   L.state="wait";
@@ -4378,6 +4380,7 @@ function makeState(mode,seed,picks,privateDestinyDraws,destinyEffectMode="origin
   return S;
 }
 function newGame(mode,seed,picks,opts){
+  trayLoadReset();
   TAB_SEEN=new Set(); APPR_HINT_DONE=false; apprHintRemove();
   YB_COLLAPSED=false; CHAIN_SEEN.clear(); WISHCHIP_SEEN.clear(); PUBLIC_REVEAL=null; PRIVATE_PHASE="none"; REVEAL_ANIMATING=false; NW_OPEN_SAID=false; NW_BUBBLE=null; bubClear();
   try{ if(opts&&opts.chapter!=null) makeState(mode,seed,picks,undefined,undefined,undefined,opts); else makeState(mode,seed,picks);}catch(e){
