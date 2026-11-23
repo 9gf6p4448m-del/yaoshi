@@ -1,0 +1,96 @@
+{
+  "review_id": "yaoshi-v0.66.5-r1",
+  "verdict": "PASS",
+  "summary": "review-id: yaoshi-v0.66.5-r1\n本版未發現 CRITICAL 或 HIGH。一般座標下，關閉指定視窗後的 click 與托盤 pointerdown 共用 500 毫秒、100 CSS px 的守衛。審查發現左上角落點會誤走全域守衛、兩處驗收缺口，以及既有的 3D 層直接讀取賽局狀態。唯讀執行首頁與版號測試，3 項通過，兩支變更測試的語法檢查通過，同一快照的固定種子無介面追蹤可重複。本輪未執行瀏覽器、跨版本追蹤或 iPhone 實機驗證。",
+  "counts": {
+    "critical": 0,
+    "high": 0,
+    "medium": 3,
+    "low": 1
+  },
+  "findings": [
+    {
+      "id": "F1",
+      "severity": "MEDIUM",
+      "file": "tests/ux-0665.test.mjs",
+      "line": 196,
+      "title": "背景連點測試可能在第二下根本打不到托盤時仍通過",
+      "detail": "（推測）V2b 只確認關窗前命中背景及同座標的 3D 幾何有托盤格，未確認關窗後 `#tray` 實際會收到 pointerdown。驗收檔已記載 667×375 的選點關窗後命中 `button.sys-zuling`。V2c 也以幾何命中選點，具有相同的前提缺口。",
+      "failure_scenario": "在 667×375 讓托盤守衛失效，跑 V2b 並沿用驗收檔記載的 (572,169)。第二下由其他按鈕接收，盯上欄位仍空，測試照樣通過。這一格的綠燈無法支持背景關窗後的托盤防誤觸，也未驗證半徑內不同落點。",
+      "fix_hint": "分別驗證第一下命中背景、第二下關窗後會命中 `#tray`，並在窄尺寸用半徑內不同落點驗證托盤守衛。"
+    },
+    {
+      "id": "F2",
+      "severity": "MEDIUM",
+      "file": "tests/ux-0665.test.mjs",
+      "line": 117,
+      "title": "第五種視窗只有標記計數，沒有關窗行為驗收",
+      "detail": "（推測）V1、V2 的開窗清單只有四種，V7 則把 `showBag` 內的三個標記一起計數。逐件開標期間的「逐件開標中」視窗沒有功能測試，既有突變也沒有單獨改壞這個分支的關窗行為。",
+      "failure_scenario": "逐件開標中仍保留 `data-viewonly`，但把該分支的關閉鈕誤接成不關窗，或使關窗誤走全域守衛。V7 的標記數量不變，V1 至 V6 也沒有進入該分支驗證結果。",
+      "fix_hint": "在開標演出期間走一次真實開窗與關窗，分別驗證半徑內攔截和半徑外放行。"
+    },
+    {
+      "id": "F3",
+      "severity": "MEDIUM",
+      "file": "js/duel-figures.js",
+      "line": 993,
+      "title": "對決 3D 層直接讀取賽局玩家物件",
+      "detail": "違反本輪指定的事件邊界。對決人形直接取 `window.__yaoshi.S.players`，再按席位查玩家。`js/bridge-players.js:148` 也有同類依賴。這些讀取已存在於快照，所附 diff 沒有改到兩模組，也未發現兩處回寫賽局狀態。",
+      "failure_scenario": "以事件重播驅動 renderer，派出相同的對決事件，但省略依契約不該需要的 `window.__yaoshi.S`。對決人形的玩家查詢會取得 `null`，事件本身無法重建相同的玩家呈現資料。",
+      "fix_hint": "由 `index.html` 把對決和席位所需的呈現資料放進事件，讓 3D 模組從事件維護自己的快照。"
+    },
+    {
+      "id": "F4",
+      "severity": "LOW",
+      "file": "index.html",
+      "line": 3267,
+      "title": "左上角原點的滑鼠關窗會誤啟動全域守衛",
+      "detail": "（推測）`byPoint` 把 `(0,0)` 一律當成無座標輸入。用快照的守衛函式和唯讀事件替身重現，原點滑鼠事件關窗後會吞掉 150 毫秒後的遠處點擊，以 `(1,0)` 關窗則會放行。實際瀏覽器是否會在該像素派送這組座標未驗證。",
+      "failure_scenario": "在視窗背景佔滿頁面的桌機上，若左上角背景點擊以 `clientX=0`、`clientY=0` 派送，點它關掉別人的袋子，150 毫秒後點 100 像素外的座位，第二下仍被全域守衛吞掉。",
+      "fix_hint": "用可辨識的指標輸入訊號區分原點點擊與鍵盤啟動，並保留無座標鍵盤操作的全域保護。"
+    }
+  ],
+  "prior_findings": [],
+  "coverage": [
+    {
+      "item": "engine-determinism",
+      "checked": true,
+      "note": "新增分支只讀 DOM 與事件座標，寫入守衛本身的暫態欄位，沒有新增賽局欄位寫入或玩法亂數呼叫。無介面載入器用空 DOM 替身跳過監聽器初始化，快照內種子 1、2、3 的兩次追蹤一致。缺少基準檔，跨版本逐位元組相等未獨立驗證。"
+    },
+    {
+      "item": "layer-contract",
+      "checked": true,
+      "note": "靜態核對 `fx3d` 日誌、renderer 同步註冊與補播。早到時走即時監聽，晚到時按序直接呼叫處理器，沒有重新派送 DOM 事件。未實跑載入先後。另確認快照有兩處既有的 3D 玩家狀態直讀，見 F3。"
+    },
+    {
+      "item": "async-loading",
+      "checked": true,
+      "note": "靜態檢查 renderer 預載、共用 GLB 快取、換夜取消等待及換格後釋放。新守衛只保留一筆落點，沒有增加下載或跨夜佇列。實際重複下載、載入競態及記憶體用量未量測。"
+    },
+    {
+      "item": "failure-paths",
+      "checked": true,
+      "note": "靜態核對托盤未就緒時的命中退路、載入提示逾時，以及 `?tray3d=0`、`?table3d=0` 不掛托盤輸入的路徑。新守衛無需等待 renderer。404、解析失敗及 WebGL context lost 未實跑。"
+    },
+    {
+      "item": "mobile-safari",
+      "checked": true,
+      "note": "只做靜態核對。新守衛未依賴 idle callback、GPU 或網路，以事件時間戳處理 click 與托盤 pointerdown。Chromium 觸控驗收紀錄無法驗證 iPhone 的事件合成、背景分頁恢復、慢網及 Apple GPU 行為。"
+    },
+    {
+      "item": "version-and-cache",
+      "checked": true,
+      "note": "核對 VERSION、VERSION_NOTE、RELEASE_VERSION、兩份 CSS 查詢鍵及測試釘選皆為 0.66.5，renderer 與音訊入口沿用發布版號。唯讀執行 `ui-hierarchy`，3 項通過。部署端快取未驗。"
+    },
+    {
+      "item": "tests-discriminating",
+      "checked": true,
+      "note": "依刪除行可推得舊版會吞掉 V1 與 V3 的遠處點擊，V7 也會因沒有標記而紅。測試掛鉤保留原函式行為，探針突變定位已對齊現行簽名。核對到 V2b 的命中前提及第五種視窗的行為缺口。瀏覽器矩陣與突變的紅綠依驗收檔記錄，未獨立重跑。"
+    },
+    {
+      "item": "scope",
+      "checked": true,
+      "note": "所附規則面 diff 未見截斷，產品改動落在守衛、五處標記和版號，另含驗收與探針修正。逐件開標時關窗後可立即點遠處的變動，已在凍結檔列為取捨。"
+    }
+  ]
+}
