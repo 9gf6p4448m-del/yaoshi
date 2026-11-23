@@ -789,7 +789,9 @@ const mutate = async () => {
   const m4 = cut('try{ audioWake(); }catch(_){}', 'M4 被吞那一下補叫 audioWake');
   /* M3：讓 sigAt 恆回不同字串 ⇒ 每一下點擊都被判成相位切換、整個畫面永遠在吸收
      ⇒ 正常的重複操作（C6 連按燒香）必須紅。守的是「偵測不得過度武裝」。 */
-  const SIG_LINE = 'let s=(el.id||"")+"|"';
+  /* 定位字串跟著程式碼搬家（v0.66.5 補）：sigOf 後來改成以「承載 onclick 的元素」b 為準（sigof-decoration 那一卷），
+     這裡還寫 el.id 就找不到、--mutate 整支丟例外。只改定位字串與 M5 的替換式（同樣用 b），突變的語意不變。 */
+  const SIG_LINE = 'let s=(b.id||"")+"|"';
   const m3src = src.slice();
   const j3 = m3src.findIndex((l) => l.includes(SIG_LINE));
   if (j3 < 0) throw new Error('找不到 sigAt 組簽名的那一行');
@@ -799,7 +801,8 @@ const mutate = async () => {
      其餘一字不動 ⇒ 「同一顆按鈕原地改語意」那一類又看不到 ⇒ D1／D2 必須紅。 */
   const m5src = src.slice();
   const j5 = m5src.findIndex((l) => l.includes(SIG_LINE));
-  m5src[j5] = '    let s=(el.id||"")+"|"+(a?(a.getAttribute("onclick")||""):"")+"|"+(el.className||"");\n';
+  if (j5 < 0) throw new Error('找不到 sigAt 組簽名的那一行（M5）');
+  m5src[j5] = '    let s=(b.id||"")+"|"+(a?(a.getAttribute("onclick")||""):"")+"|"+(b.className||"");\n';
   const j5b = m5src.findIndex((l) => l.includes('el.closest("#modal")'));
   if (j5b < 0) throw new Error('找不到 #modal 雜湊那一行');
   const gone5 = m5src[j5b].trim();
