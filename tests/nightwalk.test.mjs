@@ -14,6 +14,8 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const TARGET = process.env.NW_TARGET || path.join(ROOT, 'index.html');
 const COPY = JSON.parse(fs.readFileSync(path.join(ROOT, 'docs/experiments/2026-09-25-n1-nightwalk/copy-r1.json'), 'utf8'));
 const BASE_SHA = '3a0d971';
+// 3a0d971 之後改過名的拍品（v0.63.0 97c766aa）：#1 比拍品名時把基準版的舊名視為現名，其餘比對不動（製作人 2026-11-23 同意，DECISIONS 同日）
+const RENAMED = { 抓交替水符: '水鬼名冊' };
 
 const memStore = () => { const m = new Map(); const calls = []; return { m, calls, getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => { calls.push(k); m.set(k, String(v)); } }; };
 const load = (storage) => loadGame(TARGET, storage ? { storage } : {});
@@ -185,7 +187,7 @@ test('#1 常規局：S 不多欄位；座位與亂數流與 3a0d971 相同（see
       assert.ok(!('chapter' in G.S) && !('chainsOff' in G.S));
       assert.deepEqual(G.S.players.map((p) => [p.roleId, !!p.ai, p.name]), B.S.players.map((p) => [p.roleId, !!p.ai, p.name]));
       assert.deepEqual([G.S.rng(), G.S.rng(), G.S.rng()], [B.S.rng(), B.S.rng(), B.S.rng()], `seed ${seed} ${mode} 亂數流不同`);
-      assert.deepEqual(G.S.market.map((x) => x.n), B.S.market.map((x) => x.n));
+      assert.deepEqual(G.S.market.map((x) => x.n), B.S.market.map((x) => RENAMED[x.n] ?? x.n));
     }
   }
 });

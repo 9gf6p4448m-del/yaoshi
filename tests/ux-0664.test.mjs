@@ -249,6 +249,7 @@ for (const size of [[844, 390], [667, 375]]) {
       const on = await look();
       await shot(page, `m5-help-fps-${size[0]}`);
       assert.deepEqual([on.text, on.diag, on.inView, on.diagTopInView], ['隱藏效能資訊', true, true, true], '打開效能資訊後，鈕或數字不在眼前');
+      await page.waitForTimeout(700); // 同一點的鈕剛換字，遊戲的連點守衛會吞掉 500ms 內的第二下（沒改的產品也一樣），等過去再點
       await page.click('#fpsToggle');
       const off2 = await look();
       assert.deepEqual([off2.text, off2.diag, off2.inView], ['顯示效能資訊', false, true], '關掉效能資訊後，鈕不在眼前');
