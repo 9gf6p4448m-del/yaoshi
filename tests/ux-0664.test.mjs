@@ -1,9 +1,10 @@
 // v0.66.4 三項介面修正的實頁驗收（凍結檔 docs/acceptance/2026-11-23-v0.66.4.md）。
 //   M2：不是請神夜、今夜也沒有人真的燒到香 → 成交總覽的主鈕直接是「開戰」，一按就開打；其餘夜照舊先「🕯️ 請神」。
-//       判斷式 shrineHasNews() 另用 headless 對結算結果逐筆對照（同一個狀態：說「有」⇔ 結算真的有東西可看）。
+//       判斷式 shrineHasNews() 另用 headless 對結算結果逐筆對照（同一個狀態：說「有」⇔ 結算真的有東西可看；呼叫它不動狀態、不改設定、不耗亂數）。
+//       真滑鼠連按：「查看成交總覽 ▸」120ms 連按停在總覽；安靜夜「開戰」120ms 連按只結算一次。
 //   M5：規則頁第一節就是「🏮 目標」，音訊診斷與效能資訊鈕移到全部規則之後、關閉鈕之前；切換效能資訊後鈕還在眼前。
 //   M6：別人的袋子上那行公開戰力＝牌桌座位上同一串「N 隻・血 M」（舊規則的戰力數字只在 PAPERWAR_ON=false 時用）。
-// 基準對照：YAOSHI_RENDER_ROOT=<舊版樹> 對舊版跑同一份（a、M5、M6 應紅在行為斷言；b–g 舊版就綠）。
+// 基準對照：YAOSHI_RENDER_ROOT=<舊版樹> 對舊版跑同一份（a、j、M5、M6 應紅在行為斷言；b–g、i 舊版就綠）。
 // 瀏覽器規矩：一次只開一個 chromium；每個情境各開一頁。YAOSHI_SHOT_DIR=<目錄> 時另存截圖。
 import assert from 'node:assert/strict';
 import test, { before, after } from 'node:test';
@@ -81,6 +82,17 @@ async function driveTo(page, re, tag) {
 async function tapMain(page) {
   await page.waitForTimeout(700);
   await page.click('#mainbtn');
+}
+/* 真滑鼠在同一點連按兩下（先等守衛視窗過去）。落點取主鈕靠右：換字後鈕會變窄、靠右，中心點會落空。回傳第二下時手指下是不是主鈕。 */
+async function tapTwice(page, gap) {
+  await page.waitForTimeout(700);
+  const r = await page.locator('#mainbtn').boundingBox();
+  const x = r.x + r.width - 18, y = r.y + r.height / 2;
+  await page.mouse.click(x, y);
+  await page.waitForTimeout(gap);
+  const hit = await page.evaluate(([px, py]) => { const e = document.elementFromPoint(px, py); return !!e && !!e.closest('#mainbtn'); }, [x, y]);
+  await page.mouse.click(x, y);
+  return hit;
 }
 const STATE = () => ({ txt: document.getElementById('mainbtn').textContent, calls: window.__calls.slice(), shz: document.getElementById('shz')?.innerText || '',
   lives: S.players.map((p) => p.life), burn: window.__shrineOut ? window.__shrineOut.burn.map((b) => [b.pid, b.amt]) : null, round: S.round });
@@ -168,16 +180,51 @@ test('M2-g 停在成交總覽的時候狀態變了（有人的香進來了）：
   } finally { await close(); }
 });
 
-test('M2-h shrineHasNews() 與結算結果逐筆一致（headless：整局走訪＋隨機狀態）', () => {
+test('M2-i 「查看成交總覽 ▸」連按兩下（120ms）：停在總覽，不會直接開打', async () => {
+  const { page, errors, close } = await open();
+  try {
+    await page.evaluate(START, { seed: 7, prep: { noAi: true } });
+    await driveTo(page, /蓋牌/, '出價畫面');
+    await driveTo(page, /查看成交總覽/, '最後一件');
+    assert.equal(await tapTwice(page, 120), true, '第二下沒落在主鈕上（治具沒打到危險的點）');
+    await page.waitForTimeout(1500);
+    const s = await page.evaluate(STATE);
+    assert.deepEqual(s.calls, [], '連按把總覽跳掉、直接結算了');
+    assert.match(s.txt, /^(🕯️ 請神|開戰)$/, `沒有停在成交總覽（主鈕「${s.txt}」）`);
+    assert.deepEqual(errors, []);
+  } finally { await close(); }
+});
+
+test('M2-j 安靜夜的「開戰」連按兩下（120ms）：香火段與開戰各只結算一次', async () => {
+  const { page, errors, close } = await open();
+  try {
+    assert.equal(await toSummary(page, { prep: { noAi: true } }), '開戰', '安靜夜的主鈕不是「開戰」');
+    await tapTwice(page, 120);
+    await page.waitForFunction(() => window.__calls.includes('resolveBattles'), null, { timeout: 8000 });
+    await page.waitForTimeout(800);
+    assert.deepEqual((await page.evaluate(STATE)).calls, ['resolveShrines', 'resolveBattles'], '連按讓同一夜結算了兩次');
+    await driveTo(page, /進入下一夜|看最終結果/, '夜末');
+    assert.deepEqual((await page.evaluate(STATE)).calls, ['resolveShrines', 'resolveBattles'], '同一夜結算了第二次');
+    assert.deepEqual(errors, []);
+  } finally { await close(); }
+});
+
+test('M2-h shrineHasNews() 與結算結果逐筆一致、不動狀態、不耗亂數（headless：隨機狀態＋整局走訪）', () => {
   const src = fs.readFileSync(path.join(SRV_ROOT, 'index.html'), 'utf8');
   const G = loadGame(null, { sourceText: src });
   assert.equal(typeof G.shrineHasNews, 'function', 'shrineHasNews 沒有出口');
   const news = (o) => !!(o && (o.burn.length || o.taken.length || o.dawn.length || o.skip || o.pending));
   let yes = 0, no = 0;
   const check = (tag) => {
-    const before_ = JSON.stringify(G.S);
+    const before_ = JSON.stringify(G.S), cfg = JSON.stringify(G.CFG), o1 = G.S.rng, o2 = G.S.rngUi;
+    let draws = 0;
+    G.S.rng = () => { draws++; return o1(); };
+    if (o2) G.S.rngUi = () => { draws++; return o2(); };
     const said = G.shrineHasNews();
+    G.S.rng = o1; if (o2) G.S.rngUi = o2;
+    assert.equal(draws, 0, `${tag}：shrineHasNews 耗了 ${draws} 次亂數`);
     assert.equal(JSON.stringify(G.S), before_, `${tag}：shrineHasNews 動到了狀態`);
+    assert.equal(JSON.stringify(G.CFG), cfg, `${tag}：shrineHasNews 改了設定`);
     const real = news(G.resolveShrines());
     assert.equal(said, real, `${tag}：說「${said}」但結算是「${real}」`);
     if (real) yes++; else no++;
@@ -208,6 +255,17 @@ test('M2-h shrineHasNews() 與結算結果逐筆一致（headless：整局走訪
   console.log('M2-h 隨機狀態 有／沒有東西可看：', yes, no, JSON.stringify(shape));
   assert.ok(yes >= 300 && no >= 300, `兩種都要走到夠多次：${yes}／${no}`);
   assert.equal(Object.keys(shape).length, 8, `八種組合要都走到：${JSON.stringify(shape)}`);
+  /* 整局走訪：在真的結算入口前先問一次，40 局每夜都要對得上，而且整局紀錄與沒問時逐位元組相同 */
+  const A = 'function resolveShrines(opts){';
+  assert.equal(src.split(A).length, 2, '找不到結算入口（引擎結構變了要更新這支治具）');
+  globalThis.__m2walk = [];
+  const W = loadGame(null, { sourceText: src.replace(A, 'function resolveShrines(opts){ const said=(CFG.LEGEND_ON&&S.shrines)?shrineHasNews():null; const o=__rs0(opts); if(said!==null) globalThis.__m2walk.push([said,!!(o&&(o.burn.length||o.taken.length||o.dawn.length||o.skip||o.pending)),S.round]); return o; }\nfunction __rs0(opts){') });
+  const seeds = Array.from({ length: 40 }, (_, i) => i + 1);
+  assert.equal(JSON.stringify(W.trace(seeds)), JSON.stringify(G.trace(seeds)), '整局裡先問 shrineHasNews 會改變紀錄（耗亂數或動到狀態）');
+  const walk = globalThis.__m2walk, bad = walk.filter(([said, real]) => said !== real), yesN = walk.filter(([, r]) => r).length;
+  console.log('M2-h 整局走訪 夜數', walk.length, '有／沒有東西可看', yesN, walk.length - yesN);
+  assert.deepEqual(bad, [], '整局走訪對不上');
+  assert.ok(yesN >= 50 && walk.length - yesN >= 20, `整局走訪兩種都要走到：${yesN}／${walk.length - yesN}`);
 });
 
 /* ---------------- M5 ---------------- */
