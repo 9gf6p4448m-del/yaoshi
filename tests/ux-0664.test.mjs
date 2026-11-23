@@ -83,14 +83,17 @@ async function tapMain(page) {
   await page.waitForTimeout(700);
   await page.click('#mainbtn');
 }
-/* 真滑鼠在同一點連按兩下（先等守衛視窗過去）。落點取主鈕靠右：換字後鈕會變窄、靠右，中心點會落空。回傳第二下時手指下是不是主鈕。 */
+/* 真滑鼠在同一點連按兩下（先等守衛視窗過去）。落點取主鈕靠右：換字後鈕會變窄、靠右，中心點會落空。回傳第二下按下去之前，手指下是什麼。 */
 async function tapTwice(page, gap) {
   await page.waitForTimeout(700);
   const r = await page.locator('#mainbtn').boundingBox();
   const x = r.x + r.width - 18, y = r.y + r.height / 2;
   await page.mouse.click(x, y);
   await page.waitForTimeout(gap);
-  const hit = await page.evaluate(([px, py]) => { const e = document.elementFromPoint(px, py); return !!e && !!e.closest('#mainbtn'); }, [x, y]);
+  const hit = await page.evaluate(([px, py]) => {
+    const e = document.elementFromPoint(px, py), m = document.getElementById('mainbtn'), on = !!e && !!e.closest('#mainbtn');
+    return { onMain: on, live: on && !m.disabled, text: m.textContent, top: e ? (e.id || e.closest('[id]')?.id || e.tagName) : null };
+  }, [x, y]);
   await page.mouse.click(x, y);
   return hit;
 }
@@ -186,7 +189,9 @@ test('M2-i 「查看成交總覽 ▸」連按兩下（120ms）：停在總覽，
     await page.evaluate(START, { seed: 7, prep: { noAi: true } });
     await driveTo(page, /蓋牌/, '出價畫面');
     await driveTo(page, /查看成交總覽/, '最後一件');
-    assert.equal(await tapTwice(page, 120), true, '第二下沒落在主鈕上（治具沒打到危險的點）');
+    const hit = await tapTwice(page, 120);
+    console.log('M2-i 第二下落點', JSON.stringify(hit));
+    assert.ok(hit.live && /^(🕯️ 請神|開戰)$/.test(hit.text), `第二下沒落在已換字、可按的主鈕上（治具沒打到危險的點）：${JSON.stringify(hit)}`);
     await page.waitForTimeout(1500);
     const s = await page.evaluate(STATE);
     assert.deepEqual(s.calls, [], '連按把總覽跳掉、直接結算了');
@@ -195,14 +200,16 @@ test('M2-i 「查看成交總覽 ▸」連按兩下（120ms）：停在總覽，
   } finally { await close(); }
 });
 
-test('M2-j 安靜夜的「開戰」連按兩下（120ms）：香火段與開戰各只結算一次', async () => {
+test('M2-j 安靜夜的「開戰」連按兩下（120ms）：香火段與開戰各只結算一次，第二下打不到可按的主鈕', async () => {
   const { page, errors, close } = await open();
   try {
     assert.equal(await toSummary(page, { prep: { noAi: true } }), '開戰', '安靜夜的主鈕不是「開戰」');
-    await tapTwice(page, 120);
+    const hit = await tapTwice(page, 120);
+    console.log('M2-j 第二下落點', JSON.stringify(hit));
     await page.waitForFunction(() => window.__calls.includes('resolveBattles'), null, { timeout: 8000 });
     await page.waitForTimeout(800);
     assert.deepEqual((await page.evaluate(STATE)).calls, ['resolveShrines', 'resolveBattles'], '連按讓同一夜結算了兩次');
+    assert.equal(hit.live, false, `第二下打得到可按的主鈕：${JSON.stringify(hit)}`);
     await driveTo(page, /進入下一夜|看最終結果/, '夜末');
     assert.deepEqual((await page.evaluate(STATE)).calls, ['resolveShrines', 'resolveBattles'], '同一夜結算了第二次');
     assert.deepEqual(errors, []);
