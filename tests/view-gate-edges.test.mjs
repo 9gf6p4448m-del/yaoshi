@@ -175,13 +175,14 @@ for (const size of SIZES) for (const kind of ['盯上頁', '出價頁']) {
       assert.ok(r.calls.includes('closeModal()'), `${id}：量測沒成立——點背景那一下沒有關掉視窗（${JSON.stringify(r.calls)}）`);
       const dt = gapOk(r, 1, 2, id);
       assert.equal(topBefore, P2[2], `${id}：量測沒成立——關掉之後、第二下之前，那一點最上層不是托盤 ${P2[2]} 號格（${topBefore}）`);
-      const top = await trayTopAt(s.page, P2);
-      assert.equal(top, P2[2], `${id}：量測沒成立——關掉之後第二下那一點最上層不是托盤 ${P2[2]} 號格（${top}）`);
       const leaked = afterClose(r.calls).filter((c) => /^(pickMark|openSheet)\(/.test(c));
       console.log(`${id} ${size.join('×')}：背景 ${P1} → 托盤 ${P2}（${Math.round(d)}px）、相隔 ${dt}ms、之後的動作 ${JSON.stringify(leaked)}、盯上 ${r.mark0}、出價視窗 ${r.sheet}`);
       assert.deepEqual(leaked, [], `第二下落在半徑內的托盤 ${P2[2]} 號格，被收下了`);
       if (kind === '盯上頁') assert.equal(r.mark0, undefined, `第二下替玩家盯上了托盤 ${r.mark0} 號格`);
       else assert.equal(r.sheet, false, '第二下打開了出價視窗');
+      /* 事後量排在行為斷言之後（冷讀 H1）：第二下被收下時畫面會換（出價視窗蓋滿、心願浮層），事後量必然讀不到托盤 */
+      const top = await trayTopAt(s.page, P2);
+      assert.equal(top, P2[2], `${id}：量測沒成立——關掉之後第二下那一點最上層不是托盤 ${P2[2]} 號格（${top}）`);
       /* 活性：守衛過期（已等 700ms）後再點同一點，托盤要收到——證明這一點的危險在場、剛才沒收到是守衛擋的 */
       await tap(s.page, P2);
       await s.page.waitForTimeout(700);
@@ -214,10 +215,6 @@ for (const size of SIZES) for (const [lo, hi, mid, want] of BANDS) {
       assert.ok(r.calls.includes('closeModal()'), `W2：量測沒成立——按關閉那一下沒有關掉視窗（${JSON.stringify(r.calls)}）`);
       const dt = gapOk(r, 1, 2, 'W2');
       assert.equal(topBefore, q[2], `W2：量測沒成立——關掉之後、第二下之前，${q} 最上層不是托盤 ${q[2]} 號格（${topBefore}）`);
-      if (want === '不收') {   /* 收下之後盯上會換畫面（667×375 那一點被蓋住），事後量只在沒有動作的帶做 */
-        const top = await trayTopAt(s.page, q);
-        assert.equal(top, q[2], `W2：量測沒成立——關掉之後 ${q} 最上層不是托盤 ${q[2]} 號格（${top}）`);
-      }
       const picked = afterClose(r.calls).filter((c) => /^pickMark\(/.test(c));
       const underNow = await s.page.evaluate(([x, y]) => { const e = document.elementFromPoint(x, y); return e ? (e.id || e.className || e.tagName) : null; }, q);
       console.log(`W2 ${size.join('×')} ${lo}–${hi}px：關閉點 ${cp} → 托盤 ${q}（${Math.round(dist(cp, q))}px）、第二下之前最上層 ${topBefore}、相隔 ${dt}ms、之後的盯上 ${JSON.stringify(picked)}、現在那一點底下 ${underNow}`);
@@ -225,6 +222,9 @@ for (const size of SIZES) for (const [lo, hi, mid, want] of BANDS) {
         assert.deepEqual(picked, [`pickMark(${q[2]})`], `關閉點 ${Math.round(dist(cp, q))}px 外點托盤，應該收下卻被擋了`);
       } else {
         assert.deepEqual(picked, [], `關閉點 ${Math.round(dist(cp, q))}px 內點托盤，被收下了`);
+        /* 事後量只在沒有動作的帶做、排在行為斷言之後（冷讀 H1；收下之後盯上會換畫面，667×375 那一點被蓋住） */
+        const top = await trayTopAt(s.page, q);
+        assert.equal(top, q[2], `W2：量測沒成立——關掉之後 ${q} 最上層不是托盤 ${q[2]} 號格（${top}）`);
         await tap(s.page, q);
         await s.page.waitForTimeout(700);
         const live = await s.page.evaluate(() => window.__calls.slice());
@@ -258,6 +258,7 @@ for (const size of SIZES) {
         assert.ok(closed, `${trial}：「逐件開標中」按「關閉」，視窗沒有關掉`);
         await s.page.waitForTimeout(150);
         const q = trial === '同一點' ? cp : trial === '上 60px' ? [cp[0], cp[1] - 60] : seat2;
+        if (trial === '座位 2') assert.ok(dist(cp, seat2) >= 175, `量測沒成立：座位 2 離關閉點只有 ${Math.round(dist(cp, seat2))}px（要 ≥175px）`);
         await tap(s.page, q);
         await s.page.waitForTimeout(700);
         const r = await snap(s.page);
